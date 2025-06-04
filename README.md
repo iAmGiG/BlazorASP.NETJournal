@@ -4,7 +4,7 @@ This project is a personal journal built using Blazor and ASP.NET. It's designed
 
 ## Getting Started
 
-To get started with this project, you'll need to have .NET Core SDK installed on your machine. Once you have that, you can clone this repository and run the project locally.
+To get started with this project, you'll need the **.NET 8 SDK** installed on your machine. Once you have that, clone this repository and run the project locally.
 
 ## Project Structure
 
