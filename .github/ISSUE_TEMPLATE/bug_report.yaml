@@ -1,0 +1,67 @@
+name: Bug Report
+description: Report a bug or issue in the application
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! Please fill out the information below.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear description of the bug
+      placeholder: Describe what's happening...
+    validations:
+      required: true
+
+  - type: input
+    id: file
+    attributes:
+      label: File Location
+      description: Which file(s) contain the bug?
+      placeholder: "e.g., MyJournal.core/JournalFramework.cs:54"
+    validations:
+      required: false
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should happen?
+    validations:
+      required: false
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happens?
+    validations:
+      required: false
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this issue?
+      placeholder: |
+        1. Go to...
+        2. Click on...
+        3. See error...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Critical (app crashes/doesn't build)
+        - High (feature broken)
+        - Medium (partial functionality)
+        - Low (minor issue)
+    validations:
+      required: false

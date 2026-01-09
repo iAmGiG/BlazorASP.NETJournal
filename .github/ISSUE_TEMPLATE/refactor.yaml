@@ -1,0 +1,42 @@
+name: Refactor
+description: Code cleanup or architectural improvement
+title: "[Refactor]: "
+labels: ["refactor"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Suggest a refactoring or code improvement.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What needs to be refactored and why?
+    validations:
+      required: true
+
+  - type: input
+    id: files
+    attributes:
+      label: Affected Files
+      description: Which files are affected?
+      placeholder: "e.g., BlazorJournalApp/Pages/ToDoForm.razor"
+    validations:
+      required: false
+
+  - type: textarea
+    id: current
+    attributes:
+      label: Current State
+      description: Describe the current implementation
+    validations:
+      required: false
+
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed Changes
+      description: Describe the proposed refactoring
+    validations:
+      required: false
