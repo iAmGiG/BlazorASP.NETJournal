@@ -1,12 +1,19 @@
 # Research Complexity Map - Visualization Documentation
 
-A self-contained interactive visualization mapping abandoned and deferred research paths by barrier type, complexity, and status.
+A self-contained interactive visualization mapping abandoned and deferred
+research paths by barrier type, complexity, and status.
 
 ## Overview
 
-This visualization displays research exploration paths from the GEX-LLM Patterns project, organized as a radial complexity map. The center represents validated, accessible research; outer rings represent increasingly difficult research requiring specialized data, knowledge, or infrastructure.
+This visualization displays research exploration paths from the GEX-LLM
+Patterns project, organized as a radial complexity map. The center
+represents validated, accessible research; outer rings represent
+increasingly difficult research requiring specialized data, knowledge, or
+infrastructure.
 
-**Live Context:** This visualization was created to communicate research scope decisions for PhD dissertation work on LLM-based market mechanics pattern detection.
+**Live Context:** This visualization was created to communicate research
+scope decisions for PhD dissertation work on LLM-based market mechanics
+pattern detection.
 
 ## Source Project
 
@@ -16,55 +23,55 @@ This visualization displays research exploration paths from the GEX-LLM Patterns
 
 ## Key Metrics Displayed
 
-| Metric | Value | Source |
-|--------|-------|--------|
-| Detection Rate | 71.5% | Unbiased prompts validation |
-| Predictive Accuracy | 91.2% | When pattern detected |
-| Trading Days | 242 | Full year 2024 backtesting |
-| Patterns Cataloged | 15 | Market mechanics pattern library |
-| Research Paths | 16 | Explored/abandoned paths |
+| Metric            | Value  | Source                       |
+| ----------------- | ------ | ---------------------------- |
+| Detection Rate    | 71.5%  | Unbiased prompts validation  |
+| Predictive Accuracy | 91.2% | When pattern detected        |
+| Trading Days      | 242    | Full year 2024 backtesting   |
+| Patterns Cataloged | 15     | Market mechanics pattern lib |
+| Research Paths    | 16     | Explored/abandoned paths     |
 
 ## Visualization Structure
 
 ### Concentric Rings (Complexity Levels)
 
-| Ring | Name | Description |
-|------|------|-------------|
-| 0 | Validated Core | Currently implemented and validated |
-| 1 | Minor Extensions | Small additions to existing system |
-| 2 | Statistical Expertise | Requires advanced statistical methods |
-| 3 | Infrastructure Required | Needs significant engineering work |
-| 4 | Expensive/Rare Data | Requires costly data sources ($10K+/year) |
-| 5 | Theoretical Barriers | Fundamental feasibility concerns |
+| Ring | Name                   | Description                    |
+| ---- | ---------------------- | ------------------------------ |
+| 0    | Validated Core         | Currently implemented/validated |
+| 1    | Minor Extensions       | Small additions to sys         |
+| 2    | Statistical Expertise  | Advanced statistical methods   |
+| 3    | Infrastructure Req.    | Significant engineering work   |
+| 4    | Expensive/Rare Data    | Costly data sources ($10K+/yr) |
+| 5    | Theoretical Barriers   | Fundamental feasibility issue  |
 
 ### Quadrants (Barrier Types)
 
-| Quadrant | Angle Range | Color | Description |
-|----------|-------------|-------|-------------|
-| DATA ACCESS | 0-90 | Red | Data availability/cost barriers |
-| DOMAIN KNOWLEDGE | 90-180 | Purple | Expertise/learning curve barriers |
-| SCOPE/FOCUS | 180-270 | Blue | Out of scope for current research |
-| METHODOLOGY | 270-360 | Orange | Approach/technique barriers |
+| Quadrant          | Angle    | Color  | Description                |
+| ----------------- | -------- | ------ | -------------------------- |
+| DATA ACCESS       | 0-90     | Red    | Data availability/cost     |
+| DOMAIN KNOWLEDGE  | 90-180   | Purple | Expertise/learning curve   |
+| SCOPE/FOCUS       | 180-270  | Blue   | Out of scope research      |
+| METHODOLOGY       | 270-360  | Orange | Approach/technique issues  |
 
 ### Status Colors
 
-| Status | Color | Meaning |
-|--------|-------|---------|
+| Status      | Color          | Meaning               |
+| ----------- | -------------- | --------------------- |
 | Implemented | Green (#2ecc71) | Working in production |
-| Partial | Orange (#f39c12) | Partially implemented |
-| Deferred | Blue (#3498db) | Planned for future |
-| Abandoned | Purple (#9b59b6) | Not pursuing |
-| Blocked | Orange (#e67e22) | Waiting on external factor |
-| Infeasible | Red (#e74c3c) | Cannot be done |
-| Superseded | Teal (#1abc9c) | Replaced by better approach |
+| Partial     | Orange (#f39c12) | Partially implemented |
+| Deferred    | Blue (#3498db) | Planned for future    |
+| Abandoned   | Purple (#9b59b6) | Not pursuing         |
+| Blocked     | Orange (#e67e22) | Waiting on external   |
+| Infeasible  | Red (#e74c3c)  | Cannot be done        |
+| Superseded  | Teal (#1abc9c) | Replaced by better    |
 
 ### Pattern Taxonomy
 
-| Badge | Type | Description |
-|-------|------|-------------|
-| MECH | Mechanical | Must occur due to dealer constraints. Passes obfuscation test. |
-| PROB | Probabilistic | Statistical edge (>60%) but not guaranteed. |
-| NARR | Narrative | Market folklore. Fails obfuscation test. |
+| Badge | Type          | Description                    |
+| ----- | ------------- | ------------------------------ |
+| MECH  | Mechanical    | Must occur, passes obfuscation |
+| PROB  | Probabilistic | Statistical edge (>60%)        |
+| NARR  | Narrative     | Folklore, fails obfuscation    |
 
 ## Research Paths Data
 
@@ -95,10 +102,13 @@ Each research path includes:
 #### Ring 0: Core (Validated)
 
 **Core GEX Analysis System**
+
 - Status: Implemented
 - Taxonomy: Mechanical
 - Paper: Paper 1
-- Description: GEX calculations, 15-pattern library, single LLM agent (MarketMechanicsAgent), O3-mini integration. WHO/WHOM/WHAT causal attribution framework.
+- Description: GEX calculations, 15-pattern library, single LLM agent
+  (MarketMechanicsAgent), O3-mini integration. WHO/WHOM/WHAT causal
+  attribution framework.
 - GitHub Issues: Core system spans multiple foundational issues
 
 #### Ring 1: Minor Extensions
@@ -269,11 +279,11 @@ quadrants: {
 
 The visualization references a three-paper PhD dissertation arc:
 
-| Paper | Title | Status | Focus |
-|-------|-------|--------|-------|
-| 1 | LLM Pattern Detection | Validated | Can LLMs detect mechanical patterns from GEX data? |
-| 2 | Regime Detection | In Progress | Can LLMs classify market regimes? |
-| 3 | Sector Rotation | Planned | Can LLMs identify cross-sector rotation signals? |
+| Paper | Title              | Status        | Focus                      |
+| ----- | -------------------|-------|------------------|
+| 1     | LLM Pattern Det.   | Valid | Can LLMs detect patterns?  |
+| 2     | Regime Detection   | In Prog | Can LLMs classify regimes? |
+| 3     | Sector Rotation    | Planned | Can LLMs ID rotation signals? |
 
 ## Technical Details
 

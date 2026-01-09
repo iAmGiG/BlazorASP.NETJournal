@@ -1,6 +1,7 @@
 # Contributing to GexVisor
 
-Thank you for your interest in contributing! This guide explains how to set up your development environment and follow our code standards.
+Thank you for your interest in contributing! This guide explains how to set
+up your development environment and follow our code standards.
 
 ## Development Setup
 
