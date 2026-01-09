@@ -62,15 +62,15 @@ dotnet run
 ```
 GexVisor/
 ├── src/                          # Source code
-│   ├── GexVisor.NET/             # Main application
-│   ├── MyJournal.core/           # Core models and business logic
-│   └── BlazorJournalApp/         # Blazor UI components
+│   ├── GexVisor.UI/              # Blazor WebAssembly UI
+│   └── GexVisor.Core/            # Core models and business logic
 ├── docs/                         # Documentation
 │   ├── research-visuals/         # Interactive research visualizations
 │   └── research-archive/         # Historical research materials
 ├── tests/                        # Unit and integration tests
 ├── .editorconfig                 # Code style settings
 ├── .pre-commit-config.yaml       # Git hooks configuration
+├── GexVisor.NET.sln              # Solution file
 ├── CONTRIBUTING.md               # Development guide
 └── README.md                     # This file
 ```

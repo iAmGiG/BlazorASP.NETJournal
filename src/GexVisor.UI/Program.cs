@@ -1,4 +1,4 @@
-using BlazorJournalApp;
+using GexVisor.UI;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 

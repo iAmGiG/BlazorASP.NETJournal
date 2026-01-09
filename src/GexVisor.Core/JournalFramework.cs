@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
-using static MyJournal.core.JournalFramework;
+using static GexVisor.Core.JournalFramework;
 
-namespace MyJournal.core
+namespace GexVisor.Core
 {
 	public class JournalFramework
 	{
@@ -41,17 +41,14 @@ namespace MyJournal.core
 		//private DateTime GetTargetDate(Guid id)
 		//{ null; }
 
-		void SaveTasks(/*Journal Obj*/)
+		public void SaveTasks(List<ToDoTask> tasks)
 		{
-			//string jsonString = JsonSerializer.Serialize(MyTasks);
-			//System.IO.File.WriteAllText("./Data/MyTasks.json", jsonString);
-			//Console.WriteLine(jsonString);
 			string directoryPath = "./Data/";
 			if (!System.IO.Directory.Exists(directoryPath))
 			{
 				System.IO.Directory.CreateDirectory(directoryPath);
 			}
-			string jsonString = JsonSerializer.Serialize(MyTasks);
+			string jsonString = JsonSerializer.Serialize(tasks);
 			System.IO.File.WriteAllText(directoryPath + "MyTasks.json", jsonString);
 		}
 	}

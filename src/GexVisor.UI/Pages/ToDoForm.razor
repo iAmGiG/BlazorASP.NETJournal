@@ -1,5 +1,6 @@
 ﻿@page "/todo"
-@using System.Text.Json;
+@using System.Text.Json
+@using GexVisor.Core
 
 <h3>ToDoForm</h3>
 <ul>
@@ -37,15 +38,21 @@
 </section>
 
 @code {
-	private List<Tasks> MyTasks = new List<Tasks>
+	private List<ToDoTask> MyTasks = new List<ToDoTask>
 	{
-		new Tasks(Guid.NewGuid(), "Get the NameCheap SSL problem solved.",
-		true, DateTime.Now, DateTime.Now, PriorityLevel.Low),
-		new Tasks(Guid.NewGuid(), "Look into the keyboard media key setup.",
-		true, DateTime.Now, DateTime.Now, PriorityLevel.Low),
-		new Tasks(Guid.NewGuid(), "Look into a reduced Resume creation. (very reduced.)",
-		false, DateTime.Now, DateTime.Now, PriorityLevel.Low),
-		new Tasks(Guid.NewGuid(), "Start studying on the CCSE FYE material.",
-		true, DateTime.Now, DateTime.Now, PriorityLevel.Low),
+		new ToDoTask(Guid.NewGuid(), "Get the NameCheap SSL problem solved.",
+		true, DateTime.Now, DateTime.Now, JournalFramework.PriorityLevel.Low),
+		new ToDoTask(Guid.NewGuid(), "Look into the keyboard media key setup.",
+		true, DateTime.Now, DateTime.Now, JournalFramework.PriorityLevel.Low),
+		new ToDoTask(Guid.NewGuid(), "Look into a reduced Resume creation. (very reduced.)",
+		false, DateTime.Now, DateTime.Now, JournalFramework.PriorityLevel.Low),
+		new ToDoTask(Guid.NewGuid(), "Start studying on the CCSE FYE material.",
+		true, DateTime.Now, DateTime.Now, JournalFramework.PriorityLevel.Low),
 	};
+
+	private void SaveTasks()
+	{
+		var framework = new JournalFramework();
+		framework.SaveTasks(MyTasks);
+	}
 }
