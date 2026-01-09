@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paper 2: Structural Agreement & Adoption Visualizer</title>
+    <style>
+        :root {
+            --bg: #0f1115;
+            --panel: #181b21;
+            --text: #e1e1e1;
+            --dim: #6c757d;
+            --accent-cyan: #00f2ea;
+            --accent-red: #ff0055;
+            --accent-green: #00d26a;
+            --border: #2d333b;
+        }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', monospace; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* HEADER */
+        header { padding: 15px 25px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--panel); }
+        h1 { margin: 0; font-size: 1.1rem; letter-spacing: 1px; }
+        .tag { background: #2d333b; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; color: var(--accent-cyan); margin-left: 10px; }
+
+        /* TIMELINE (The Gradual Adoption S-Curve) */
+        .timeline-container { padding: 20px; background: var(--panel); border-bottom: 1px solid var(--border); display: grid; grid-template-columns: 100px 1fr; align-items: center; gap: 20px; }
+        .year-display { font-size: 2.5rem; font-weight: bold; color: var(--accent-cyan); text-align: center; }
+        .timeline-track { position: relative; height: 40px; background: #222; border-radius: 4px; display: flex; align-items: flex-end; padding: 0 10px; }
+        .t-bar { width: 15%; margin: 0 1%; background: #333; transition: height 0.5s, background 0.5s; position: relative; }
+        .t-bar span { position: absolute; top: -20px; width: 100%; text-align: center; font-size: 0.7rem; color: var(--dim); }
+        .t-bar .val { position: absolute; bottom: 5px; width: 100%; text-align: center; font-size: 0.7rem; font-weight: bold; color: #000; display: none; }
+        .t-active .val { display: block; }
+
+        /* MAIN VISUALS (The Agreement Test) */
+        .main-stage { flex: 1; display: grid; grid-template-columns: 1fr 200px 1fr; gap: 2px; background: var(--border); }
+        
+        .chart-panel { background: var(--bg); position: relative; padding: 10px; display: flex; flex-direction: column; }
+        .panel-label { color: var(--dim); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        
+        .viz-box { flex: 1; position: relative; border: 1px dashed #333; border-radius: 4px; overflow: hidden; }
+        .bar-container { display: flex; height: 100%; align-items: flex-end; justify-content: space-around; padding: 0 5px; }
+        .v-bar { width: 20px; background: #333; transition: height 0.2s, background 0.2s; border-radius: 2px 2px 0 0; }
+
+        /* CENTRAL LOGIC (The "Brain") */
+        .logic-panel { background: var(--panel); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; border-left: 1px solid var(--border); border-right: 1px solid var(--border); z-index: 10; }
+        .logic-title { font-size: 0.8rem; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; }
+        
+        .detector-box { width: 140px; padding: 15px; background: #111; border-radius: 8px; text-align: center; border: 1px solid #333; transition: all 0.3s; }
+        .detector-label { font-size: 0.7rem; color: var(--dim); margin-bottom: 5px; }
+        .detector-status { font-size: 1.2rem; font-weight: bold; color: #444; }
+        
+        .agreement-line { height: 2px; width: 50px; background: #333; margin: 10px 0; position: relative; }
+        .agreement-badge { background: #222; color: #555; padding: 5px 10px; border-radius: 12px; font-size: 0.7rem; border: 1px solid #333; }
+
+        .active-regime { border-color: var(--accent-red); box-shadow: 0 0 15px rgba(255, 0, 85, 0.2); }
+        .active-regime .detector-status { color: var(--accent-red); text-shadow: 0 0 8px var(--accent-red); }
+        .match-success { background: var(--accent-green); color: #000; border-color: var(--accent-green); font-weight: bold; }
+
+        /* CONTROLS */
+        .controls { padding: 15px; background: var(--panel); border-top: 1px solid var(--border); display: flex; justify-content: center; gap: 20px; }
+        button { background: #333; color: white; border: none; padding: 10px 25px; border-radius: 4px; cursor: pointer; font-family: inherit; font-weight: bold; transition: 0.2s; }
+        button:hover { background: #444; }
+        button.primary { background: var(--accent-cyan); color: #000; }
+        button.primary:hover { background: #00d6ce; }
+
+        /* SCAR TISSUE OVERLAY */
+        .scar-overlay { position: absolute; top: 10px; right: 10px; font-size: 0.7rem; color: var(--accent-red); opacity: 0; transition: opacity 0.5s; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div style="display:flex; align-items:center">
+        <span style="color:var(--accent-red); font-size:1.2rem; margin-right:10px">⦿</span>
+        <h1>RESEARCH VISUALIZER <span class="tag">FORMULA AGREEMENT TEST</span></h1>
+    </div>
+    <div style="font-size:0.8rem; color:var(--dim)">Paper 2: Gradual Adoption & Structural Truth</div>
+</header>
+
+<div class="timeline-container">
+    <div class="year-display" id="year-disp">2020</div>
+    <div class="timeline-track" id="timeline">
+        </div>
+</div>
+
+<div class="main-stage">
+    
+    <div class="chart-panel">
+        <div class="panel-label">
+            <span>Absolute GEX ($S²)</span>
+            <span style="color:var(--accent-red)">Paper 2 Method</span>
+        </div>
+        <div class="viz-box">
+            <div class="bar-container" id="bars-abs"></div>
+            <div class="scar-overlay" id="scar-abs">SCAR TISSUE DETECTED</div>
+        </div>
+        <div style="margin-top:5px; font-size:0.7rem; color:var(--dim)">Sensitive to Inflation & Magnitude</div>
+    </div>
+
+    <div class="logic-panel">
+        <div class="logic-title">LLM REASONING</div>
+        
+        <div class="detector-box" id="det-abs">
+            <div class="detector-label">ABS MODEL</div>
+            <div class="detector-status" id="status-abs">NO REGIME</div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; align-items:center">
+            <div class="agreement-line"></div>
+            <div class="agreement-badge" id="agree-badge">WAITING...</div>
+            <div class="agreement-line"></div>
+        </div>
+
+        <div class="detector-box" id="det-norm">
+            <div class="detector-label">NORM MODEL</div>
+            <div class="detector-status" id="status-norm">NO REGIME</div>
+        </div>
+    </div>
+
+    <div class="chart-panel">
+        <div class="panel-label">
+            <span>Normalized GEX (Ratio)</span>
+            <span style="color:var(--accent-cyan)">Practitioner Method</span>
+        </div>
+        <div class="viz-box">
+            <div class="bar-container" id="bars-norm"></div>
+        </div>
+        <div style="margin-top:5px; font-size:0.7rem; color:var(--dim)">Sensitive only to Directional Tilt</div>
+    </div>
+
+</div>
+
+<div class="controls">
+    <button onclick="setYear(2020)">2020 (Baseline)</button>
+    <button onclick="setYear(2023)">2023 (The Dip)</button>
+    <button onclick="setYear(2024)">2024 (Regime)</button>
+    <button class="primary" onclick="playSimulation()">▶ PLAY FULL EVOLUTION</button>
+</div>
+
+<script>
+    // DATA: The "Gradual Adoption" findings from Paper 2
+    const timelineData = {
+        2020: { rate: 12.1,  mag: 2.8,  persist: 0.6,  vol: 'High',  desc: "Fragmented" },
+        2021: { rate: 3.7,   mag: 4.9,  persist: 0.5,  vol: 'Low',   desc: "Borderline" },
+        2022: { rate: 32.4,  mag: 8.5,  persist: 0.75, vol: 'Med',   desc: "Adoption" },
+        2023: { rate: 20.2,  mag: 12.0, persist: 0.65, vol: 'Spike', desc: "Turbulence (Dip)" },
+        2024: { rate: 100.0, mag: 20.3, persist: 0.98, vol: 'Low',   desc: "Structural Regime" },
+        2025: { rate: 100.0, mag: 23.0, persist: 0.99, vol: 'Low',   desc: "Sustained" }
+    };
+
+    const years = [2020, 2021, 2022, 2023, 2024, 2025];
+    let currentYear = 2020;
+    let simInterval = null;
+
+    // DOM ELEMENTS
+    const elTimeline = document.getElementById('timeline');
+    const elYear = document.getElementById('year-disp');
+    const barsAbs = document.getElementById('bars-abs');
+    const barsNorm = document.getElementById('bars-norm');
+    
+    // LOGIC ELEMENTS
+    const detAbs = document.getElementById('det-abs');
+    const statusAbs = document.getElementById('status-abs');
+    const detNorm = document.getElementById('det-norm');
+    const statusNorm = document.getElementById('status-norm');
+    const agreeBadge = document.getElementById('agree-badge');
+
+    // INIT
+    function init() {
+        // Build Timeline Bars
+        years.forEach(y => {
+            const d = timelineData[y];
+            const div = document.createElement('div');
+            div.className = 't-bar';
+            div.id = `t-${y}`;
+            div.style.height = `${d.rate}%`;
+            div.innerHTML = `<span>${y}</span><div class="val">${d.rate}%</div>`;
+            if(y === 2023) div.style.background = '#ffcc00'; // Highlight the dip
+            if(y >= 2024) div.style.background = '#ff0055'; // Highlight regime
+            elTimeline.appendChild(div);
+        });
+
+        // Build Visualizer Bars (15 bars representing 30 days simplified)
+        for(let i=0; i<15; i++) {
+            const b1 = document.createElement('div'); b1.className = 'v-bar'; b1.id = `ba-${i}`;
+            const b2 = document.createElement('div'); b2.className = 'v-bar'; b2.id = `bn-${i}`;
+            barsAbs.appendChild(b1);
+            barsNorm.appendChild(b2);
+        }
+
+        setYear(2020);
+    }
+
+    // STATE ENGINE
+    function setYear(y) {
+        currentYear = y;
+        const data = timelineData[y];
+        
+        // 1. Update Header
+        elYear.innerText = y;
+        
+        // 2. Update Timeline Highlight
+        years.forEach(yr => {
+            const bar = document.getElementById(`t-${yr}`);
+            if(yr === y) {
+                bar.style.opacity = '1';
+                bar.style.border = '1px solid white';
+                bar.classList.add('t-active');
+            } else {
+                bar.style.opacity = '0.3';
+                bar.style.border = 'none';
+                bar.classList.remove('t-active');
+            }
+        });
+
+        // 3. Generate "Market Structure" for that year
+        renderVisuals(data);
+    }
+
+    function renderVisuals(data) {
+        // We simulate the "Look" of the bars based on the data
+        // 2020: Small bars, messy (low persistence)
+        // 2024: Huge bars, uniform (high persistence)
+        
+        const isRegime = data.rate > 50; // Threshold logic
+        const persistence = data.persist;
+        const magnitude = data.mag / 23.0; // Normalize to max 2025 mag
+
+        let detectedAbs = false;
+        let detectedNorm = false;
+
+        // Animate Bars
+        for(let i=0; i<15; i++) {
+            const ba = document.getElementById(`ba-${i}`);
+            const bn = document.getElementById(`bn-${i}`);
+
+            // Random variation based on persistence
+            // If persistence is high, almost all bars are same direction (negative/red)
+            const isFlawed = Math.random() > persistence; 
+            const dir = isFlawed ? 1 : -1; // 1 = Positive (Green), -1 = Negative (Red)
+            
+            // Height logic
+            // Abs: Scaled by Magnitude (Inflation)
+            // Norm: Scaled only by Tilt (always roughly 0.5-0.8 relative)
+            
+            let hAbs = (Math.random() * 0.4 + 0.6) * magnitude * 100; // 0-100%
+            let hNorm = (Math.random() * 0.4 + 0.4) * 80; // Always looks "full" relatively
+            
+            if(currentYear === 2023) { // The Dip (Volatile)
+                hAbs = hAbs * 0.8; 
+                hNorm = hNorm * 1.2; // Ratios look high even if mag is low
+            }
+
+            // Apply Styles
+            ba.style.height = `${hAbs}%`;
+            ba.style.backgroundColor = dir === -1 ? '#ff0055' : '#00d26a';
+            
+            bn.style.height = `${hNorm}%`;
+            bn.style.backgroundColor = dir === -1 ? '#00f2ea' : '#00d26a'; // Practitioner usually uses cyan for puts
+        }
+
+        // 4. Run the "Detectors" (Simulated Logic)
+        // Logic: 
+        // Abs detects if Mag > Threshold AND Persistence > 70%
+        // Norm detects if Persistence > 70% (Mag is ignored/normalized out)
+        
+        // In 2020: Fails Persistence
+        // In 2021: Fails Magnitude (Abs) AND Persistence (Norm)
+        // In 2023: Fails Stability (Simulated)
+        // In 2024: Passes All
+        
+        if (currentYear >= 2024) {
+            updateDetector('abs', true, "REGIME DETECTED");
+            updateDetector('norm', true, "REGIME DETECTED");
+            setAgreement(true);
+        } else if (currentYear === 2023) {
+            // The Dip: Volatility breaks it
+            updateDetector('abs', false, "UNSTABLE");
+            updateDetector('norm', false, "UNSTABLE");
+            setAgreement(true); // They AGREE that it's NOT a regime
+        } else {
+            // 2020/2021
+            updateDetector('abs', false, "NO REGIME");
+            updateDetector('norm', false, "NO REGIME");
+            setAgreement(true);
+        }
+    }
+
+    function updateDetector(type, active, text) {
+        const box = document.getElementById(`det-${type}`);
+        const stat = document.getElementById(`status-${type}`);
+        
+        stat.innerText = text;
+        if(active) {
+            box.classList.add('active-regime');
+        } else {
+            box.classList.remove('active-regime');
+        }
+    }
+
+    function setAgreement(match) {
+        if(match) {
+            agreeBadge.innerText = "100% AGREEMENT";
+            agreeBadge.classList.add('match-success');
+        } else {
+            agreeBadge.innerText = "DIVERGENCE";
+            agreeBadge.classList.remove('match-success');
+        }
+    }
+
+    function playSimulation() {
+        let y = 2020;
+        if(simInterval) clearInterval(simInterval);
+        setYear(y);
+        
+        simInterval = setInterval(() => {
+            y++;
+            if(y > 2025) {
+                clearInterval(simInterval);
+            } else {
+                setYear(y);
+            }
+        }, 1200); // 1.2s per year
+    }
+
+    init();
+
+</script>
+
+</body>
+</html>
