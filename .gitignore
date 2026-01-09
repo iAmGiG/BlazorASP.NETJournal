@@ -341,3 +341,5 @@ FodyWeavers.xsd
 *.css.map
 *.sass.map
 *.scss.map
+.claude/
+claude.md
