@@ -7,7 +7,7 @@ up your development environment and follow our code standards.
 
 ### Prerequisites
 
-- .NET 8.0 SDK or later
+- .NET 9.0 SDK or later
 - Visual Studio 2022, Visual Studio Code, or JetBrains Rider
 - Git
 

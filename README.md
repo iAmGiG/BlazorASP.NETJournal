@@ -18,7 +18,7 @@ tools.
 
 - **Framework:** .NET MAUI (cross-platform desktop/mobile)
 - **UI:** Blazor WebAssembly (components and layouts)
-- **Language:** C# (.NET 8.0+)
+- **Language:** C# (.NET 9.0)
 - **Data Store:** Client-side SQLite (embedded database)
 - **Charting:** JavaScript libraries via Blazor JS Interop
 
@@ -26,7 +26,7 @@ tools.
 
 ### Prerequisites
 
-- **.NET 8.0 SDK** or later
+- **.NET 9.0 SDK** or later
 - Visual Studio 2022, Visual Studio Code, or JetBrains Rider
 - Git
 
