@@ -32,7 +32,10 @@
 	<section>
 		<h3>Log</h3>
 		<ul>
-			<li @bind="LogOfTheDay[0]">@LogOfTheDay[0].Name</li>
+			@foreach (var log in LogOfTheDay)
+			{
+				<li>@log.Name - @log.date</li>
+			}
 		</ul>
 	</section>
 </article>
