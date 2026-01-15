@@ -405,6 +405,7 @@
             gap: 12px;
             font-size: 0.75rem;
             color: #8b949e;
+            flex-wrap: wrap;
         }
 
         .pattern-item .pattern-metrics span {
@@ -1065,41 +1066,194 @@ Topic 3: "Customer Service"
   Document %: 31%</div>
         </div>
 
+        <!-- Pattern Taxonomy from Research -->
+        <div class="pattern-examples" style="border-left: 3px solid #f85149;">
+            <h3>Pattern Taxonomy: What Makes a Pattern "Structural"?</h3>
+            <p style="color: #8b949e; font-size: 0.85rem; margin-bottom: 16px;">
+                Not all patterns are equal. Research distinguishes three types - only one is reliably mineable:
+            </p>
+            <div class="pattern-grid">
+                <div class="pattern-item" style="border-left: 3px solid #3fb950;">
+                    <div class="pattern-type" style="color: #3fb950;">Type 1: Structural Constraint Patterns ✓</div>
+                    <div class="pattern-rule" style="color: #c9d1d9; font-family: inherit; font-size: 0.85rem;">
+                        Clear causal mechanism: WHO forces WHOM to do WHAT
+                    </div>
+                    <div style="color: #8b949e; font-size: 0.8rem; margin-top: 8px;">
+                        <strong>Example:</strong> Negative gamma exposure forces dealers to sell rallies and buy dips (regulatory constraint)
+                    </div>
+                    <div class="pattern-metrics">
+                        <span style="background: #238636;">Testable</span>
+                        <span style="background: #238636;">Causal</span>
+                        <span style="background: #238636;">Predictable</span>
+                    </div>
+                </div>
+                <div class="pattern-item" style="border-left: 3px solid #f0883e; opacity: 0.8;">
+                    <div class="pattern-type" style="color: #f0883e;">Type 2: Statistical Regularities ⚠</div>
+                    <div class="pattern-rule" style="color: #c9d1d9; font-family: inherit; font-size: 0.85rem;">
+                        Correlations without established causal mechanisms
+                    </div>
+                    <div style="color: #8b949e; font-size: 0.8rem; margin-top: 8px;">
+                        <strong>Example:</strong> "Markets tend to rally in December" - correlation without explanation
+                    </div>
+                    <div class="pattern-metrics">
+                        <span style="background: #9e6a03;">Risky</span>
+                        <span style="background: #9e6a03;">May Overfit</span>
+                    </div>
+                </div>
+                <div class="pattern-item" style="border-left: 3px solid #f85149; opacity: 0.7;">
+                    <div class="pattern-type" style="color: #f85149;">Type 3: Narrative Patterns ✗</div>
+                    <div class="pattern-rule" style="color: #c9d1d9; font-family: inherit; font-size: 0.85rem;">
+                        Post-hoc storytelling without empirical validation
+                    </div>
+                    <div style="color: #8b949e; font-size: 0.8rem; margin-top: 8px;">
+                        <strong>Example:</strong> "The squeeze happened because of Reddit" - not testable
+                    </div>
+                    <div class="pattern-metrics">
+                        <span style="background: #da3633;">Untestable</span>
+                        <span style="background: #da3633;">Circular</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- WHO-WHOM-WHAT Framework -->
+        <div class="pattern-examples" style="border-left: 3px solid #a371f7;">
+            <h3>Causal Identification: WHO → WHOM → WHAT</h3>
+            <p style="color: #8b949e; font-size: 0.85rem; margin-bottom: 16px;">
+                For a pattern to be "structural," it must identify a causal chain - not just correlation:
+            </p>
+            <div class="code-block" style="background: #161b22; border-color: #a371f7;">
+# Causal Pattern Template
+WHO:   "Dealers with negative gamma exposure"     ← Constrained agent
+WHOM:  "Market participants buying/selling"       ← Affected counterparty
+WHAT:  "Forced to sell rallies, buy dips"        ← Required action
+
+# This tests MECHANISM understanding, not correlation recognition
+# Pattern is valid if WHO cannot avoid WHAT under constraint conditions</div>
+            <div class="pattern-grid" style="margin-top: 16px;">
+                <div class="pattern-item">
+                    <div class="pattern-type">Validated Structural Pattern</div>
+                    <div class="pattern-rule">Gamma Squeeze Pattern</div>
+                    <div style="color: #8b949e; font-size: 0.8rem; margin: 8px 0;">
+                        <strong>WHO:</strong> Dealers with negative gamma<br>
+                        <strong>WHOM:</strong> Directional traders<br>
+                        <strong>WHAT:</strong> Amplify volatility through forced hedging
+                    </div>
+                    <div class="pattern-metrics">
+                        <span>Win Rate: 67%</span>
+                        <span>Avg Move: 3.2%</span>
+                        <span>Hold: 1-3 days</span>
+                    </div>
+                </div>
+                <div class="pattern-item">
+                    <div class="pattern-type">Validated Structural Pattern</div>
+                    <div class="pattern-rule">Expiration Pin Pattern</div>
+                    <div style="color: #8b949e; font-size: 0.8rem; margin: 8px 0;">
+                        <strong>WHO:</strong> Dealers with concentrated OI<br>
+                        <strong>WHOM:</strong> Price discovery mechanism<br>
+                        <strong>WHAT:</strong> Hedge flow pins price to max pain strike
+                    </div>
+                    <div class="pattern-metrics">
+                        <span>Success: 75%</span>
+                        <span>Pin Accuracy: 0.2%</span>
+                    </div>
+                </div>
+                <div class="pattern-item">
+                    <div class="pattern-type">Validated Structural Pattern</div>
+                    <div class="pattern-rule">Liquidity Vacuum Pattern</div>
+                    <div style="color: #8b949e; font-size: 0.8rem; margin: 8px 0;">
+                        <strong>WHO:</strong> Market makers with risk limits<br>
+                        <strong>WHOM:</strong> Liquidity-seeking traders<br>
+                        <strong>WHAT:</strong> Withdraw quotes → spreads widen → cascade
+                    </div>
+                    <div class="pattern-metrics">
+                        <span>Win Rate: 72%</span>
+                        <span>Avg Spike: 3%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Obfuscation Testing -->
+        <div class="pattern-examples" style="border-left: 3px solid #58a6ff;">
+            <h3>Avoiding Overfitting: Data Obfuscation Testing</h3>
+            <p style="color: #8b949e; font-size: 0.85rem; margin-bottom: 16px;">
+                How do you know if a discovered pattern is real vs memorized from training data?
+                <strong>Obfuscation testing</strong> strips contextual cues to test structural reasoning:
+            </p>
+            <div class="detail-grid">
+                <div class="detail-card" style="border-left: 3px solid #3fb950;">
+                    <h4 style="color: #3fb950;">Preserved (Structure)</h4>
+                    <ul>
+                        <li>✅ Quantitative values (raw metrics)</li>
+                        <li>✅ Relationships (ratios, distances)</li>
+                        <li>✅ Distributions (concentrations)</li>
+                        <li>✅ Sequential ordering</li>
+                    </ul>
+                </div>
+                <div class="detail-card" style="border-left: 3px solid #f85149;">
+                    <h4 style="color: #f85149;">Removed (Context)</h4>
+                    <ul>
+                        <li>❌ Real dates → "Day T+0"</li>
+                        <li>❌ Real names → "ENTITY_A"</li>
+                        <li>❌ Calendar info (day of week)</li>
+                        <li>❌ Event references</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Why This Matters</h4>
+                    <ul>
+                        <li>Tests if pattern is structural vs memorized</li>
+                        <li>Prevents "training data leakage"</li>
+                        <li>Forces reasoning from data alone</li>
+                        <li>Validates generalization potential</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="code-block" style="margin-top: 16px;">
+# Obfuscation Example
+ORIGINAL:  Date: 2021-01-27 | Ticker: GME | Event: Reddit squeeze
+OBFUSCATED: Day T+0 | STOCK_A | [context removed]
+
+# If pattern detection works WITHOUT context → Structural pattern ✓
+# If detection requires context → Narrative pattern (overfit risk) ✗</div>
+        </div>
+
         <!-- Real Pattern Examples -->
         <div class="pattern-examples">
-            <h3>Example Discovered Patterns</h3>
+            <h3>Example: Pattern Validation Results</h3>
             <div class="pattern-grid">
                 <div class="pattern-item">
                     <div class="pattern-type">Association Rule</div>
-                    <div class="pattern-rule">{High Volume} ∧ {Near Expiry} → {Volatility Spike}</div>
+                    <div class="pattern-rule">{Negative Gamma} ∧ {Near Flip Point} → {Volatility Amplification}</div>
                     <div class="pattern-metrics">
-                        <span>Support: 12%</span>
-                        <span>Confidence: 78%</span>
-                        <span>Lift: 3.2</span>
+                        <span>Support: 23%</span>
+                        <span>Confidence: 67%</span>
+                        <span>Lift: 2.8</span>
                     </div>
                 </div>
                 <div class="pattern-item">
                     <div class="pattern-type">Classification Rule</div>
-                    <div class="pattern-rule">IF metric > threshold AND time_window = "critical" THEN regime = "unstable"</div>
+                    <div class="pattern-rule">IF net_exposure < -$2B AND distance_to_flip < 2% THEN regime = "amplifying"</div>
                     <div class="pattern-metrics">
-                        <span>Accuracy: 75%</span>
-                        <span>Coverage: 34%</span>
+                        <span>Detection: 71.5%</span>
+                        <span>Accuracy: 91.2%</span>
                     </div>
                 </div>
                 <div class="pattern-item">
-                    <div class="pattern-type">Cluster Pattern</div>
-                    <div class="pattern-rule">Cluster 3: "High-Activity Periods" - elevated metrics, compressed ranges</div>
+                    <div class="pattern-type">Temporal Pattern</div>
+                    <div class="pattern-rule">30-day window persistence: regime coherence > 0.7 across consecutive days</div>
                     <div class="pattern-metrics">
-                        <span>Size: 156 instances</span>
-                        <span>Silhouette: 0.72</span>
+                        <span>2024: 81.2%</span>
+                        <span>2020: 12.1%</span>
                     </div>
                 </div>
                 <div class="pattern-item">
-                    <div class="pattern-type">Anomaly Pattern</div>
-                    <div class="pattern-rule">Deviation detected: 4.7σ from rolling baseline during event window</div>
+                    <div class="pattern-type">Validation Threshold</div>
+                    <div class="pattern-rule">Pattern valid if: Detection ≥ 60% AND Sample ≥ 30 days AND Accuracy ≥ 75%</div>
                     <div class="pattern-metrics">
-                        <span>Anomaly Score: 0.96</span>
-                        <span>Context: Temporal</span>
+                        <span style="background: #238636;">Passed</span>
+                        <span>n=242 days</span>
                     </div>
                 </div>
             </div>
@@ -1124,11 +1278,13 @@ Topic 3: "Customer Service"
                 <li>Which technique(s) align with your question type?</li>
                 <li>How will you evaluate if discovered patterns are "interesting"?</li>
                 <li>Who is the domain expert that can validate your findings?</li>
+                <li>Can your pattern survive obfuscation testing?</li>
             </ul>
         </div>
 
         <div class="footer">
             <p>Data Mining | Pattern Discovery Pipeline</p>
+            <p style="margin-top: 8px; font-size: 0.75rem; color: #484f58;">Research examples from: arXiv:2512.17923v2</p>
         </div>
     </div>
 
