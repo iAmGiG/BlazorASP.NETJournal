@@ -36,7 +36,8 @@ public class GexDataService
         try
         {
             var response = await _httpClient.GetAsync("data/index.json");
-            if (!response.IsSuccessStatusCode) return null;
+            if (!response.IsSuccessStatusCode)
+                return null;
 
             var json = await response.Content.ReadAsStringAsync();
             _index = JsonSerializer.Deserialize<GexIndex>(json, _jsonOptions);
@@ -65,7 +66,8 @@ public class GexDataService
 
             var json = await response.Content.ReadAsStringAsync();
             var rawTimeline = JsonSerializer.Deserialize<RawGexTimeline>(json, _jsonOptions);
-            if (rawTimeline == null) return null;
+            if (rawTimeline == null)
+                return null;
 
             return TransformTimeline(rawTimeline);
         }
@@ -124,7 +126,8 @@ public class GexDataService
     /// </summary>
     public IEnumerable<string> GetAssetClasses()
     {
-        if (_index == null) return Enumerable.Empty<string>();
+        if (_index == null)
+            return Enumerable.Empty<string>();
         return _index.AssetClasses.Keys.OrderBy(k => k);
     }
 
@@ -143,7 +146,8 @@ public class GexDataService
     /// </summary>
     public IEnumerable<string> GetAllSymbols()
     {
-        if (_index == null) return Enumerable.Empty<string>();
+        if (_index == null)
+            return Enumerable.Empty<string>();
         return _index.Symbols.Select(s => s.Symbol).OrderBy(s => s);
     }
 

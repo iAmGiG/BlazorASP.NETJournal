@@ -16,7 +16,8 @@ public record GexTimeline
     /// </summary>
     public (decimal Min, decimal Max) GetPriceRange()
     {
-        if (Timeline.Count == 0) return (0, 0);
+        if (Timeline.Count == 0)
+            return (0, 0);
         return (Timeline.Min(t => t.Price), Timeline.Max(t => t.Price));
     }
 
@@ -25,7 +26,8 @@ public record GexTimeline
     /// </summary>
     public (decimal Min, decimal Max) GetGexRange()
     {
-        if (Timeline.Count == 0) return (0, 0);
+        if (Timeline.Count == 0)
+            return (0, 0);
         return (Timeline.Min(t => t.Gex), Timeline.Max(t => t.Gex));
     }
 }

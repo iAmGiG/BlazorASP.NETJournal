@@ -18,15 +18,15 @@ tools.
 
 - **Framework:** .NET MAUI (cross-platform desktop/mobile)
 - **UI:** Blazor WebAssembly (components and layouts)
-- **Language:** C# (.NET 9.0)
+- **Language:** C# (.NET 10.0 LTS)
 - **Data Store:** Client-side SQLite (embedded database)
-- **Charting:** JavaScript libraries via Blazor JS Interop
+- **Charting:** SVG rendering via Blazor components
 
 ## Getting Started
 
 ### Prerequisites
 
-- **.NET 9.0 SDK** or later
+- **.NET 10.0 SDK** or later
 - Visual Studio 2022, Visual Studio Code, or JetBrains Rider
 - Git
 
@@ -113,14 +113,27 @@ Branch naming convention:
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for commit message guidelines.
 
-## Features (In Development)
+## Features
 
+### Completed
 - [x] Project infrastructure and CI/CD
 - [x] .editorconfig and pre-commit hooks
-- [ ] Core GEX visualization engine
+- [x] .NET 10 LTS upgrade
+- [x] GEX data models (GexDataPoint, GexTimeline, GexState)
+- [x] GexStateService - reactive state management
+- [x] GexDataService - JSON data loading
+- [x] GexHeader component - metrics display
+- [x] GexSidebar component - controls and parameters
+
+### In Progress
+- [ ] GexChart component - SVG rendering
+- [ ] PriceSparkline component
 - [ ] Real-time data simulation
 - [ ] Interactive chart controls
+
+### Planned
 - [ ] Client-side data persistence (localStorage)
+- [ ] Keyboard shortcuts and event handling
 - [ ] Advanced database persistence (IndexedDB, API backend)
 
 ## Research Visualizations
@@ -141,10 +154,11 @@ Contributions welcome! Please review [CONTRIBUTING.md](CONTRIBUTING.md) for:
 
 ## Project Status
 
-**Phase:** Active Development - Infrastructure & Core Migration
+**Phase:** Active Development - GEX Visualizer Port
 
-This project is currently in the infrastructure and migration phase, establishing
-the .NET MAUI/Blazor foundation before implementing core GEX analysis features.
+The Blazor foundation is complete with core services and components. Currently
+implementing chart rendering and timeline simulation features. Access the GEX
+Visualizer at `/gex` route when running the Blazor app.
 
 ## License
 

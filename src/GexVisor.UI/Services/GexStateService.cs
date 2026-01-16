@@ -168,7 +168,8 @@ public class GexStateService
     /// </summary>
     public void UpdateStrikeRange()
     {
-        if (_timeline.Count == 0) return;
+        if (_timeline.Count == 0)
+            return;
 
         var (minPrice, maxPrice) = GetPriceRange();
         var padding = (maxPrice - minPrice) * 0.2m;
@@ -198,7 +199,8 @@ public class GexStateService
 
     private (decimal Min, decimal Max) GetPriceRange()
     {
-        if (_timeline.Count == 0) return (280, 650);
+        if (_timeline.Count == 0)
+            return (280, 650);
         return (_timeline.Min(t => t.Price), _timeline.Max(t => t.Price));
     }
 
