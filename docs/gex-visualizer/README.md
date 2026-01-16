@@ -56,7 +56,8 @@ Open `index.html` in a browser - no server required.
 
 ## Data Modes
 
-**Demo Mode** (default): Uses built-in simulated SPY timeline (2020-2025) with 21 representative snapshots. Works out of the box for research demonstrations.
+**Demo Mode** (default): Uses built-in simulated SPY timeline (2020-2025) with 21 representative
+snapshots. Works out of the box for research demonstrations.
 
 **Real Data Mode** (local only): Loads actual historical GEX data from exported JSON files. Requires:
 
@@ -70,7 +71,8 @@ Open `index.html` in a browser - no server required.
 
 4. Click "Real Data" button in visualizer
 
-> ⚠️ **Note**: The `data/` folder is gitignored. Real data exports contain proprietary historical options data and should remain LOCAL ONLY.
+> ⚠️ **Note**: The `data/` folder is gitignored. Real data exports contain proprietary historical
+> options data and should remain LOCAL ONLY.
 
 ## File Structure
 
@@ -117,6 +119,8 @@ The server auto-detects FastAPI availability and falls back to stdlib if not ins
 
 ## Research Background
 
-Based on GEX research analyzing 50.88M+ options records (2020-2025). Demonstrates how the S² scaling factor in absolute GEX methodology causes regime over-detection as SPY price increases from ~$300 (2020) to ~$600 (2025).
+Based on GEX research analyzing 50.88M+ options records (2020-2025). Demonstrates how the S²
+scaling factor in absolute GEX methodology causes regime over-detection as SPY price increases
+from ~$300 (2020) to ~$600 (2025).
 
 See `docs/08_research/02_gex_research/` for full methodology documentation.

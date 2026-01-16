@@ -4,7 +4,9 @@
 
 ## Executive Summary
 
-This document outlines the multi-phase research trajectory for the **GEX-LLM Patterns** project, investigating whether Large Language Models can reason about latent market forces—specifically dealer gamma exposure—without relying on temporal memorization.
+This document outlines the multi-phase research trajectory for the **GEX-LLM Patterns** project,
+investigating whether Large Language Models can reason about latent market forces—specifically
+dealer gamma exposure—without relying on temporal memorization.
 
 ### Key Findings (Phase 1-2)
 
@@ -23,7 +25,8 @@ This document outlines the multi-phase research trajectory for the **GEX-LLM Pat
 
 ### The Memorization Problem
 
-Financial AI faces a critical validation challenge: models trained on internet data have likely seen historical market events. The **obfuscation protocol** strips all temporal identifiers:
+Financial AI faces a critical validation challenge: models trained on internet data have likely
+seen historical market events. The **obfuscation protocol** strips all temporal identifiers:
 
 - No dates, tickers, or event labels
 - Inputs genericized ("Index_1", "Day T+0")
@@ -43,7 +46,9 @@ WHAT:  The mechanical outcome (forced selling/buying for Delta Neutrality)
 
 ### Key Innovation: Decoupling Detection from Profitability
 
-Detection rates remained stable across quarters even as trading profitability fluctuated. The LLM acts as a **physicist** (identifying structural tension) rather than a **trader** (predicting profitable outcomes).
+Detection rates remained stable across quarters even as trading profitability fluctuated. The LLM
+acts as a **physicist** (identifying structural tension) rather than a **trader** (predicting
+profitable outcomes).
 
 ---
 
@@ -57,8 +62,8 @@ Detection rates remained stable across quarters even as trading profitability fl
 
 | RQ | Question | Method |
 |----|----------|--------|
-| RQ1 | Can LLMs distinguish formation/persistence/decay of dealer constraints using sequential profiles? | Sequential GEX analysis |
-| RQ2 | Can LLMs autonomously cluster data into volatility regimes aligned with realized metrics? | Unsupervised clustering |
+| RQ1 | Can LLMs distinguish formation/persistence/decay of dealer constraints? | Sequential GEX analysis |
+| RQ2 | Can LLMs autonomously cluster data into volatility regimes? | Unsupervised clustering |
 | RQ3 | Can LLMs provide causal narratives for mathematically-identified anomalies? | Matrix Profile + LLM |
 
 ### Experimental Design

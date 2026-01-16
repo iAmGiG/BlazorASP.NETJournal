@@ -21,11 +21,7 @@
                     </div>
                 </div>
                 <div class="viz-container">
-                    <div class="chart-placeholder">
-                        <div class="placeholder-icon">📊</div>
-                        <div class="placeholder-text">Normalized GEX Chart</div>
-                        <div class="placeholder-note">SVG rendering coming in next iteration</div>
-                    </div>
+                    <GexChart IsAbsolute="false" />
                 </div>
                 <div class="data-overlay">
                     <div class="data-row"><span>Scale Factor:</span> <span class="data-val cyan">1.0x (Fixed)</span></div>
@@ -45,11 +41,7 @@
                     </div>
                 </div>
                 <div class="viz-container">
-                    <div class="chart-placeholder">
-                        <div class="placeholder-icon">📈</div>
-                        <div class="placeholder-text">Absolute GEX Chart</div>
-                        <div class="placeholder-note">S² scaled visualization</div>
-                    </div>
+                    <GexChart IsAbsolute="true" />
                 </div>
                 <div class="data-overlay">
                     <div class="data-row"><span>S² Scale:</span> <span class="data-val red">@S2Factor.ToString("F1")x</span></div>

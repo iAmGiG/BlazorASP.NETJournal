@@ -1,0 +1,203 @@
+@using GexVisor.UI.Models
+@using GexVisor.UI.Services
+@inject GexStateService StateService
+@implements IDisposable
+
+<div class="gex-chart @(IsAbsolute ? "absolute-mode" : "normalized-mode")">
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="chart-svg">
+        <!-- Center line (0 axis) -->
+        <line x1="50" y1="0" x2="50" y2="100" class="center-line" />
+
+        <!-- Gamma bars -->
+        @foreach (var bar in GammaBars)
+        {
+            <rect
+                x="@bar.X"
+                y="@bar.Y"
+                width="@bar.Width"
+                height="@bar.Height"
+                rx="0.3"
+                class="gamma-bar @bar.ColorClass"
+                opacity="@bar.Opacity" />
+        }
+
+        <!-- Zero gamma line -->
+        <line x1="0" y1="@ZeroGammaY" x2="100" y2="@ZeroGammaY" class="zero-gamma-line" />
+        <text x="92" y="@(ZeroGammaY - 1)" class="zero-marker">0γ</text>
+
+        <!-- Price line -->
+        <line x1="0" y1="@PriceY" x2="100" y2="@PriceY" class="price-line" />
+        <text x="2" y="@(PriceY - 1)" class="price-marker">SPOT</text>
+    </svg>
+</div>
+
+@code {
+    [Parameter] public bool IsAbsolute { get; set; }
+    [Parameter] public string Title { get; set; } = "";
+
+    private const int BarCount = 40;
+    private const double Sigma = 12.0;
+
+    private List<GammaBar> GammaBars { get; set; } = new();
+
+    private double PriceY => CalculatePriceY();
+    private double ZeroGammaY => CalculateZeroGammaY();
+
+    protected override void OnInitialized()
+    {
+        StateService.OnStateChanged += OnStateChanged;
+        CalculateBars();
+    }
+
+    private void OnStateChanged()
+    {
+        CalculateBars();
+        StateHasChanged();
+    }
+
+    private void CalculateBars()
+    {
+        var state = StateService.State;
+        var bars = new List<GammaBar>();
+
+        var strikeStart = state.StrikeStart;
+        var strikeEnd = state.StrikeEnd;
+        var strikeStep = state.StrikeStep;
+
+        // Calculate strike count based on range
+        var strikeCount = (int)Math.Max(10, Math.Min(60, (strikeEnd - strikeStart) / strikeStep));
+
+        // Calculate center index for current price
+        var priceRange = strikeEnd - strikeStart;
+        var centerIndex = priceRange > 0
+            ? (int)((state.Price - strikeStart) / priceRange * strikeCount)
+            : strikeCount / 2;
+
+        // Zero gamma level
+        var zeroGamma = state.Price * (1 + Math.Abs(state.Tilt) * 0.05m);
+        var zeroIndex = priceRange > 0
+            ? (int)((zeroGamma - strikeStart) / priceRange * strikeCount)
+            : centerIndex;
+
+        // Calculate center Y position (where current price is)
+        var centerYPercent = 100.0 - ((double)centerIndex / strikeCount) * 100.0;
+
+        // S² scaling factors for absolute mode
+        var baselineS2 = 300m * 300m;
+        var currentS2 = state.Price * state.Price;
+        var priceFactor = currentS2 / baselineS2;
+        var baselineOI = 5m;
+        var oiFactor = state.OpenInterest / baselineOI;
+
+        for (int i = 0; i < strikeCount; i++)
+        {
+            var dist = Math.Abs(i - centerIndex);
+
+            // Gamma peaks at ATM (Gaussian distribution)
+            var gammaRaw = Math.Exp(-(dist * dist) / (2.0 * (Sigma / 2.0) * (Sigma / 2.0)));
+
+            // Apply dealer tilt
+            var netGamma = gammaRaw * (double)state.Tilt;
+
+            // Calculate value based on mode
+            double val;
+            if (IsAbsolute)
+            {
+                // FORMULA 2: ABSOLUTE (Paper 2) with S² scaling
+                val = netGamma * 50 * (double)priceFactor * (double)oiFactor;
+            }
+            else
+            {
+                // FORMULA 1: NORMALIZED (Practitioner)
+                val = netGamma * 50;
+            }
+
+            // Calculate scaled Y position for this bar
+            var baseY = 100.0 - ((double)i / strikeCount) * 100.0;
+            var scaledY = centerYPercent + (baseY - centerYPercent) * (double)state.YAxisScale;
+
+            // Apply X-axis scale to width
+            var scaledVal = val * (double)state.XAxisScale;
+            var width = Math.Min(Math.Abs(scaledVal), 48);
+
+            // Calculate X position (bars grow from center)
+            var x = val < 0 ? 50 - width : 50;
+
+            // Determine color class
+            var colorClass = val < 0 ? "bar-negative" : "bar-positive";
+
+            // Saturation warning for absolute chart
+            if (IsAbsolute && Math.Abs(val) > 45 / (double)state.XAxisScale)
+            {
+                colorClass = "bar-saturated";
+            }
+
+            // Hide bars that are off-screen
+            var opacity = (scaledY < -10 || scaledY > 110) ? 0.0 : 0.85;
+
+            var barHeight = Math.Max(0.5, (85.0 / strikeCount) * (double)state.YAxisScale);
+
+            bars.Add(new GammaBar
+            {
+                X = x,
+                Y = scaledY,
+                Width = width,
+                Height = barHeight,
+                ColorClass = colorClass,
+                Opacity = opacity
+            });
+        }
+
+        GammaBars = bars;
+    }
+
+    private double CalculatePriceY()
+    {
+        var state = StateService.State;
+        var strikeStart = state.StrikeStart;
+        var strikeEnd = state.StrikeEnd;
+        var priceRange = strikeEnd - strikeStart;
+
+        if (priceRange <= 0) return 50;
+
+        var strikeCount = (int)Math.Max(10, Math.Min(60, priceRange / state.StrikeStep));
+        var centerIndex = (int)((state.Price - strikeStart) / priceRange * strikeCount);
+        return Math.Max(0, Math.Min(100, 100.0 - ((double)centerIndex / strikeCount) * 100.0));
+    }
+
+    private double CalculateZeroGammaY()
+    {
+        var state = StateService.State;
+        var strikeStart = state.StrikeStart;
+        var strikeEnd = state.StrikeEnd;
+        var priceRange = strikeEnd - strikeStart;
+
+        if (priceRange <= 0) return 50;
+
+        var zeroGamma = state.Price * (1 + Math.Abs(state.Tilt) * 0.05m);
+        var strikeCount = (int)Math.Max(10, Math.Min(60, priceRange / state.StrikeStep));
+        var zeroIndex = (int)((zeroGamma - strikeStart) / priceRange * strikeCount);
+        var centerIndex = (int)((state.Price - strikeStart) / priceRange * strikeCount);
+
+        var centerYPercent = 100.0 - ((double)centerIndex / strikeCount) * 100.0;
+        var zeroYBase = 100.0 - ((double)zeroIndex / strikeCount) * 100.0;
+        var zeroY = centerYPercent + (zeroYBase - centerYPercent) * (double)state.YAxisScale;
+
+        return Math.Max(0, Math.Min(100, zeroY));
+    }
+
+    public void Dispose()
+    {
+        StateService.OnStateChanged -= OnStateChanged;
+    }
+
+    private record GammaBar
+    {
+        public double X { get; init; }
+        public double Y { get; init; }
+        public double Width { get; init; }
+        public double Height { get; init; }
+        public string ColorClass { get; init; } = "";
+        public double Opacity { get; init; }
+    }
+}
