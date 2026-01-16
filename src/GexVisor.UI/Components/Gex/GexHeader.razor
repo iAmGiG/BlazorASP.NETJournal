@@ -1,0 +1,102 @@
+@using GexVisor.UI.Models
+@using GexVisor.UI.Services
+@inject GexStateService StateService
+@implements IDisposable
+
+<header class="gex-header">
+    <div class="header-left">
+        <div class="logo">
+            <div class="logo-icon">Γ</div>
+            <div>
+                <h1>GEX REGIME COMPARATOR <span class="badge">RESEARCH</span></h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-center">
+        <div class="metric-card">
+            <div class="metric-label">@SymbolLabel Price</div>
+            <div class="metric-value price-value">$@Price.ToString("F2")</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">S² Factor</div>
+            <div class="metric-value s2-value">@S2Factor.ToString("F1")x</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Total GEX</div>
+            <div class="metric-value gex-value">@FormatGex(TotalGex)</div>
+        </div>
+    </div>
+
+    <div class="header-right">
+        <div class="year-badge @(HasData ? "" : "inactive")">@YearDisplay</div>
+    </div>
+</header>
+
+@if (ShowVolWarning)
+{
+    <div class="vol-warning @(IsNegativeGamma ? "active" : "")">
+        <div class="vol-stat">
+            <div class="vol-pulse"></div>
+            <span>@GammaStatus</span>
+        </div>
+        <div class="vol-stat">
+            <span class="vol-stat-label">Vol Effect:</span>
+            <span class="vol-stat-value">@VolEffect.ToString("F1")x</span>
+        </div>
+        <div class="vol-stat">
+            <span class="vol-stat-label">Outlook:</span>
+            <span class="vol-stat-value">@Outlook</span>
+        </div>
+    </div>
+}
+
+@code {
+    private decimal Price => StateService.State.Price;
+    private decimal S2Factor => StateService.State.S2Factor;
+    private decimal TotalGex => StateService.State.CurrentDataPoint?.Gex ?? 0;
+    private bool HasData => StateService.State.CurrentDataPoint != null;
+    private bool IsNegativeGamma => StateService.State.CurrentDataPoint?.IsNegativeGamma ?? false;
+
+    private string SymbolLabel => StateService.State.CurrentSymbol ?? "SPY";
+
+    private string YearDisplay
+    {
+        get
+        {
+            var point = StateService.State.CurrentDataPoint;
+            if (point == null) return "----";
+            return point.Date.Split('-')[0];
+        }
+    }
+
+    private bool ShowVolWarning => HasData;
+
+    private string GammaStatus => IsNegativeGamma
+        ? "GAMMA STATUS: SHORT γ (AMPLIFIED)"
+        : "GAMMA STATUS: LONG γ (DAMPENED)";
+
+    private decimal VolEffect => IsNegativeGamma ? 1.5m : 0.7m;
+
+    private string Outlook => IsNegativeGamma ? "High Volatility" : "Mean Reversion";
+
+    private static string FormatGex(decimal gex)
+    {
+        return gex switch
+        {
+            >= 1000 => $"${gex / 1000:F1}T",
+            >= 1 => $"${gex:F1}B",
+            _ => $"${gex * 1000:F0}M"
+        };
+    }
+
+    protected override void OnInitialized()
+    {
+        StateService.OnStateChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        StateService.OnStateChanged -= StateHasChanged;
+    }
+}

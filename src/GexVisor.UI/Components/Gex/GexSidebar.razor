@@ -1,0 +1,250 @@
+@using GexVisor.UI.Models
+@using GexVisor.UI.Services
+@inject GexStateService StateService
+@inject GexDataService DataService
+@implements IDisposable
+
+<div class="gex-sidebar">
+    <!-- Data Source Section -->
+    <div class="section-title">Data Source</div>
+    <div class="data-source-controls">
+        <div class="data-mode-toggle">
+            <button class="mode-btn @(IsDemo ? "active" : "")" @onclick="() => SetMode(DataMode.Demo)">Demo</button>
+            <button class="mode-btn @(!IsDemo ? "active" : "")" @onclick="() => SetMode(DataMode.Real)">Real Data</button>
+        </div>
+
+        @if (!IsDemo)
+        {
+            <div class="symbol-selectors">
+                <div class="selector-row">
+                    <select @onchange="OnAssetClassChange" value="@SelectedAssetClass">
+                        <option value="">Select asset class...</option>
+                        @foreach (var ac in AssetClasses)
+                        {
+                            <option value="@ac">@ac</option>
+                        }
+                    </select>
+                </div>
+                <div class="selector-row">
+                    <select @onchange="OnSymbolChange" value="@SelectedSymbol" disabled="@string.IsNullOrEmpty(SelectedAssetClass)">
+                        <option value="">Select symbol...</option>
+                        @foreach (var sym in Symbols)
+                        {
+                            <option value="@sym">@sym</option>
+                        }
+                    </select>
+                </div>
+                @if (SymbolInfo != null)
+                {
+                    <div class="data-info">@SymbolInfo.Count data points (@SymbolInfo.Start to @SymbolInfo.End)</div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Simulation Section -->
+    <div class="section-title">Simulation</div>
+    <div class="sim-controls">
+        <div class="media-controls">
+            <button class="media-btn" @onclick="StateService.JumpToStart" title="Start (Home)">⏮</button>
+            <button class="media-btn" @onclick="JumpToPrevYear" title="Prev Year (↓)">«</button>
+            <button class="media-btn" @onclick="StateService.StepBackward" title="Step Back (←)">◀</button>
+            <button class="media-btn play-btn @(IsSimulating ? "active" : "")" @onclick="StateService.ToggleSimulation" title="Play/Pause (Space)">
+                @(IsSimulating ? "⏸" : "▶")
+            </button>
+            <button class="media-btn" @onclick="StateService.StepForward" title="Step Fwd (→)">▶</button>
+            <button class="media-btn" @onclick="JumpToNextYear" title="Next Year (↑)">»</button>
+            <button class="media-btn" @onclick="StateService.JumpToEnd" title="End (End)">⏭</button>
+        </div>
+
+        <div class="speed-control">
+            <button class="speed-btn @(PlaybackSpeed == 1 ? "active" : "")" @onclick="() => SetSpeed(1)">0.5x</button>
+            <button class="speed-btn @(PlaybackSpeed == 2 ? "active" : "")" @onclick="() => SetSpeed(2)">1x</button>
+            <button class="speed-btn @(PlaybackSpeed == 4 ? "active" : "")" @onclick="() => SetSpeed(4)">2x</button>
+        </div>
+
+        <div class="timeline-scrubber">
+            <div class="timeline-track">
+                <div class="timeline-progress" style="width: @ProgressPercent%"></div>
+                <input type="range" min="0" max="@MaxIndex" value="@CurrentIndex" @oninput="OnScrub" class="timeline-input" />
+            </div>
+        </div>
+
+        <div class="current-event">
+            <div class="event-date">@EventDate</div>
+            <div class="event-label">@EventLabel</div>
+            <div class="event-index">@(CurrentIndex >= 0 ? $"{CurrentIndex + 1}/{MaxIndex + 1}" : "--")</div>
+        </div>
+    </div>
+
+    <!-- Parameters Section -->
+    <div class="section-title">Parameters</div>
+    <div class="control-group">
+        <div class="control-label">
+            <span>Spot Price (@SymbolLabel)</span>
+            <span class="control-value">$@Price.ToString("F0")</span>
+        </div>
+        <input type="range" min="@StrikeStart" max="@StrikeEnd" step="1" value="@Price" @oninput="OnPriceChange" />
+    </div>
+
+    <div class="control-group">
+        <div class="control-label">
+            <span>Open Interest</span>
+            <span class="control-value">@OpenInterest.ToString("F1")M</span>
+        </div>
+        <input type="range" min="3" max="12" step="0.1" value="@OpenInterest" @oninput="OnOiChange" />
+    </div>
+
+    <div class="control-group">
+        <div class="control-label">
+            <span>Dealer Positioning</span>
+            <span class="control-value">@Tilt.ToString("F2")</span>
+        </div>
+        <input type="range" min="-0.5" max="0.5" step="0.01" value="@Tilt" @oninput="OnTiltChange" />
+    </div>
+
+    <!-- Zero Gamma Section -->
+    <div class="section-title">Zero Gamma Level</div>
+    <div class="zero-gamma-card">
+        <div class="zero-gamma-value">$@ZeroGamma.ToString("F0")</div>
+        <div class="zero-gamma-label">Gamma Flip Point</div>
+        <div class="gamma-flip-indicator">
+            <span class="flip-zone flip-below">▲ Below: Long γ</span>
+            <span class="flip-zone flip-above">▼ Above: Short γ</span>
+        </div>
+    </div>
+
+    <!-- Legend Section -->
+    <div class="section-title">Legend</div>
+    <div class="legend">
+        <div class="legend-item"><div class="legend-dot dot-red"></div>Short Gamma</div>
+        <div class="legend-item"><div class="legend-dot dot-cyan"></div>Long Gamma</div>
+        <div class="legend-item"><div class="legend-dot dot-yellow"></div>Spot Price</div>
+        <div class="legend-item"><div class="legend-dot dot-purple"></div>Zero Gamma</div>
+    </div>
+</div>
+
+@code {
+    private bool IsDemo => StateService.State.Mode == DataMode.Demo;
+    private bool IsSimulating => StateService.State.IsSimulating;
+    private int PlaybackSpeed => StateService.State.PlaybackSpeed;
+    private int CurrentIndex => StateService.State.CurrentIndex;
+    private int MaxIndex => Math.Max(0, StateService.Timeline.Count - 1);
+    private decimal Price => StateService.State.Price;
+    private decimal OpenInterest => StateService.State.OpenInterest;
+    private decimal Tilt => StateService.State.Tilt;
+    private decimal StrikeStart => StateService.State.StrikeStart;
+    private decimal StrikeEnd => StateService.State.StrikeEnd;
+    private decimal ZeroGamma => StateService.State.CurrentDataPoint?.ZeroGamma ?? Price * 1.01m;
+    private string SymbolLabel => StateService.State.CurrentSymbol ?? "SPY";
+
+    private double ProgressPercent => MaxIndex > 0 ? (double)CurrentIndex / MaxIndex * 100 : 0;
+
+    private string EventDate => StateService.State.CurrentDataPoint?.Date ?? "Select a point";
+    private string EventLabel => StateService.State.CurrentDataPoint?.Label ?? "Use controls or drag timeline";
+
+    private string SelectedAssetClass = "";
+    private string SelectedSymbol = "";
+    private IEnumerable<string> AssetClasses = [];
+    private IEnumerable<string> Symbols = [];
+    private SymbolInfo? SymbolInfo;
+
+    protected override async Task OnInitializedAsync()
+    {
+        StateService.OnStateChanged += StateHasChanged;
+        await DataService.LoadIndexAsync();
+        AssetClasses = DataService.GetAssetClasses();
+    }
+
+    private void SetMode(DataMode mode)
+    {
+        StateService.SetDataMode(mode);
+        if (mode == DataMode.Demo)
+        {
+            SelectedAssetClass = "";
+            SelectedSymbol = "";
+            SymbolInfo = null;
+        }
+    }
+
+    private void OnAssetClassChange(ChangeEventArgs e)
+    {
+        SelectedAssetClass = e.Value?.ToString() ?? "";
+        SelectedSymbol = "";
+        SymbolInfo = null;
+        Symbols = DataService.GetSymbolsForClass(SelectedAssetClass);
+    }
+
+    private async Task OnSymbolChange(ChangeEventArgs e)
+    {
+        SelectedSymbol = e.Value?.ToString() ?? "";
+        if (string.IsNullOrEmpty(SelectedSymbol)) return;
+
+        SymbolInfo = DataService.GetSymbolInfo(SelectedSymbol);
+        var timeline = await DataService.LoadSymbolAsync(SelectedSymbol);
+        if (timeline != null)
+        {
+            StateService.SetTimeline(timeline.Timeline);
+            StateService.State.CurrentSymbol = SelectedSymbol;
+        }
+    }
+
+    private void SetSpeed(int speed) => StateService.SetPlaybackSpeed(speed);
+
+    private void OnScrub(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var index))
+            StateService.SetCurrentIndex(index);
+    }
+
+    private void OnPriceChange(ChangeEventArgs e)
+    {
+        if (decimal.TryParse(e.Value?.ToString(), out var price))
+            StateService.UpdatePrice(price);
+    }
+
+    private void OnOiChange(ChangeEventArgs e)
+    {
+        if (decimal.TryParse(e.Value?.ToString(), out var oi))
+            StateService.UpdateOpenInterest(oi);
+    }
+
+    private void OnTiltChange(ChangeEventArgs e)
+    {
+        if (decimal.TryParse(e.Value?.ToString(), out var tilt))
+            StateService.UpdateTilt(tilt);
+    }
+
+    private void JumpToNextYear()
+    {
+        var current = StateService.State.CurrentDataPoint;
+        if (current == null) { StateService.JumpToStart(); return; }
+
+        var currentYear = int.Parse(current.Date.Split('-')[0]);
+        var nextIndex = StateService.Timeline
+            .Select((p, i) => (Point: p, Index: i))
+            .FirstOrDefault(x => int.Parse(x.Point.Date.Split('-')[0]) > currentYear);
+
+        if (nextIndex.Point != null)
+            StateService.SetCurrentIndex(nextIndex.Index);
+    }
+
+    private void JumpToPrevYear()
+    {
+        var current = StateService.State.CurrentDataPoint;
+        if (current == null) { StateService.JumpToStart(); return; }
+
+        var currentYear = int.Parse(current.Date.Split('-')[0]);
+        var prevIndex = StateService.Timeline
+            .Select((p, i) => (Point: p, Index: i))
+            .LastOrDefault(x => int.Parse(x.Point.Date.Split('-')[0]) < currentYear);
+
+        if (prevIndex.Point != null)
+            StateService.SetCurrentIndex(prevIndex.Index);
+    }
+
+    public void Dispose()
+    {
+        StateService.OnStateChanged -= StateHasChanged;
+    }
+}

@@ -1,0 +1,133 @@
+/* GEX Visualizer Page Layout */
+
+.gex-app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+}
+
+.gex-dashboard {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.chart-panels {
+    flex: 1;
+    display: flex;
+    gap: 1px;
+    background: var(--border-color);
+}
+
+.chart-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-dark);
+    padding: 1rem;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.panel-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    letter-spacing: 0.05em;
+}
+
+.panel-title.red {
+    color: var(--accent-red);
+}
+
+.panel-subtitle {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.panel-status {
+    text-align: right;
+}
+
+.status-label {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.status-value {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent-yellow);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.viz-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-card);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    min-height: 300px;
+}
+
+.chart-placeholder {
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.placeholder-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.placeholder-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.placeholder-note {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+.data-overlay {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: var(--bg-card);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+.data-row {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.data-val {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.data-val.cyan {
+    color: var(--accent-cyan);
+}
+
+.data-val.red {
+    color: var(--accent-red);
+}

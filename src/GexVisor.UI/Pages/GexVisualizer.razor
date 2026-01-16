@@ -1,0 +1,95 @@
+@page "/gex"
+
+<PageTitle>GEX Visualizer</PageTitle>
+
+<div class="gex-app">
+    <GexHeader />
+
+    <div class="gex-dashboard">
+        <GexSidebar />
+
+        <div class="chart-panels">
+            <div class="chart-panel">
+                <div class="panel-header">
+                    <div>
+                        <div class="panel-title">PRACTITIONER VIEW</div>
+                        <div class="panel-subtitle">Normalized Ratio (Price-Independent)</div>
+                    </div>
+                    <div class="panel-status">
+                        <div class="status-label">Signal Status</div>
+                        <div class="status-value">@NormalizedStatus</div>
+                    </div>
+                </div>
+                <div class="viz-container">
+                    <div class="chart-placeholder">
+                        <div class="placeholder-icon">📊</div>
+                        <div class="placeholder-text">Normalized GEX Chart</div>
+                        <div class="placeholder-note">SVG rendering coming in next iteration</div>
+                    </div>
+                </div>
+                <div class="data-overlay">
+                    <div class="data-row"><span>Scale Factor:</span> <span class="data-val cyan">1.0x (Fixed)</span></div>
+                    <div class="data-row"><span>Max Gamma:</span> <span class="data-val">@MaxGamma.ToString("F2")</span></div>
+                </div>
+            </div>
+
+            <div class="chart-panel">
+                <div class="panel-header">
+                    <div>
+                        <div class="panel-title red">PAPER 2 VIEW (ABSOLUTE)</div>
+                        <div class="panel-subtitle">Dollar GEX (S² Scaled)</div>
+                    </div>
+                    <div class="panel-status">
+                        <div class="status-label">Regime Detector</div>
+                        <div class="status-value">@AbsoluteStatus</div>
+                    </div>
+                </div>
+                <div class="viz-container">
+                    <div class="chart-placeholder">
+                        <div class="placeholder-icon">📈</div>
+                        <div class="placeholder-text">Absolute GEX Chart</div>
+                        <div class="placeholder-note">S² scaled visualization</div>
+                    </div>
+                </div>
+                <div class="data-overlay">
+                    <div class="data-row"><span>S² Scale:</span> <span class="data-val red">@S2Factor.ToString("F1")x</span></div>
+                    <div class="data-row"><span>Total GEX:</span> <span class="data-val">@FormatGex(TotalGex)</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Inject] private GexStateService StateService { get; set; } = default!;
+
+    private decimal S2Factor => StateService.State.S2Factor;
+    private decimal TotalGex => StateService.State.CurrentDataPoint?.Gex ?? 0;
+    private decimal MaxGamma => StateService.State.CurrentDataPoint?.MaxGamma ?? 0;
+
+    private string NormalizedStatus => StateService.State.CurrentDataPoint?.IsNegativeGamma == true
+        ? "SHORT GAMMA" : "NEUTRAL";
+
+    private string AbsoluteStatus => StateService.State.CurrentDataPoint?.IsNegativeGamma == true
+        ? "NEGATIVE REGIME" : "NO REGIME";
+
+    protected override void OnInitialized()
+    {
+        StateService.OnStateChanged += StateHasChanged;
+    }
+
+    private static string FormatGex(decimal gex)
+    {
+        return gex switch
+        {
+            >= 1000 => $"${gex / 1000:F1}T",
+            >= 1 => $"${gex:F1}B",
+            _ => $"${gex * 1000:F0}M"
+        };
+    }
+
+    public void Dispose()
+    {
+        StateService.OnStateChanged -= StateHasChanged;
+    }
+}
