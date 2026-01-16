@@ -1,0 +1,188 @@
+@using GexVisor.UI.Models
+@using GexVisor.UI.Services
+@inject GexStateService StateService
+@implements IDisposable
+
+<div class="price-chart-card">
+    <div class="price-chart-header">
+        <span class="price-chart-title">@Title</span>
+        <span class="price-chart-range">$@MinPrice.ToString("F0") - $@MaxPrice.ToString("F0")</span>
+    </div>
+    <div class="price-sparkline" @onmousemove="OnMouseMove" @onmouseleave="OnMouseLeave" @onclick="OnClick">
+        <svg viewBox="0 0 @Width @Height" preserveAspectRatio="none">
+            <defs>
+                <linearGradient id="sparkline-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" style="stop-color:var(--accent-yellow);stop-opacity:0.4"/>
+                    <stop offset="100%" style="stop-color:var(--accent-yellow);stop-opacity:0"/>
+                </linearGradient>
+            </defs>
+            <!-- Area fill -->
+            <path d="@AreaPath" class="sparkline-area" fill="url(#sparkline-gradient)"/>
+            <!-- Line path -->
+            <path d="@LinePath" class="sparkline-path"/>
+            <!-- Hover elements -->
+            @if (HoverIndex >= 0)
+            {
+                <line x1="@HoverX" y1="0" x2="@HoverX" y2="@Height" class="sparkline-hover-line"/>
+                <circle cx="@HoverX" cy="@HoverY" r="3" class="sparkline-hover-dot"/>
+            }
+            <!-- Current position marker -->
+            @if (CurrentIndex >= 0)
+            {
+                <line x1="@CurrentX" y1="0" x2="@CurrentX" y2="@Height" class="sparkline-current-line"/>
+                <circle cx="@CurrentX" cy="@CurrentY" r="4" class="sparkline-marker"/>
+            }
+        </svg>
+        @if (HoverIndex >= 0 && HoverPoint != null)
+        {
+            <div class="sparkline-tooltip visible" style="left: @TooltipLeft; top: -50px;">
+                <div class="tooltip-date">@FormatDate(HoverPoint.Date)</div>
+                <div class="tooltip-price">$@HoverPoint.Price.ToString("F2")</div>
+                <div class="tooltip-label">@HoverPoint.Label</div>
+            </div>
+        }
+    </div>
+    <div class="price-labels">
+        <span>@StartLabel</span>
+        <span class="current-price-label" style="color: @CurrentPriceLabelColor">@CurrentPriceLabel</span>
+        <span>@EndLabel</span>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "SPY 2020-2025";
+
+    private const int Width = 200;
+    private const int Height = 60;
+    private const int Padding = 4;
+
+    private int HoverIndex = -1;
+    private GexDataPoint? HoverPoint;
+    private double HoverX;
+    private double HoverY;
+
+    private IReadOnlyList<GexDataPoint> Timeline => StateService.Timeline;
+    private int CurrentIndex => StateService.State.CurrentIndex;
+
+    private decimal MinPrice => Timeline.Count > 0 ? Timeline.Min(t => t.Price) : 0;
+    private decimal MaxPrice => Timeline.Count > 0 ? Timeline.Max(t => t.Price) : 100;
+
+    private string StartLabel => Timeline.Count > 0 ? FormatShortDate(Timeline[0].Date) : "--";
+    private string EndLabel => Timeline.Count > 0 ? FormatShortDate(Timeline[^1].Date) : "--";
+
+    private string CurrentPriceLabel => CurrentIndex >= 0 && CurrentIndex < Timeline.Count
+        ? $"${Timeline[CurrentIndex].Price:F0}"
+        : $"Manual: ${StateService.State.Price:F0}";
+
+    private string CurrentPriceLabelColor => CurrentIndex >= 0 ? "var(--accent-yellow)" : "var(--text-muted)";
+
+    private double CurrentX => CurrentIndex >= 0 && Timeline.Count > 1
+        ? (double)CurrentIndex / (Timeline.Count - 1) * Width
+        : -10;
+
+    private double CurrentY => CurrentIndex >= 0 && CurrentIndex < Timeline.Count
+        ? CalculateY(Timeline[CurrentIndex].Price)
+        : -10;
+
+    private string TooltipLeft => $"{Math.Min(Width - 120, Math.Max(0, HoverX - 60))}px";
+
+    private string LinePath
+    {
+        get
+        {
+            if (Timeline.Count < 2) return "";
+            var sb = new System.Text.StringBuilder();
+            for (int i = 0; i < Timeline.Count; i++)
+            {
+                var x = (double)i / (Timeline.Count - 1) * Width;
+                var y = CalculateY(Timeline[i].Price);
+                sb.Append(i == 0 ? $"M {x:F1} {y:F1}" : $" L {x:F1} {y:F1}");
+            }
+            return sb.ToString();
+        }
+    }
+
+    private string AreaPath
+    {
+        get
+        {
+            if (Timeline.Count < 2) return "";
+            var sb = new System.Text.StringBuilder();
+            sb.Append($"M 0 {Height}");
+            for (int i = 0; i < Timeline.Count; i++)
+            {
+                var x = (double)i / (Timeline.Count - 1) * Width;
+                var y = CalculateY(Timeline[i].Price);
+                sb.Append($" L {x:F1} {y:F1}");
+            }
+            sb.Append($" L {Width} {Height} Z");
+            return sb.ToString();
+        }
+    }
+
+    private double CalculateY(decimal price)
+    {
+        if (MaxPrice == MinPrice) return Height / 2.0;
+        var normalized = (double)(price - MinPrice) / (double)(MaxPrice - MinPrice);
+        return Height - Padding - normalized * (Height - Padding * 2);
+    }
+
+    private void OnMouseMove(MouseEventArgs e)
+    {
+        if (Timeline.Count < 2) return;
+
+        // Calculate index from mouse position (approximate - would need JS interop for exact)
+        var pct = e.OffsetX / Width;
+        HoverIndex = (int)Math.Round(Math.Max(0, Math.Min(Timeline.Count - 1, pct * (Timeline.Count - 1))));
+
+        if (HoverIndex >= 0 && HoverIndex < Timeline.Count)
+        {
+            HoverPoint = Timeline[HoverIndex];
+            HoverX = (double)HoverIndex / (Timeline.Count - 1) * Width;
+            HoverY = CalculateY(HoverPoint.Price);
+        }
+    }
+
+    private void OnMouseLeave(MouseEventArgs e)
+    {
+        HoverIndex = -1;
+        HoverPoint = null;
+    }
+
+    private void OnClick(MouseEventArgs e)
+    {
+        if (Timeline.Count < 2) return;
+
+        var pct = e.OffsetX / Width;
+        var idx = (int)Math.Round(Math.Max(0, Math.Min(Timeline.Count - 1, pct * (Timeline.Count - 1))));
+
+        if (StateService.State.IsSimulating)
+            StateService.ToggleSimulation();
+
+        StateService.SetCurrentIndex(idx);
+    }
+
+    private static string FormatDate(string dateStr)
+    {
+        if (DateTime.TryParse(dateStr, out var date))
+            return date.ToString("MMM d, yyyy");
+        return dateStr;
+    }
+
+    private static string FormatShortDate(string dateStr)
+    {
+        if (DateTime.TryParse(dateStr, out var date))
+            return date.ToString("MMM yyyy");
+        return dateStr;
+    }
+
+    protected override void OnInitialized()
+    {
+        StateService.OnStateChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        StateService.OnStateChanged -= StateHasChanged;
+    }
+}

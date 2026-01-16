@@ -1,0 +1,128 @@
+/* PriceSparkline Component Styles */
+
+.price-chart-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.75rem;
+}
+
+.price-chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.7rem;
+}
+
+.price-chart-title {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.price-chart-range {
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.price-sparkline {
+    position: relative;
+    height: 60px;
+    cursor: crosshair;
+    background: var(--bg-dark);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.price-sparkline svg {
+    width: 100%;
+    height: 100%;
+}
+
+.sparkline-area {
+    opacity: 0.3;
+}
+
+.sparkline-path {
+    fill: none;
+    stroke: var(--accent-yellow);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.sparkline-hover-line {
+    stroke: var(--text-muted);
+    stroke-width: 1;
+    stroke-dasharray: 2,2;
+    opacity: 0.5;
+}
+
+.sparkline-hover-dot {
+    fill: var(--accent-cyan);
+    stroke: var(--bg-dark);
+    stroke-width: 1;
+}
+
+.sparkline-current-line {
+    stroke: var(--accent-yellow);
+    stroke-width: 1;
+    opacity: 0.8;
+}
+
+.sparkline-marker {
+    fill: var(--accent-yellow);
+    stroke: var(--bg-dark);
+    stroke-width: 2;
+    filter: drop-shadow(0 0 4px var(--accent-yellow));
+}
+
+.sparkline-tooltip {
+    position: absolute;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.5rem;
+    font-size: 0.7rem;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: 10;
+    min-width: 100px;
+    text-align: center;
+}
+
+.sparkline-tooltip.visible {
+    opacity: 1;
+}
+
+.tooltip-date {
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.tooltip-price {
+    color: var(--accent-yellow);
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+}
+
+.tooltip-label {
+    color: var(--text-primary);
+    font-size: 0.65rem;
+    margin-top: 0.25rem;
+}
+
+.price-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+}
+
+.current-price-label {
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+}

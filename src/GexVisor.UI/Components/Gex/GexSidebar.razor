@@ -77,6 +77,10 @@
         </div>
     </div>
 
+    <!-- Price History Section -->
+    <div class="section-title">Price History</div>
+    <PriceSparkline Title="@SparklineTitle" />
+
     <!-- Parameters Section -->
     <div class="section-title">Parameters</div>
     <div class="control-group">
@@ -142,6 +146,19 @@
 
     private string EventDate => StateService.State.CurrentDataPoint?.Date ?? "Select a point";
     private string EventLabel => StateService.State.CurrentDataPoint?.Label ?? "Use controls or drag timeline";
+
+    private string SparklineTitle
+    {
+        get
+        {
+            if (StateService.Timeline.Count < 2) return "Price History";
+            var first = StateService.Timeline[0];
+            var last = StateService.Timeline[^1];
+            var startYear = first.Date.Split('-')[0];
+            var endYear = last.Date.Split('-')[0];
+            return $"{SymbolLabel} {startYear}-{endYear}";
+        }
+    }
 
     private string SelectedAssetClass = "";
     private string SelectedSymbol = "";
