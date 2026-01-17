@@ -1,0 +1,488 @@
+@page "/tasks"
+@using GexVisor.UI.Models
+@using GexVisor.UI.Services
+@inject ResearchTaskService TaskService
+
+<PageTitle>Research Tasks - GexVisor</PageTitle>
+
+<div class="taskboard-page">
+    <header class="taskboard-header">
+        <div class="header-left">
+            <a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Home</a>
+            <h1><i class="fas fa-clipboard-list"></i> Research Tasks</h1>
+        </div>
+        <div class="header-actions">
+            <button class="btn-primary" @onclick="OpenQuickAdd">
+                <i class="fas fa-plus"></i> Quick Add
+            </button>
+            @if (_summary.DoneCount > 0)
+            {
+                <button class="btn-secondary" @onclick="ArchiveCompleted">
+                    <i class="fas fa-archive"></i> Archive Done
+                </button>
+            }
+            @if (_summary.ArchivedCount > 0)
+            {
+                <button class="btn-secondary" @onclick="ToggleArchiveView">
+                    <i class="fas fa-box"></i> @(_showArchived ? "Hide" : "Show") Archived (@_summary.ArchivedCount)
+                </button>
+            }
+        </div>
+    </header>
+
+    <div class="board-stats">
+        <div class="stat">
+            <span class="stat-label">Active</span>
+            <span class="stat-value">@_summary.TotalActive</span>
+        </div>
+        <div class="stat high">
+            <span class="stat-label">High Priority</span>
+            <span class="stat-value">@_summary.HighPriorityCount</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label">Done This Week</span>
+            <span class="stat-value">@_summary.CompletedThisWeek</span>
+        </div>
+    </div>
+
+    <div class="kanban-board">
+        @foreach (var status in ResearchTaskStatus.All)
+        {
+            <div class="kanban-column">
+                <div class="column-header">
+                    <span class="column-title">@GetColumnTitle(status)</span>
+                    <span class="column-count">@_columnCounts.GetValueOrDefault(status, 0)</span>
+                </div>
+                <div class="column-content">
+                    @foreach (var task in TaskService.GetByStatus(status))
+                    {
+                        <div class="task-card @GetPriorityClass(task.Priority)" @onclick="@(() => OpenTaskDetail(task))">
+                            <div class="task-header">
+                                <span class="priority-dot"></span>
+                                <span class="task-title">@task.Title</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(task.Description))
+                            {
+                                <p class="task-desc">@TruncateText(task.Description, 80)</p>
+                            }
+                            @if (task.Tags.Count > 0)
+                            {
+                                <div class="task-tags">
+                                    @foreach (var tag in task.Tags.Take(3))
+                                    {
+                                        <span class="tag">@tag</span>
+                                    }
+                                </div>
+                            }
+                            <div class="task-actions">
+                                @if (status != ResearchTaskStatus.Backlog)
+                                {
+                                    <button class="move-btn" @onclick="@(() => MoveTask(task.Id, GetPreviousStatus(status)))" @onclick:stopPropagation="true" title="Move left">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                }
+                                @if (status != ResearchTaskStatus.Done)
+                                {
+                                    <button class="move-btn" @onclick="@(() => MoveTask(task.Id, GetNextStatus(status)))" @onclick:stopPropagation="true" title="Move right">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                }
+                                @if (status == ResearchTaskStatus.Done)
+                                {
+                                    <button class="move-btn archive" @onclick="@(() => ArchiveTask(task.Id))" @onclick:stopPropagation="true" title="Archive">
+                                        <i class="fas fa-archive"></i>
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+                    @if (_columnCounts.GetValueOrDefault(status, 0) == 0)
+                    {
+                        <div class="empty-column">
+                            <i class="fas fa-inbox"></i>
+                            <span>No tasks</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (_showArchived)
+    {
+        <div class="archived-section">
+            <h2><i class="fas fa-archive"></i> Archived Tasks</h2>
+            <div class="archived-list">
+                @foreach (var task in TaskService.GetArchived())
+                {
+                    <div class="archived-task">
+                        <span class="archived-title">@task.Title</span>
+                        <span class="archived-date">@task.CompletedAt?.ToString("MMM d")</span>
+                        <button class="restore-btn" @onclick="@(() => UnarchiveTask(task.Id))">
+                            <i class="fas fa-undo"></i> Restore
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@if (_showQuickAdd)
+{
+    <div class="modal-overlay" @onclick="CloseQuickAdd">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2>Quick Add Task</h2>
+                <button class="close-btn" @onclick="CloseQuickAdd">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" @bind="_quickAddTitle" @bind:event="oninput" placeholder="What needs to be done?" autofocus />
+                </div>
+                <div class="form-group">
+                    <label>Priority</label>
+                    <div class="priority-buttons">
+                        <button class="priority-btn high @(_quickAddPriority == TaskPriority.High ? "active" : "")" @onclick="@(() => SetQuickPriority(TaskPriority.High))">High</button>
+                        <button class="priority-btn medium @(_quickAddPriority == TaskPriority.Medium ? "active" : "")" @onclick="@(() => SetQuickPriority(TaskPriority.Medium))">Medium</button>
+                        <button class="priority-btn low @(_quickAddPriority == TaskPriority.Low ? "active" : "")" @onclick="@(() => SetQuickPriority(TaskPriority.Low))">Low</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Tags (comma-separated)</label>
+                    <input type="text" @bind="_quickAddTags" placeholder="e.g., gex, research, urgent" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" @onclick="CloseQuickAdd">Cancel</button>
+                <button class="btn-save" @onclick="SaveQuickAdd" disabled="@string.IsNullOrWhiteSpace(_quickAddTitle)">Add Task</button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_selectedTask != null)
+{
+    <div class="modal-overlay" @onclick="CloseTaskDetail">
+        <div class="modal-content large" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2>@(_isEditing ? "Edit Task" : "Task Details")</h2>
+                <button class="close-btn" @onclick="CloseTaskDetail">&times;</button>
+            </div>
+            <div class="modal-body">
+                @if (_isEditing)
+                {
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" @bind="_editTitle" />
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea rows="4" @bind="_editDescription" placeholder="Add more details..."></textarea>
+                    </div>
+                    <div class="form-row two-col">
+                        <div class="form-group">
+                            <label>Priority</label>
+                            <div class="priority-buttons">
+                                <button class="priority-btn high @(_editPriority == TaskPriority.High ? "active" : "")" @onclick="@(() => SetEditPriority(TaskPriority.High))">High</button>
+                                <button class="priority-btn medium @(_editPriority == TaskPriority.Medium ? "active" : "")" @onclick="@(() => SetEditPriority(TaskPriority.Medium))">Medium</button>
+                                <button class="priority-btn low @(_editPriority == TaskPriority.Low ? "active" : "")" @onclick="@(() => SetEditPriority(TaskPriority.Low))">Low</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <div class="status-buttons">
+                                @foreach (var status in ResearchTaskStatus.All)
+                                {
+                                    <button class="status-btn @(status.ToLower()) @(_editStatus == status ? "active" : "")" @onclick="@(() => SetEditStatus(status))">@GetColumnTitle(status)</button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Tags (comma-separated)</label>
+                        <input type="text" @bind="_editTags" />
+                    </div>
+                    <div class="form-group">
+                        <label>GitHub Issue URL (optional)</label>
+                        <input type="text" @bind="_editGitHubUrl" placeholder="https://github.com/..." />
+                    </div>
+                }
+                else
+                {
+                    <div class="detail-section">
+                        <div class="task-detail-header">
+                            <span class="priority-badge @GetPriorityClass(_selectedTask.Priority)">@_selectedTask.Priority</span>
+                            <span class="status-badge @_selectedTask.Status.ToLower()">@GetColumnTitle(_selectedTask.Status)</span>
+                        </div>
+                        <h3 class="detail-title">@_selectedTask.Title</h3>
+                        @if (!string.IsNullOrEmpty(_selectedTask.Description))
+                        {
+                            <p class="detail-desc">@_selectedTask.Description</p>
+                        }
+                    </div>
+                    @if (_selectedTask.Tags.Count > 0)
+                    {
+                        <div class="detail-section">
+                            <label>Tags</label>
+                            <div class="detail-tags">
+                                @foreach (var tag in _selectedTask.Tags)
+                                {
+                                    <span class="tag">@tag</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(_selectedTask.GitHubIssueUrl))
+                    {
+                        <div class="detail-section">
+                            <label>GitHub Issue</label>
+                            <a href="@_selectedTask.GitHubIssueUrl" target="_blank" class="github-link">
+                                <i class="fab fa-github"></i> @_selectedTask.GitHubIssueUrl
+                            </a>
+                        </div>
+                    }
+                    <div class="detail-section">
+                        <label>Created</label>
+                        <span class="detail-date">@_selectedTask.CreatedAt.ToString("MMM d, yyyy h:mm tt")</span>
+                        @if (_selectedTask.CompletedAt.HasValue)
+                        {
+                            <label>Completed</label>
+                            <span class="detail-date">@_selectedTask.CompletedAt.Value.ToString("MMM d, yyyy h:mm tt")</span>
+                        }
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                @if (_isEditing)
+                {
+                    <button class="btn-cancel" @onclick="CancelEdit">Cancel</button>
+                    <button class="btn-save" @onclick="SaveEdit">Save Changes</button>
+                }
+                else
+                {
+                    <button class="btn-delete" @onclick="DeleteTask">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                    <button class="btn-primary" @onclick="StartEdit">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private TaskBoardSummary _summary = new();
+    private Dictionary<string, int> _columnCounts = new();
+
+    // Quick add
+    private bool _showQuickAdd;
+    private string _quickAddTitle = "";
+    private string _quickAddPriority = TaskPriority.Medium;
+    private string _quickAddTags = "";
+
+    // Task detail/edit
+    private ResearchTask? _selectedTask;
+    private bool _isEditing;
+    private string _editTitle = "";
+    private string _editDescription = "";
+    private string _editPriority = "";
+    private string _editStatus = "";
+    private string _editTags = "";
+    private string _editGitHubUrl = "";
+
+    // Archive view
+    private bool _showArchived;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await TaskService.LoadAsync();
+        TaskService.OnEntriesChanged += RefreshData;
+        RefreshData();
+    }
+
+    private void RefreshData()
+    {
+        _summary = TaskService.GetSummary();
+        _columnCounts = TaskService.GetColumnCounts();
+        StateHasChanged();
+    }
+
+    // Column helpers
+    private string GetColumnTitle(string status) => status switch
+    {
+        ResearchTaskStatus.Backlog => "Backlog",
+        ResearchTaskStatus.InProgress => "In Progress",
+        ResearchTaskStatus.Done => "Done",
+        _ => status
+    };
+
+    private string GetNextStatus(string status) => status switch
+    {
+        ResearchTaskStatus.Backlog => ResearchTaskStatus.InProgress,
+        ResearchTaskStatus.InProgress => ResearchTaskStatus.Done,
+        _ => status
+    };
+
+    private string GetPreviousStatus(string status) => status switch
+    {
+        ResearchTaskStatus.Done => ResearchTaskStatus.InProgress,
+        ResearchTaskStatus.InProgress => ResearchTaskStatus.Backlog,
+        _ => status
+    };
+
+    private string GetPriorityClass(string priority) => priority.ToLower();
+
+    private string TruncateText(string text, int maxLength)
+    {
+        if (text.Length <= maxLength) return text;
+        return text[..maxLength] + "...";
+    }
+
+    // Task movement
+    private async Task MoveTask(Guid id, string newStatus)
+    {
+        await TaskService.MoveToStatusAsync(id, newStatus);
+    }
+
+    private async Task ArchiveTask(Guid id)
+    {
+        await TaskService.ArchiveAsync(id);
+    }
+
+    private async Task UnarchiveTask(Guid id)
+    {
+        await TaskService.UnarchiveAsync(id);
+    }
+
+    private async Task ArchiveCompleted()
+    {
+        await TaskService.ArchiveAllCompletedAsync();
+    }
+
+    private void ToggleArchiveView()
+    {
+        _showArchived = !_showArchived;
+    }
+
+    // Quick add modal
+    private void OpenQuickAdd()
+    {
+        _quickAddTitle = "";
+        _quickAddPriority = TaskPriority.Medium;
+        _quickAddTags = "";
+        _showQuickAdd = true;
+    }
+
+    private void CloseQuickAdd()
+    {
+        _showQuickAdd = false;
+    }
+
+    private void SetQuickPriority(string priority)
+    {
+        _quickAddPriority = priority;
+    }
+
+    private async Task SaveQuickAdd()
+    {
+        if (string.IsNullOrWhiteSpace(_quickAddTitle)) return;
+
+        var tags = _quickAddTags
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToList();
+
+        var task = new ResearchTask
+        {
+            Title = _quickAddTitle.Trim(),
+            Priority = _quickAddPriority,
+            Status = ResearchTaskStatus.Backlog,
+            Tags = tags
+        };
+
+        await TaskService.AddAsync(task);
+        CloseQuickAdd();
+    }
+
+    // Task detail modal
+    private void OpenTaskDetail(ResearchTask task)
+    {
+        _selectedTask = task;
+        _isEditing = false;
+    }
+
+    private void CloseTaskDetail()
+    {
+        _selectedTask = null;
+        _isEditing = false;
+    }
+
+    private void StartEdit()
+    {
+        if (_selectedTask == null) return;
+        _editTitle = _selectedTask.Title;
+        _editDescription = _selectedTask.Description ?? "";
+        _editPriority = _selectedTask.Priority;
+        _editStatus = _selectedTask.Status;
+        _editTags = string.Join(", ", _selectedTask.Tags);
+        _editGitHubUrl = _selectedTask.GitHubIssueUrl ?? "";
+        _isEditing = true;
+    }
+
+    private void CancelEdit()
+    {
+        _isEditing = false;
+    }
+
+    private void SetEditPriority(string priority)
+    {
+        _editPriority = priority;
+    }
+
+    private void SetEditStatus(string status)
+    {
+        _editStatus = status;
+    }
+
+    private async Task SaveEdit()
+    {
+        if (_selectedTask == null || string.IsNullOrWhiteSpace(_editTitle)) return;
+
+        var tags = _editTags
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToList();
+
+        var updated = _selectedTask with
+        {
+            Title = _editTitle.Trim(),
+            Description = string.IsNullOrWhiteSpace(_editDescription) ? null : _editDescription.Trim(),
+            Priority = _editPriority,
+            Status = _editStatus,
+            Tags = tags,
+            GitHubIssueUrl = string.IsNullOrWhiteSpace(_editGitHubUrl) ? null : _editGitHubUrl.Trim(),
+            UpdatedAt = DateTime.UtcNow,
+            CompletedAt = _editStatus == ResearchTaskStatus.Done && _selectedTask.Status != ResearchTaskStatus.Done
+                ? DateTime.UtcNow
+                : _selectedTask.CompletedAt
+        };
+
+        await TaskService.UpdateAsync(updated);
+        _selectedTask = updated;
+        _isEditing = false;
+    }
+
+    private async Task DeleteTask()
+    {
+        if (_selectedTask == null) return;
+        await TaskService.DeleteAsync(_selectedTask.Id);
+        CloseTaskDetail();
+    }
+
+    public void Dispose()
+    {
+        TaskService.OnEntriesChanged -= RefreshData;
+    }
+}

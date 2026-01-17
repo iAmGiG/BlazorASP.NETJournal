@@ -104,6 +104,11 @@
     color: white;
 }
 
+.app-icon.taskboard {
+    background: linear-gradient(135deg, #607d8b, #37474f);
+    color: white;
+}
+
 .app-info {
     flex: 1;
 }
