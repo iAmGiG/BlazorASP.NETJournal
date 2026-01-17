@@ -94,6 +94,11 @@
     color: white;
 }
 
+.app-icon.trading {
+    background: linear-gradient(135deg, var(--accent-green), #1b5e20);
+    color: white;
+}
+
 .app-info {
     flex: 1;
 }

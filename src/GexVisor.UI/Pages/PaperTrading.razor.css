@@ -1,0 +1,688 @@
+/* Paper Trading Page Styles */
+
+.trading-page {
+    min-height: 100vh;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+}
+
+.trading-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.back-link {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+}
+
+.back-link:hover {
+    color: var(--accent-cyan);
+}
+
+.trading-header h1 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.btn-primary,
+.btn-secondary {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: var(--accent-cyan);
+    border: none;
+    color: var(--bg-dark);
+}
+
+.btn-primary:hover {
+    opacity: 0.9;
+}
+
+.btn-secondary {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+    border-color: var(--accent-cyan);
+}
+
+.export-dropdown {
+    position: relative;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.25rem;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    overflow: hidden;
+    z-index: 10;
+    min-width: 100px;
+}
+
+.dropdown-menu button {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    text-align: left;
+    cursor: pointer;
+}
+
+.dropdown-menu button:hover {
+    background: var(--bg-card);
+}
+
+/* Stats Bar */
+.stats-bar {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 2rem;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    overflow-x: auto;
+}
+
+.stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.5rem 1rem;
+    background: var(--bg-panel);
+    border-radius: 6px;
+    min-width: 100px;
+}
+
+.stat-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.stat-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.stat-value.positive {
+    color: var(--accent-green);
+}
+
+.stat-value.negative {
+    color: var(--accent-red);
+}
+
+/* Tab Bar */
+.tab-bar {
+    display: flex;
+    gap: 0;
+    padding: 0 2rem;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tab {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tab:hover {
+    color: var(--text-primary);
+}
+
+.tab.active {
+    color: var(--accent-cyan);
+    border-bottom-color: var(--accent-cyan);
+}
+
+/* Content */
+.trading-content {
+    padding: 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-muted);
+}
+
+.empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.empty-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.empty-hint {
+    font-size: 0.85rem;
+}
+
+/* Trade List */
+.trade-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.trade-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.trade-card.open {
+    border-left: 3px solid var(--accent-orange);
+}
+
+.trade-card.win {
+    border-left: 3px solid var(--accent-green);
+}
+
+.trade-card.loss {
+    border-left: 3px solid var(--accent-red);
+}
+
+.trade-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.trade-direction {
+    font-size: 0.85rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.trade-direction.long {
+    color: var(--accent-green);
+}
+
+.trade-direction.short {
+    color: var(--accent-red);
+}
+
+.trade-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    border-color: var(--accent-cyan);
+}
+
+.action-btn.close-trade {
+    background: var(--accent-green);
+    border-color: var(--accent-green);
+    color: var(--bg-dark);
+}
+
+.action-btn.close-trade:hover {
+    opacity: 0.9;
+}
+
+.action-btn.delete:hover {
+    border-color: var(--accent-red);
+    background: rgba(239, 83, 80, 0.1);
+}
+
+.trade-pnl {
+    font-size: 0.9rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.trade-pnl.win {
+    color: var(--accent-green);
+}
+
+.trade-pnl.loss {
+    color: var(--accent-red);
+}
+
+.trade-price {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.entry-price {
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.targets {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-left: 0.75rem;
+}
+
+.target {
+    color: var(--accent-green);
+    margin-right: 0.5rem;
+}
+
+.stop {
+    color: var(--accent-red);
+}
+
+.arrow {
+    color: var(--text-muted);
+    margin: 0 0.5rem;
+}
+
+.exit-price {
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.exit-reason {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-left: 0.5rem;
+}
+
+.trade-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.linked-date {
+    color: var(--accent-cyan);
+    margin-left: 0.5rem;
+}
+
+.trade-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.tag {
+    padding: 0.15rem 0.4rem;
+    font-size: 0.65rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--accent-cyan);
+    border-radius: 3px;
+}
+
+.trade-context {
+    display: flex;
+    gap: 0.5rem;
+    font-size: 0.7rem;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.context-item {
+    padding: 0.15rem 0.35rem;
+    background: var(--bg-card);
+    border-radius: 3px;
+}
+
+.context-item.positive {
+    color: var(--accent-cyan);
+}
+
+.context-item.negative {
+    color: var(--accent-red);
+}
+
+/* Analytics */
+.analytics-section {
+    display: grid;
+    gap: 2rem;
+}
+
+.analytics-section h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    color: var(--text-muted);
+}
+
+.no-data {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.pattern-grid,
+.regime-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.pattern-card,
+.regime-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.pattern-name,
+.regime-label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.pattern-stats,
+.regime-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.positive {
+    color: var(--accent-green);
+}
+
+.negative {
+    color: var(--accent-red);
+}
+
+.regime-card.negative {
+    border-left: 3px solid var(--accent-red);
+}
+
+.regime-card.positive {
+    border-left: 3px solid var(--accent-cyan);
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 85vh;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modal-content.small {
+    max-width: 400px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-card);
+}
+
+.modal-header h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.close-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    border-radius: 6px;
+    font-size: 1.25rem;
+    cursor: pointer;
+}
+
+.close-btn:hover {
+    background: var(--accent-red);
+    color: var(--bg-dark);
+}
+
+.modal-body {
+    padding: 1.25rem;
+    overflow-y: auto;
+    max-height: calc(85vh - 130px);
+}
+
+.form-row {
+    margin-bottom: 1rem;
+}
+
+.form-row.two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group textarea {
+    width: 100%;
+    padding: 0.6rem;
+    font-size: 0.85rem;
+    font-family: inherit;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    border-radius: 6px;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--accent-cyan);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.direction-toggle {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.direction-btn {
+    flex: 1;
+    padding: 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.direction-btn.long:hover,
+.direction-btn.long.active {
+    background: var(--accent-green);
+    border-color: var(--accent-green);
+    color: var(--bg-dark);
+}
+
+.direction-btn.short:hover,
+.direction-btn.short.active {
+    background: var(--accent-red);
+    border-color: var(--accent-red);
+    color: var(--bg-dark);
+}
+
+.exit-reasons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.reason-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.reason-btn:hover,
+.reason-btn.active {
+    background: var(--accent-cyan);
+    border-color: var(--accent-cyan);
+    color: var(--bg-dark);
+}
+
+.close-summary {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: var(--bg-card);
+    border-radius: 6px;
+    text-align: center;
+}
+
+.pnl-preview {
+    text-align: center;
+    padding: 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg-card);
+    border-radius: 6px;
+    margin-top: 1rem;
+}
+
+.pnl-preview.positive {
+    color: var(--accent-green);
+}
+
+.pnl-preview.negative {
+    color: var(--accent-red);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-card);
+}
+
+.btn-cancel,
+.btn-save {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn-cancel {
+    background: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+}
+
+.btn-cancel:hover {
+    border-color: var(--text-muted);
+}
+
+.btn-save {
+    background: var(--accent-cyan);
+    border: none;
+    color: var(--bg-dark);
+}
+
+.btn-save:hover {
+    opacity: 0.9;
+}

@@ -1,0 +1,520 @@
+@page "/trading"
+@using GexVisor.UI.Models
+@using GexVisor.UI.Services
+@using GexVisor.UI.Components.Shared
+@inject PaperTradeService TradeService
+@inject TagService TagService
+@inject IJSRuntime JS
+@implements IDisposable
+
+<PageTitle>Paper Trading Journal</PageTitle>
+
+<div class="trading-page">
+    <header class="trading-header">
+        <div class="header-left">
+            <a href="/" class="back-link">← Home</a>
+            <h1>Paper Trading Journal</h1>
+        </div>
+        <div class="header-actions">
+            <button class="btn-primary" @onclick="ShowAddModal">+ New Trade</button>
+            <div class="export-dropdown">
+                <button class="btn-secondary" @onclick="() => _showExportMenu = !_showExportMenu">
+                    Export ▾
+                </button>
+                @if (_showExportMenu)
+                {
+                    <div class="dropdown-menu">
+                        <button @onclick="ExportJson">JSON</button>
+                        <button @onclick="ExportCsv">CSV</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </header>
+
+    @* Summary Stats *@
+    <div class="stats-bar">
+        <div class="stat-card">
+            <span class="stat-label">Total</span>
+            <span class="stat-value">@_summary.TotalTrades</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Win Rate</span>
+            <span class="stat-value @(_summary.WinRate >= 50 ? "positive" : "negative")">
+                @_summary.WinRate.ToString("F1")%
+            </span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Avg P&L</span>
+            <span class="stat-value @(_summary.AveragePnLPercent >= 0 ? "positive" : "negative")">
+                @(_summary.AveragePnLPercent >= 0 ? "+" : "")@_summary.AveragePnLPercent.ToString("F2")%
+            </span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Total P&L</span>
+            <span class="stat-value @(_summary.TotalPnLPoints >= 0 ? "positive" : "negative")">
+                @(_summary.TotalPnLPoints >= 0 ? "+" : "")@_summary.TotalPnLPoints.ToString("F2") pts
+            </span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Open</span>
+            <span class="stat-value">@_summary.OpenTrades</span>
+        </div>
+    </div>
+
+    @* Tab Navigation *@
+    <div class="tab-bar">
+        <button class="tab @(_activeTab == "open" ? "active" : "")" @onclick="@(() => SetTab("open"))">
+            Open (@OpenTrades.Count())
+        </button>
+        <button class="tab @(_activeTab == "closed" ? "active" : "")" @onclick="@(() => SetTab("closed"))">
+            Closed (@ClosedTrades.Count())
+        </button>
+        <button class="tab @(_activeTab == "analytics" ? "active" : "")" @onclick="@(() => SetTab("analytics"))">
+            Analytics
+        </button>
+    </div>
+
+    <div class="trading-content">
+        @if (_activeTab == "open")
+        {
+            @if (!OpenTrades.Any())
+            {
+                <div class="empty-state">
+                    <div class="empty-icon">📈</div>
+                    <div class="empty-text">No open trades</div>
+                    <div class="empty-hint">Click "New Trade" or press T in the GEX Visualizer</div>
+                </div>
+            }
+            else
+            {
+                <div class="trade-list">
+                    @foreach (var trade in OpenTrades)
+                    {
+                        <div class="trade-card open">
+                            <div class="trade-header">
+                                <div class="trade-direction @(trade.Direction.ToLower())">
+                                    @(trade.Direction == "Long" ? "▲ LONG" : "▼ SHORT")
+                                </div>
+                                <div class="trade-actions">
+                                    <button class="action-btn close-trade" @onclick="() => ShowCloseModal(trade)" title="Close Trade">
+                                        ✓ Close
+                                    </button>
+                                    <button class="action-btn delete" @onclick="() => DeleteTrade(trade.Id)" title="Delete">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="trade-price">
+                                <span class="entry-price">$@trade.EntryPrice.ToString("F2")</span>
+                                @if (trade.TargetPrice.HasValue || trade.StopLoss.HasValue)
+                                {
+                                    <span class="targets">
+                                        @if (trade.TargetPrice.HasValue)
+                                        {
+                                            <span class="target">T: $@trade.TargetPrice.Value.ToString("F2")</span>
+                                        }
+                                        @if (trade.StopLoss.HasValue)
+                                        {
+                                            <span class="stop">S: $@trade.StopLoss.Value.ToString("F2")</span>
+                                        }
+                                    </span>
+                                }
+                            </div>
+                            <div class="trade-meta">
+                                <span class="trade-date">@trade.CreatedAt.ToString("MMM d, yyyy")</span>
+                                @if (!string.IsNullOrEmpty(trade.LinkedDate))
+                                {
+                                    <span class="linked-date">🔗 @trade.LinkedDate</span>
+                                }
+                            </div>
+                            @if (trade.Tags.Count > 0)
+                            {
+                                <div class="trade-tags">
+                                    @foreach (var tag in trade.Tags.Take(4))
+                                    {
+                                        <span class="tag">@tag</span>
+                                    }
+                                </div>
+                            }
+                            <div class="trade-context">
+                                @if (trade.GexAtCreation.HasValue)
+                                {
+                                    <span class="context-item">GEX: @FormatGex(trade.GexAtCreation.Value)</span>
+                                }
+                                <span class="context-item @(trade.IsNegativeGammaAtCreation == true ? "negative" : "positive")">
+                                    @(trade.IsNegativeGammaAtCreation == true ? "−γ" : "+γ")
+                                </span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        }
+        else if (_activeTab == "closed")
+        {
+            @if (!ClosedTrades.Any())
+            {
+                <div class="empty-state">
+                    <div class="empty-icon">📊</div>
+                    <div class="empty-text">No closed trades yet</div>
+                    <div class="empty-hint">Close some open trades to see results here</div>
+                </div>
+            }
+            else
+            {
+                <div class="trade-list">
+                    @foreach (var trade in ClosedTrades)
+                    {
+                        var pnlClass = trade.IsWin == true ? "win" : "loss";
+                        <div class="trade-card closed @pnlClass">
+                            <div class="trade-header">
+                                <div class="trade-direction @(trade.Direction.ToLower())">
+                                    @(trade.Direction == "Long" ? "▲ LONG" : "▼ SHORT")
+                                </div>
+                                <div class="trade-pnl @pnlClass">
+                                    @(trade.PnLPoints >= 0 ? "+" : "")@trade.PnLPoints?.ToString("F2") pts
+                                    (@(trade.PnLPercent >= 0 ? "+" : "")@trade.PnLPercent?.ToString("F2")%)
+                                </div>
+                            </div>
+                            <div class="trade-price">
+                                <span class="entry-price">$@trade.EntryPrice.ToString("F2")</span>
+                                <span class="arrow">→</span>
+                                <span class="exit-price">$@trade.ExitPrice?.ToString("F2")</span>
+                                <span class="exit-reason">(@trade.ExitReason)</span>
+                            </div>
+                            <div class="trade-meta">
+                                <span class="trade-date">@trade.CreatedAt.ToString("MMM d") → @trade.ExitDate?.ToString("MMM d, yyyy")</span>
+                            </div>
+                            @if (trade.Tags.Count > 0)
+                            {
+                                <div class="trade-tags">
+                                    @foreach (var tag in trade.Tags.Take(4))
+                                    {
+                                        <span class="tag">@tag</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        }
+        else if (_activeTab == "analytics")
+        {
+            <div class="analytics-section">
+                <h3>Performance by Pattern</h3>
+                @if (!_patternStats.Any())
+                {
+                    <p class="no-data">Close some trades to see pattern analytics</p>
+                }
+                else
+                {
+                    <div class="pattern-grid">
+                        @foreach (var stat in _patternStats)
+                        {
+                            <div class="pattern-card">
+                                <div class="pattern-name">@stat.Pattern</div>
+                                <div class="pattern-stats">
+                                    <span>@stat.TradeCount trades</span>
+                                    <span class="@(stat.WinRate >= 50 ? "positive" : "negative")">@stat.WinRate.ToString("F0")% win</span>
+                                    <span class="@(stat.AvgPnLPercent >= 0 ? "positive" : "negative")">
+                                        @(stat.AvgPnLPercent >= 0 ? "+" : "")@stat.AvgPnLPercent.ToString("F2")%
+                                    </span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <h3>Performance by Gamma Regime</h3>
+                <div class="regime-grid">
+                    <div class="regime-card negative">
+                        <div class="regime-label">Negative Gamma (−γ)</div>
+                        <div class="regime-stats">
+                            <span>@_regimeStats.NegativeGamma.TradeCount trades</span>
+                            <span class="@(_regimeStats.NegativeGamma.WinRate >= 50 ? "positive" : "negative")">
+                                @_regimeStats.NegativeGamma.WinRate.ToString("F0")% win
+                            </span>
+                            <span class="@(_regimeStats.NegativeGamma.AvgPnLPercent >= 0 ? "positive" : "negative")">
+                                @(_regimeStats.NegativeGamma.AvgPnLPercent >= 0 ? "+" : "")@_regimeStats.NegativeGamma.AvgPnLPercent.ToString("F2")%
+                            </span>
+                        </div>
+                    </div>
+                    <div class="regime-card positive">
+                        <div class="regime-label">Positive Gamma (+γ)</div>
+                        <div class="regime-stats">
+                            <span>@_regimeStats.PositiveGamma.TradeCount trades</span>
+                            <span class="@(_regimeStats.PositiveGamma.WinRate >= 50 ? "positive" : "negative")">
+                                @_regimeStats.PositiveGamma.WinRate.ToString("F0")% win
+                            </span>
+                            <span class="@(_regimeStats.PositiveGamma.AvgPnLPercent >= 0 ? "positive" : "negative")">
+                                @(_regimeStats.PositiveGamma.AvgPnLPercent >= 0 ? "+" : "")@_regimeStats.PositiveGamma.AvgPnLPercent.ToString("F2")%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@* New Trade Modal *@
+@if (_showModal)
+{
+    <div class="modal-overlay" @onclick="CloseModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2>New Paper Trade</h2>
+                <button class="close-btn" @onclick="CloseModal">×</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group direction-group">
+                        <label>Direction</label>
+                        <div class="direction-toggle">
+                            <button type="button"
+                                    class="direction-btn long @(_direction == "Long" ? "active" : "")"
+                                    @onclick="@(() => SetDirection("Long"))">
+                                ▲ LONG
+                            </button>
+                            <button type="button"
+                                    class="direction-btn short @(_direction == "Short" ? "active" : "")"
+                                    @onclick="@(() => SetDirection("Short"))">
+                                ▼ SHORT
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Entry Price</label>
+                        <input type="number" step="0.01" @bind="_entryPrice" placeholder="0.00" />
+                    </div>
+                </div>
+
+                <div class="form-row two-col">
+                    <div class="form-group">
+                        <label>Target Price (optional)</label>
+                        <input type="number" step="0.01" @bind="_targetPrice" placeholder="0.00" />
+                    </div>
+                    <div class="form-group">
+                        <label>Stop Loss (optional)</label>
+                        <input type="number" step="0.01" @bind="_stopLoss" placeholder="0.00" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Pattern Tags</label>
+                    <TagInput @bind-SelectedTags="_tags" Placeholder="Add pattern tags..." />
+                </div>
+
+                <div class="form-group">
+                    <label>Notes (optional)</label>
+                    <textarea @bind="_notes" placeholder="Trade setup, reasoning..." rows="3"></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-cancel" @onclick="CloseModal">Cancel</button>
+                <button class="btn-save" @onclick="SaveTrade">Open Trade</button>
+            </div>
+        </div>
+    </div>
+}
+
+@* Close Trade Modal *@
+@if (_showCloseModal && _closingTrade != null)
+{
+    <div class="modal-overlay" @onclick="CloseCloseModal">
+        <div class="modal-content small" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2>Close Trade</h2>
+                <button class="close-btn" @onclick="CloseCloseModal">×</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="close-summary">
+                    <span class="trade-direction @(_closingTrade.Direction.ToLower())">
+                        @(_closingTrade.Direction == "Long" ? "▲ LONG" : "▼ SHORT")
+                    </span>
+                    @@ $@(_closingTrade.EntryPrice.ToString("F2"))
+                </div>
+
+                <div class="form-group">
+                    <label>Exit Price</label>
+                    <input type="number" step="0.01" @bind="_exitPrice" placeholder="0.00" />
+                </div>
+
+                <div class="form-group">
+                    <label>Exit Reason</label>
+                    <div class="exit-reasons">
+                        @foreach (var reason in new[] { "Target", "Stop", "Manual", "Time" })
+                        {
+                            <button type="button"
+                                    class="reason-btn @(_exitReason == reason ? "active" : "")"
+                                    @onclick="() => _exitReason = reason">
+                                @reason
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                @if (_exitPrice > 0)
+                {
+                    var pnl = (_exitPrice - _closingTrade.EntryPrice) * (_closingTrade.Direction == "Long" ? 1 : -1);
+                    var pnlPct = pnl / _closingTrade.EntryPrice * 100;
+                    <div class="pnl-preview @(pnl >= 0 ? "positive" : "negative")">
+                        P&L: @(pnl >= 0 ? "+" : "")@pnl.ToString("F2") pts (@(pnlPct >= 0 ? "+" : "")@pnlPct.ToString("F2")%)
+                    </div>
+                }
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-cancel" @onclick="CloseCloseModal">Cancel</button>
+                <button class="btn-save" @onclick="CloseTrade">Close Trade</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _showModal;
+    private bool _showCloseModal;
+    private bool _showExportMenu;
+    private string _activeTab = "open";
+
+    // New trade form
+    private string _direction = "Long";
+    private decimal _entryPrice;
+    private decimal? _targetPrice;
+    private decimal? _stopLoss;
+    private List<string> _tags = [];
+    private string _notes = "";
+
+    // Close trade form
+    private PaperTrade? _closingTrade;
+    private decimal _exitPrice;
+    private string _exitReason = "Manual";
+
+    // Cached analytics
+    private TradeSummary _summary = new();
+    private List<PatternStats> _patternStats = [];
+    private RegimeStats _regimeStats = new()
+    {
+        NegativeGamma = new RegimeDetail(),
+        PositiveGamma = new RegimeDetail()
+    };
+
+    private IEnumerable<PaperTrade> OpenTrades => TradeService.GetOpenTrades();
+    private IEnumerable<PaperTrade> ClosedTrades => TradeService.GetClosedTrades();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await TradeService.LoadAsync();
+        await TagService.LoadAsync();
+        TradeService.OnEntriesChanged += RefreshAnalytics;
+        RefreshAnalytics();
+    }
+
+    private void RefreshAnalytics()
+    {
+        _summary = TradeService.GetSummary();
+        _patternStats = TradeService.GetStatsByPattern().ToList();
+        _regimeStats = TradeService.GetStatsByRegime();
+        StateHasChanged();
+    }
+
+    private void SetTab(string tab) => _activeTab = tab;
+    private void SetDirection(string direction) => _direction = direction;
+
+    private void ShowAddModal()
+    {
+        _direction = "Long";
+        _entryPrice = 0;
+        _targetPrice = null;
+        _stopLoss = null;
+        _tags = [];
+        _notes = "";
+        _showModal = true;
+        _showExportMenu = false;
+    }
+
+    private void CloseModal() => _showModal = false;
+
+    private async Task SaveTrade()
+    {
+        if (_entryPrice <= 0) return;
+
+        var trade = new PaperTrade
+        {
+            Direction = _direction,
+            EntryPrice = _entryPrice,
+            TargetPrice = _targetPrice > 0 ? _targetPrice : null,
+            StopLoss = _stopLoss > 0 ? _stopLoss : null,
+            Tags = _tags,
+            Notes = string.IsNullOrWhiteSpace(_notes) ? null : _notes
+        };
+
+        await TradeService.AddAsync(trade);
+        CloseModal();
+    }
+
+    private void ShowCloseModal(PaperTrade trade)
+    {
+        _closingTrade = trade;
+        _exitPrice = trade.TargetPrice ?? trade.EntryPrice;
+        _exitReason = "Manual";
+        _showCloseModal = true;
+    }
+
+    private void CloseCloseModal()
+    {
+        _showCloseModal = false;
+        _closingTrade = null;
+    }
+
+    private async Task CloseTrade()
+    {
+        if (_closingTrade == null || _exitPrice <= 0) return;
+
+        await TradeService.CloseTradeAsync(_closingTrade.Id, _exitPrice, _exitReason);
+        CloseCloseModal();
+    }
+
+    private async Task DeleteTrade(Guid id)
+    {
+        await TradeService.DeleteAsync(id);
+    }
+
+    private async Task ExportJson()
+    {
+        var json = TradeService.ExportAsJson();
+        await JS.InvokeVoidAsync("GexInterop.downloadFile", "paper-trades.json", json, "application/json");
+        _showExportMenu = false;
+    }
+
+    private async Task ExportCsv()
+    {
+        var csv = TradeService.ExportAsCsv();
+        await JS.InvokeVoidAsync("GexInterop.downloadFile", "paper-trades.csv", csv, "text/csv");
+        _showExportMenu = false;
+    }
+
+    private static string FormatGex(decimal gex)
+    {
+        return gex switch
+        {
+            >= 1000 => $"${gex / 1000:F1}T",
+            >= 1 => $"${gex:F1}B",
+            _ => $"${gex * 1000:F0}M"
+        };
+    }
+
+    public void Dispose()
+    {
+        TradeService.OnEntriesChanged -= RefreshAnalytics;
+    }
+}

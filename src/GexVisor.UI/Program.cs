@@ -18,5 +18,6 @@ builder.Services.AddScoped<AnnotationService>();
 // Journal Services
 builder.Services.AddScoped<TagService>();
 builder.Services.AddScoped<NotebookService>();
+builder.Services.AddScoped<PaperTradeService>();
 
 await builder.Build().RunAsync();
