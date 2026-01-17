@@ -4,31 +4,45 @@
 @implements IDisposable
 
 <div class="gex-chart @(IsAbsolute ? "absolute-mode" : "normalized-mode")">
-    <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="chart-svg">
-        <!-- Center line (0 axis) -->
-        <line x1="50" y1="0" x2="50" y2="100" class="center-line" />
-
-        <!-- Gamma bars -->
-        @foreach (var bar in GammaBars)
+    <div class="y-axis">
+        @foreach (var label in YAxisLabels)
         {
-            <rect
-                x="@bar.X"
-                y="@bar.Y"
-                width="@bar.Width"
-                height="@bar.Height"
-                rx="0.3"
-                class="gamma-bar @bar.ColorClass"
-                opacity="@bar.Opacity" />
+            <div class="y-label">@label</div>
         }
+    </div>
+    <div class="chart-main">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="chart-svg">
+            <!-- Center line (0 axis) -->
+            <line x1="50" y1="0" x2="50" y2="100" class="center-line" />
 
-        <!-- Zero gamma line -->
-        <line x1="0" y1="@ZeroGammaY" x2="100" y2="@ZeroGammaY" class="zero-gamma-line" />
-        <text x="92" y="@(ZeroGammaY - 1)" class="zero-marker">0γ</text>
+            <!-- Gamma bars -->
+            @foreach (var bar in GammaBars)
+            {
+                <rect
+                    x="@bar.X"
+                    y="@bar.Y"
+                    width="@bar.Width"
+                    height="@bar.Height"
+                    rx="0.3"
+                    class="gamma-bar @bar.ColorClass"
+                    opacity="@bar.Opacity" />
+            }
 
-        <!-- Price line -->
-        <line x1="0" y1="@PriceY" x2="100" y2="@PriceY" class="price-line" />
-        <text x="2" y="@(PriceY - 1)" class="price-marker">SPOT</text>
-    </svg>
+            <!-- Zero gamma line -->
+            <line x1="0" y1="@ZeroGammaY" x2="100" y2="@ZeroGammaY" class="zero-gamma-line" />
+            <text x="92" y="@(ZeroGammaY - 1)" class="zero-marker">0γ</text>
+
+            <!-- Price line -->
+            <line x1="0" y1="@PriceY" x2="100" y2="@PriceY" class="price-line" />
+            <text x="2" y="@(PriceY - 1)" class="price-marker">SPOT</text>
+        </svg>
+        <div class="x-axis">
+            @foreach (var label in XAxisLabels)
+            {
+                <span class="x-label">@label</span>
+            }
+        </div>
+    </div>
 </div>
 
 @code {
@@ -42,6 +56,9 @@
 
     private double PriceY => CalculatePriceY();
     private double ZeroGammaY => CalculateZeroGammaY();
+
+    private IEnumerable<string> YAxisLabels => CalculateYAxisLabels();
+    private IEnumerable<string> XAxisLabels => CalculateXAxisLabels();
 
     protected override void OnInitialized()
     {
@@ -184,6 +201,36 @@
         var zeroY = centerYPercent + (zeroYBase - centerYPercent) * (double)state.YAxisScale;
 
         return Math.Max(0, Math.Min(100, zeroY));
+    }
+
+    private IEnumerable<string> CalculateYAxisLabels()
+    {
+        var state = StateService.State;
+        var strikeStart = state.StrikeStart;
+        var strikeEnd = state.StrikeEnd;
+        var range = strikeEnd - strikeStart;
+        var step = range / 4;
+
+        // Generate 5 labels from top (high) to bottom (low)
+        return new[]
+        {
+            $"${strikeEnd:F0}",
+            $"${strikeEnd - step:F0}",
+            $"${strikeStart + range / 2:F0}",
+            $"${strikeStart + step:F0}",
+            $"${strikeStart:F0}"
+        };
+    }
+
+    private IEnumerable<string> CalculateXAxisLabels()
+    {
+        if (IsAbsolute)
+        {
+            // Absolute mode: show dollar amounts
+            return new[] { "-$50B", "-$25B", "0 (γ)", "+$25B", "+$50B" };
+        }
+        // Normalized mode: show raw gamma values
+        return new[] { "-50", "-25", "0 (γ)", "+25", "+50" };
     }
 
     public void Dispose()

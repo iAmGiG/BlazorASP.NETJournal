@@ -4,13 +4,19 @@
 :root {
     /* Background colors */
     --bg-dark: #0a0d10;
-    --panel-bg: #12171d;
-    --card-bg: #1a2029;
+    --bg-panel: #12171d;
+    --bg-card: #1a2029;
+    /* Legacy aliases */
+    --panel-bg: var(--bg-panel);
+    --card-bg: var(--bg-card);
 
     /* Text colors */
-    --text-main: #e8eaed;
-    --text-dim: #8b9bb4;
+    --text-primary: #e8eaed;
+    --text-muted: #8b9bb4;
     --text-header: #7eb8ff;
+    /* Legacy aliases */
+    --text-main: var(--text-primary);
+    --text-dim: var(--text-muted);
 
     /* Accent colors */
     --accent-blue: #2962ff;
@@ -18,8 +24,11 @@
     --accent-red: #ff3d57;
     --accent-green: #00c853;
     --accent-orange: #ff9100;
-    --warning-yellow: #ffc107;
-    --purple: #9c27b0;
+    --accent-yellow: #ffc107;
+    --accent-purple: #9c27b0;
+    /* Legacy aliases */
+    --warning-yellow: var(--accent-yellow);
+    --purple: var(--accent-purple);
 
     /* Status colors (from research visuals) */
     --status-implemented: #2ecc71;
@@ -43,7 +52,7 @@ html, body {
     margin: 0;
     font-family: 'Segoe UI', 'Roboto', system-ui, -apple-system, sans-serif;
     background-color: var(--bg-dark);
-    color: var(--text-main);
+    color: var(--text-primary);
     min-height: 100vh;
 }
 

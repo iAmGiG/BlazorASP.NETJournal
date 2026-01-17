@@ -125,15 +125,15 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for commit message guidelines.
 - [x] GexHeader component - metrics display
 - [x] GexSidebar component - controls and parameters
 - [x] PriceSparkline component - interactive price history
+- [x] GexChart component - dual-mode SVG rendering with axis labels
 
 ### In Progress
-- [ ] GexChart component - SVG rendering
-- [ ] Real-time data simulation
-- [ ] Interactive chart controls
+- [ ] Real-time data simulation (auto-play timer)
+- [ ] Keyboard shortcuts and event handling (#62)
 
 ### Planned
+- [ ] Axis zoom/pan interactions (#26)
 - [ ] Client-side data persistence (localStorage)
-- [ ] Keyboard shortcuts and event handling
 - [ ] Advanced database persistence (IndexedDB, API backend)
 
 ## Research Visualizations

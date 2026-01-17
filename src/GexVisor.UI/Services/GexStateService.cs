@@ -21,6 +21,9 @@ public class GexStateService
     public GexStateService()
     {
         InitializeDemoTimeline();
+        // Start at the first data point so charts render on load
+        if (_timeline.Count > 0)
+            SetCurrentIndex(0);
     }
 
     /// <summary>
