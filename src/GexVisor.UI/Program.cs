@@ -14,6 +14,7 @@ builder.Services.AddSingleton<GexStateService>();
 builder.Services.AddScoped<GexDataService>();
 builder.Services.AddScoped<LocalStorageService>();
 builder.Services.AddScoped<AnnotationService>();
+builder.Services.AddScoped<SqliteService>();
 
 // Journal Services
 builder.Services.AddScoped<TagService>();
