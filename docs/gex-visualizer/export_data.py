@@ -10,8 +10,10 @@ For public/demo usage, the visualizer includes a built-in demo timeline with
 simulated SPY data from 2020-2025.
 
 Usage:
-    python export_data.py              # Export all symbols
-    python export_data.py SPY QQQ      # Export specific symbols
+    python export_data.py                          # Export all to data/
+    python export_data.py SPY QQQ                  # Export specific symbols
+    python export_data.py --output ../path/to/dir  # Custom output directory
+    python export_data.py --blazor                 # Export to Blazor wwwroot/data
 """
 
 import json
@@ -21,7 +23,8 @@ from pathlib import Path
 
 # Database path (relative to project root)
 DB_PATH = Path(__file__).parent.parent.parent / ".cache" / "gex_research.db"
-OUTPUT_DIR = Path(__file__).parent / "data"
+DEFAULT_OUTPUT_DIR = Path(__file__).parent / "data"
+BLAZOR_OUTPUT_DIR = Path(__file__).parent.parent.parent / "src" / "GexVisor.UI" / "wwwroot" / "data"
 
 
 def get_symbols(conn, filter_symbols=None):
@@ -122,7 +125,25 @@ def export_index(symbols_data):
 
 def main():
     # Parse command line args
-    filter_symbols = sys.argv[1:] if len(sys.argv) > 1 else None
+    args = sys.argv[1:]
+    output_dir = DEFAULT_OUTPUT_DIR
+    filter_symbols = []
+
+    i = 0
+    while i < len(args):
+        if args[i] == "--output" and i + 1 < len(args):
+            output_dir = Path(args[i + 1])
+            i += 2
+        elif args[i] == "--blazor":
+            output_dir = BLAZOR_OUTPUT_DIR
+            i += 1
+        elif not args[i].startswith("-"):
+            filter_symbols.append(args[i])
+            i += 1
+        else:
+            i += 1
+
+    filter_symbols = filter_symbols if filter_symbols else None
 
     # Check database exists
     if not DB_PATH.exists():
@@ -130,20 +151,20 @@ def main():
         sys.exit(1)
 
     # Create output directory
-    OUTPUT_DIR.mkdir(exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     # Connect to database
     conn = sqlite3.connect(str(DB_PATH))
     symbols = get_symbols(conn, filter_symbols)
 
-    print(f"Exporting {len(symbols)} symbols to {OUTPUT_DIR}/")
+    print(f"Exporting {len(symbols)} symbols to {output_dir}/")
 
     symbols_data = []
     for symbol, asset_class in symbols:
         data = export_symbol(conn, symbol)
         if data:
             # Write symbol file
-            output_file = OUTPUT_DIR / f"{symbol.lower()}.json"
+            output_file = output_dir / f"{symbol.lower()}.json"
             with open(output_file, "w") as f:
                 json.dump(data, f, indent=2)
             print(f"  {symbol}: {data['count']} days -> {output_file.name}")
@@ -153,7 +174,7 @@ def main():
 
     # Write index file
     index = export_index(symbols_data)
-    index_file = OUTPUT_DIR / "index.json"
+    index_file = output_dir / "index.json"
     with open(index_file, "w") as f:
         json.dump(index, f, indent=2)
     print(f"\nIndex: {len(index['symbols'])} symbols -> {index_file.name}")

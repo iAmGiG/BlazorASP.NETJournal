@@ -19,6 +19,12 @@
     font-family: 'JetBrains Mono', monospace;
     text-align: right;
     padding-right: 8px;
+    cursor: ns-resize;
+    user-select: none;
+}
+
+.y-axis:hover {
+    color: var(--text-primary);
 }
 
 .y-label {
@@ -29,6 +35,11 @@
     flex: 1;
     display: flex;
     flex-direction: column;
+    cursor: grab;
+}
+
+.chart-main:active {
+    cursor: grabbing;
 }
 
 .chart-svg {
@@ -44,6 +55,12 @@
     font-size: 0.65rem;
     color: var(--text-muted);
     font-family: 'JetBrains Mono', monospace;
+    cursor: ew-resize;
+    user-select: none;
+}
+
+.x-axis:hover {
+    color: var(--text-primary);
 }
 
 .x-label {

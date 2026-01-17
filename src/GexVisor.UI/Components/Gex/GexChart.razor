@@ -4,13 +4,13 @@
 @implements IDisposable
 
 <div class="gex-chart @(IsAbsolute ? "absolute-mode" : "normalized-mode")">
-    <div class="y-axis">
+    <div class="y-axis" @onwheel="OnYAxisWheel" @onwheel:preventDefault @ondblclick="OnYAxisDoubleClick" title="Scroll to zoom Y-axis, double-click to reset">
         @foreach (var label in YAxisLabels)
         {
             <div class="y-label">@label</div>
         }
     </div>
-    <div class="chart-main">
+    <div class="chart-main" @onwheel="OnChartWheel" @onwheel:preventDefault title="Scroll to adjust price (Shift for faster)">
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="chart-svg">
             <!-- Center line (0 axis) -->
             <line x1="50" y1="0" x2="50" y2="100" class="center-line" />
@@ -36,7 +36,7 @@
             <line x1="0" y1="@PriceY" x2="100" y2="@PriceY" class="price-line" />
             <text x="2" y="@(PriceY - 1)" class="price-marker">SPOT</text>
         </svg>
-        <div class="x-axis">
+        <div class="x-axis" @onwheel="OnXAxisWheel" @onwheel:preventDefault @ondblclick="OnXAxisDoubleClick" title="Scroll to zoom X-axis, double-click to reset">
             @foreach (var label in XAxisLabels)
             {
                 <span class="x-label">@label</span>
@@ -231,6 +231,47 @@
         }
         // Normalized mode: show raw gamma values
         return new[] { "-50", "-25", "0 (γ)", "+25", "+50" };
+    }
+
+    // --- Interactive Controls ---
+
+    private void OnChartWheel(WheelEventArgs e)
+    {
+        if (StateService.State.IsSimulating) return;
+
+        var step = e.ShiftKey ? 10m : 2m;
+        var delta = e.DeltaY > 0 ? -step : step;
+
+        if (StateService.State.InvertScroll)
+            delta = -delta;
+
+        var newPrice = StateService.State.Price + delta;
+        newPrice = Math.Max(StateService.State.StrikeStart, Math.Min(StateService.State.StrikeEnd, newPrice));
+        StateService.UpdatePrice(newPrice);
+    }
+
+    private void OnYAxisWheel(WheelEventArgs e)
+    {
+        var delta = e.DeltaY > 0 ? 0.1m : -0.1m;
+        StateService.AdjustYAxisScale(delta);
+    }
+
+    private void OnYAxisDoubleClick()
+    {
+        StateService.State.YAxisScale = 1.0m;
+        StateService.ResetView(); // Resets both axes for simplicity
+    }
+
+    private void OnXAxisWheel(WheelEventArgs e)
+    {
+        var delta = e.DeltaY > 0 ? 0.1m : -0.1m;
+        StateService.AdjustXAxisScale(delta);
+    }
+
+    private void OnXAxisDoubleClick()
+    {
+        StateService.State.XAxisScale = 1.0m;
+        StateService.ResetView(); // Resets both axes for simplicity
     }
 
     public void Dispose()

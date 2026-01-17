@@ -1,0 +1,4 @@
+# Generated JSON data files
+# Run export_data.py to generate, or symlink from docs/gex-visualizer/data/
+*.json
+!.gitignore

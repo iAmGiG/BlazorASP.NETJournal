@@ -236,6 +236,34 @@ public class GexStateService : IDisposable
     }
 
     /// <summary>
+    /// Reset axis zoom scales to default.
+    /// </summary>
+    public void ResetView()
+    {
+        _state.YAxisScale = 1.0m;
+        _state.XAxisScale = 1.0m;
+        NotifyStateChanged();
+    }
+
+    /// <summary>
+    /// Adjust Y-axis zoom scale.
+    /// </summary>
+    public void AdjustYAxisScale(decimal delta)
+    {
+        _state.YAxisScale = Math.Max(0.2m, Math.Min(3.0m, _state.YAxisScale + delta));
+        NotifyStateChanged();
+    }
+
+    /// <summary>
+    /// Adjust X-axis zoom scale.
+    /// </summary>
+    public void AdjustXAxisScale(decimal delta)
+    {
+        _state.XAxisScale = Math.Max(0.3m, Math.Min(3.0m, _state.XAxisScale + delta));
+        NotifyStateChanged();
+    }
+
+    /// <summary>
     /// Toggle simulation playback.
     /// </summary>
     public void ToggleSimulation()

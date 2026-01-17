@@ -1,5 +1,6 @@
 @page "/gex"
 @using GexVisor.UI.Services
+@inject IJSRuntime JS
 @implements IDisposable
 
 <PageTitle>GEX Visualizer</PageTitle>
@@ -84,7 +85,7 @@
         }
     }
 
-    private void HandleKeyDown(KeyboardEventArgs e)
+    private async Task HandleKeyDown(KeyboardEventArgs e)
     {
         _preventKeyDefault = true;
 
@@ -111,10 +112,23 @@
             case "End":
                 StateService.JumpToEnd();
                 break;
+            case "r":
+            case "R":
+                StateService.ResetView();
+                break;
+            case "f":
+            case "F":
+                await ToggleFullscreen();
+                break;
             default:
                 _preventKeyDefault = false;
                 break;
         }
+    }
+
+    private async Task ToggleFullscreen()
+    {
+        await JS.InvokeVoidAsync("GexInterop.toggleFullscreen");
     }
 
     private void JumpToNextYear()
