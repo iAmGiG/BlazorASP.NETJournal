@@ -4,26 +4,26 @@
 @inject IJSRuntime JS
 @implements IDisposable
 
-<header class="gex-header">
+<header class="gex-header" role="banner">
     <div class="header-left">
-        <a href="/" class="logo" title="Back to Home">
-            <div class="logo-icon">Γ</div>
+        <a href="/" class="logo" title="Back to Home" aria-label="Go to home page">
+            <div class="logo-icon" aria-hidden="true">Γ</div>
             <div>
                 <h1>GEX REGIME COMPARATOR <span class="badge">RESEARCH</span></h1>
             </div>
         </a>
     </div>
 
-    <div class="header-center">
-        <div class="metric-card">
+    <div class="header-center" role="region" aria-label="Current market metrics">
+        <div class="metric-card" aria-live="polite">
             <div class="metric-label">@SymbolLabel Price</div>
             <div class="metric-value price-value">$@Price.ToString("F2")</div>
         </div>
-        <div class="metric-card">
+        <div class="metric-card" aria-live="polite">
             <div class="metric-label">S² Factor</div>
             <div class="metric-value s2-value">@S2Factor.ToString("F1")x</div>
         </div>
-        <div class="metric-card">
+        <div class="metric-card" aria-live="polite">
             <div class="metric-label">Total GEX</div>
             <div class="metric-value gex-value">@FormatGex(TotalGex)</div>
         </div>
@@ -31,28 +31,28 @@
 
     <div class="header-right">
         <div class="export-dropdown">
-            <button class="export-btn" @onclick="ToggleExportMenu" title="Export Chart as PNG">
-                <i class="fas fa-camera"></i>
+            <button class="export-btn" @onclick="ToggleExportMenu" title="Export Chart as PNG" aria-label="Export chart as PNG" aria-expanded="@_showExportMenu" aria-haspopup="menu">
+                <i class="fas fa-camera" aria-hidden="true"></i>
             </button>
             @if (_showExportMenu)
             {
-                <div class="export-menu">
-                    <button @onclick="ExportPractitioner">Practitioner View</button>
-                    <button @onclick="ExportPaper2">Paper 2 View</button>
-                    <button @onclick="ExportBoth">Export Both</button>
+                <div class="export-menu" role="menu" aria-label="Export options">
+                    <button @onclick="ExportPractitioner" role="menuitem">Practitioner View</button>
+                    <button @onclick="ExportPaper2" role="menuitem">Paper 2 View</button>
+                    <button @onclick="ExportBoth" role="menuitem">Export Both</button>
                 </div>
             }
         </div>
-        <button class="help-btn" @onclick="OnHelpClick" title="Keyboard Shortcuts (?)">?</button>
-        <div class="year-badge @(HasData ? "" : "inactive")">@YearDisplay</div>
+        <button class="help-btn" @onclick="OnHelpClick" title="Keyboard Shortcuts (?)" aria-label="Show keyboard shortcuts">?</button>
+        <div class="year-badge @(HasData ? "" : "inactive")" aria-label="Current year: @YearDisplay">@YearDisplay</div>
     </div>
 </header>
 
 @if (ShowVolWarning)
 {
-    <div class="vol-warning @(IsNegativeGamma ? "active" : "")">
+    <div class="vol-warning @(IsNegativeGamma ? "active" : "")" role="status" aria-live="polite" aria-label="Gamma regime status">
         <div class="vol-stat">
-            <div class="vol-pulse"></div>
+            <div class="vol-pulse" aria-hidden="true"></div>
             <span>@GammaStatus</span>
         </div>
         <div class="vol-stat">
