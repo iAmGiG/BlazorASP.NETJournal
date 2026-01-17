@@ -321,3 +321,34 @@
 .dot-cyan { background: var(--accent-cyan); }
 .dot-yellow { background: var(--accent-yellow); }
 .dot-purple { background: var(--accent-purple); }
+
+/* Keyboard Shortcuts */
+.shortcuts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.5rem;
+    background: var(--bg-card);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+.shortcut-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+}
+
+.shortcut-key {
+    color: var(--accent-cyan);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    padding: 0.1rem 0.3rem;
+    background: var(--bg-dark);
+    border-radius: 3px;
+    font-size: 0.65rem;
+}
+
+.shortcut-action {
+    color: var(--text-muted);
+}

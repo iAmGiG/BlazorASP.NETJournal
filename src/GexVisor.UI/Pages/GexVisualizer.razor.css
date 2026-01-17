@@ -6,6 +6,11 @@
     height: 100vh;
     background: var(--bg-dark);
     color: var(--text-primary);
+    outline: none;
+}
+
+.gex-app:focus {
+    outline: none;
 }
 
 .gex-dashboard {

@@ -1,8 +1,10 @@
 @page "/gex"
+@using GexVisor.UI.Services
+@implements IDisposable
 
 <PageTitle>GEX Visualizer</PageTitle>
 
-<div class="gex-app">
+<div class="gex-app" tabindex="0" @ref="_appRef" @onkeydown="HandleKeyDown" @onkeydown:preventDefault="@_preventKeyDefault">
     <GexHeader />
 
     <div class="gex-dashboard">
@@ -55,6 +57,9 @@
 @code {
     [Inject] private GexStateService StateService { get; set; } = default!;
 
+    private ElementReference _appRef;
+    private bool _preventKeyDefault;
+
     private decimal S2Factor => StateService.State.S2Factor;
     private decimal TotalGex => StateService.State.CurrentDataPoint?.Gex ?? 0;
     private decimal MaxGamma => StateService.State.CurrentDataPoint?.MaxGamma ?? 0;
@@ -68,6 +73,82 @@
     protected override void OnInitialized()
     {
         StateService.OnStateChanged += StateHasChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Focus the app container to enable keyboard events
+            await _appRef.FocusAsync();
+        }
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        _preventKeyDefault = true;
+
+        switch (e.Key)
+        {
+            case " ":
+                StateService.ToggleSimulation();
+                break;
+            case "ArrowRight":
+                StateService.StepForward();
+                break;
+            case "ArrowLeft":
+                StateService.StepBackward();
+                break;
+            case "ArrowUp":
+                JumpToNextYear();
+                break;
+            case "ArrowDown":
+                JumpToPrevYear();
+                break;
+            case "Home":
+                StateService.JumpToStart();
+                break;
+            case "End":
+                StateService.JumpToEnd();
+                break;
+            default:
+                _preventKeyDefault = false;
+                break;
+        }
+    }
+
+    private void JumpToNextYear()
+    {
+        var current = StateService.State.CurrentDataPoint;
+        if (current == null) { StateService.JumpToStart(); return; }
+
+        var currentYear = int.Parse(current.Date.Split('-')[0]);
+        var timeline = StateService.Timeline;
+        for (int i = 0; i < timeline.Count; i++)
+        {
+            if (int.Parse(timeline[i].Date.Split('-')[0]) > currentYear)
+            {
+                StateService.SetCurrentIndex(i);
+                return;
+            }
+        }
+    }
+
+    private void JumpToPrevYear()
+    {
+        var current = StateService.State.CurrentDataPoint;
+        if (current == null) { StateService.JumpToStart(); return; }
+
+        var currentYear = int.Parse(current.Date.Split('-')[0]);
+        var timeline = StateService.Timeline;
+        for (int i = timeline.Count - 1; i >= 0; i--)
+        {
+            if (int.Parse(timeline[i].Date.Split('-')[0]) < currentYear)
+            {
+                StateService.SetCurrentIndex(i);
+                return;
+            }
+        }
     }
 
     private static string FormatGex(decimal gex)
