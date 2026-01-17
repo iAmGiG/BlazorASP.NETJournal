@@ -61,9 +61,10 @@
     border-color: var(--accent-cyan);
 }
 
-.app-card.coming-soon {
-    opacity: 0.6;
-    cursor: default;
+.app-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    border-color: var(--accent-cyan);
 }
 
 .app-icon {
@@ -83,9 +84,9 @@
     color: var(--bg-dark);
 }
 
-.app-card.coming-soon .app-icon {
-    background: var(--bg-panel);
-    color: var(--accent-purple);
+.app-icon.arcade {
+    background: linear-gradient(135deg, var(--accent-purple), #6a3093);
+    color: white;
 }
 
 .app-info {

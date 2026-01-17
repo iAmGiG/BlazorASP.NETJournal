@@ -1,0 +1,136 @@
+@page "/arcade"
+
+<PageTitle>Research Arcade - GexVisor</PageTitle>
+
+<div class="arcade-page">
+    <header class="arcade-header">
+        <a href="/" class="back-link" title="Back to Home">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div class="header-content">
+            <h1>Research Arcade</h1>
+            <p class="tagline">Interactive Visualizations of Research Endeavors</p>
+        </div>
+    </header>
+
+    <section class="metrics-banner">
+        <div class="metric">
+            <span class="metric-value">71.5%</span>
+            <span class="metric-label">Detection Rate</span>
+        </div>
+        <div class="metric">
+            <span class="metric-value">91.2%</span>
+            <span class="metric-label">Accuracy</span>
+        </div>
+        <div class="metric">
+            <span class="metric-value">242</span>
+            <span class="metric-label">Trading Days</span>
+        </div>
+        <div class="metric">
+            <span class="metric-value">15</span>
+            <span class="metric-label">Patterns</span>
+        </div>
+    </section>
+
+    <div class="arcade-grid">
+        <a href="/gex" class="arcade-card featured">
+            <div class="card-icon gamma">@GammaSymbol</div>
+            <div class="card-content">
+                <h2>GEX Visualizer</h2>
+                <p>Interactive Blazor WebAssembly application for exploring GEX regime dynamics with real-time state management and dual-view comparisons.</p>
+                <div class="card-tags">
+                    <span class="tag">.NET 10</span>
+                    <span class="tag">Blazor WASM</span>
+                    <span class="tag">Interactive</span>
+                </div>
+            </div>
+        </a>
+
+        <a href="docs/research-visuals/research_complexity_map.html" target="_blank" class="arcade-card">
+            <div class="card-icon map">
+                <i class="fas fa-project-diagram"></i>
+            </div>
+            <div class="card-content">
+                <h2>Research Complexity Map</h2>
+                <p>Interactive radial visualization mapping 16 abandoned and deferred research paths by barrier type, complexity level, and status.</p>
+                <div class="card-tags">
+                    <span class="tag">Data Access</span>
+                    <span class="tag">Architecture</span>
+                    <span class="tag">Scope</span>
+                </div>
+            </div>
+        </a>
+
+        <a href="docs/research-visuals/paper2.html" target="_blank" class="arcade-card">
+            <div class="card-icon paper2">
+                <i class="fas fa-balance-scale"></i>
+            </div>
+            <div class="card-content">
+                <h2>Structural Agreement Test</h2>
+                <p>Paper 2 visualization showing gradual adoption and validation of GEX formula agreement between absolute and normalized calculation methods.</p>
+                <div class="card-tags">
+                    <span class="tag">Paper 2</span>
+                    <span class="tag">Methodology</span>
+                    <span class="tag">Validation</span>
+                </div>
+            </div>
+        </a>
+
+        <a href="docs/research-visuals/RESEARCH_ROADMAP.md" target="_blank" class="arcade-card">
+            <div class="card-icon roadmap">
+                <i class="fas fa-route"></i>
+            </div>
+            <div class="card-content">
+                <h2>Research Roadmap</h2>
+                <p>Strategic multi-phase research trajectory: from static detection to cross-asset generalization, intraday mechanics, and neuro-symbolic simulation.</p>
+                <div class="card-tags">
+                    <span class="tag">Strategy</span>
+                    <span class="tag">Phase 3-4</span>
+                    <span class="tag">ABM</span>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <section class="research-phases">
+        <h2>Research Phases</h2>
+        <div class="phase-list">
+            <div class="phase completed">
+                <span class="phase-num">1</span>
+                <div class="phase-content">
+                    <strong>Obfuscation Testing</strong>
+                    <p>Can LLMs detect gamma patterns without temporal cues? (Validated: 71.5% detection)</p>
+                </div>
+            </div>
+            <div class="phase current">
+                <span class="phase-num">2</span>
+                <div class="phase-content">
+                    <strong>Temporal Dynamics</strong>
+                    <p>Can LLMs perceive regime evolution over time?</p>
+                </div>
+            </div>
+            <div class="phase planned">
+                <span class="phase-num">3</span>
+                <div class="phase-content">
+                    <strong>Cross-Asset Generalization</strong>
+                    <p>Index vs. single-stock dynamics, intraday mechanics, "Scar Tissue" hypothesis</p>
+                </div>
+            </div>
+            <div class="phase planned">
+                <span class="phase-num">4</span>
+                <div class="phase-content">
+                    <strong>Neuro-Symbolic Simulation</strong>
+                    <p>Agent-based modeling, GNN contagion networks, causal discovery</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="arcade-footer">
+        <p>Part of <a href="https://github.com/iAmGiG/gex-llm-patterns" target="_blank">GEX-LLM Patterns</a> research project</p>
+    </footer>
+</div>
+
+@code {
+    private const string GammaSymbol = "\u0393";
+}
