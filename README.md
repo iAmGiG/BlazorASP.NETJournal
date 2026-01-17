@@ -126,13 +126,22 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for commit message guidelines.
 - [x] GexSidebar component - controls and parameters
 - [x] PriceSparkline component - interactive price history
 - [x] GexChart component - dual-mode SVG rendering with axis labels
-- [x] Keyboard shortcuts (Space, arrows, Home/End)
+- [x] Keyboard shortcuts (Space, arrows, Home/End, R, F, ?)
 - [x] Real-time data simulation (auto-play timer)
+- [x] Client-side data persistence (localStorage) (#44)
+- [x] Keyboard shortcuts help overlay (#34)
+- [x] Pattern annotations for LLM training data (#66)
+- [x] Research Arcade page with research visualizations
+
+### In Progress
+- [ ] Research Lab Notebook (#64) - shared journal infrastructure
+- [ ] Paper Trade Simulator (#65)
 
 ### Planned
-- [ ] Axis zoom/pan interactions (#26)
-- [ ] Client-side data persistence (localStorage)
-- [ ] Advanced database persistence (IndexedDB, API backend)
+- [ ] Export Chart as PNG (#33)
+- [ ] Backtest Results Tracker (#67)
+- [ ] Research Task Board (#68)
+- [ ] Wasm-compatible SQLite research (#18)
 
 ## Research Visualizations
 
@@ -152,11 +161,12 @@ Contributions welcome! Please review [CONTRIBUTING.md](CONTRIBUTING.md) for:
 
 ## Project Status
 
-**Phase:** Active Development - GEX Visualizer Port
+**Phase:** Active Development - Research Tools
 
-The Blazor foundation is complete with core services and components. Currently
-implementing chart rendering and timeline simulation features. Access the GEX
-Visualizer at `/gex` route when running the Blazor app.
+The GEX Visualizer core is complete with chart rendering, timeline simulation,
+and pattern annotations. Currently building research journal infrastructure
+to support notebook entries, paper trading, and backtest tracking. Access the
+GEX Visualizer at `/gex` and Research Arcade at `/arcade`.
 
 ## License
 

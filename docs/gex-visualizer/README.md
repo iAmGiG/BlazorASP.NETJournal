@@ -2,11 +2,31 @@
 
 Interactive visualization tool for exploring Gamma Exposure (GEX) methodology differences across market regimes.
 
-## Quick Start
+> **Note**: This directory contains the original JavaScript implementation. The application has been
+> ported to Blazor WebAssembly - run `dotnet run` from the repository root and navigate to `/gex`.
+
+## Quick Start (Legacy JS Version)
 
 Open `index.html` in a browser - no server required.
 
-## Features
+## Quick Start (Blazor Version)
+
+```bash
+cd src/GexVisor.UI
+dotnet run
+# Navigate to http://localhost:5000/gex
+```
+
+## Blazor Version Features
+
+The Blazor port includes all original features plus:
+
+- **Pattern Annotations**: Mark patterns on the timeline for LLM training data (#66)
+- **Keyboard Shortcuts Overlay**: Press `?` to see all shortcuts (#34)
+- **Settings Persistence**: Playback speed and axis scales saved to localStorage (#44)
+- **Research Arcade**: Access research visualizations at `/arcade`
+
+## Features (Both Versions)
 
 - **Dual View Comparison**: Normalized (Practitioner) vs Absolute (S² Scaled) GEX
 - **Historical Timeline**: 21 EOD regime snapshots from March 2020 to December 2025
@@ -33,6 +53,8 @@ Open `index.html` in a browser - no server required.
 | Click Sparkline | Jump to that point |
 | R | Reset view (zoom) |
 | F | Toggle fullscreen |
+| ? | Show keyboard shortcuts help |
+| Escape | Close help overlay |
 
 ## Color Legend
 
