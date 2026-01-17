@@ -24,6 +24,11 @@ public record GexDataPoint
     public string? Label { get; init; }
 
     /// <summary>
+    /// Number of consecutive days in the current regime (for persistence tracking)
+    /// </summary>
+    public int RegimeDays { get; init; } = 1;
+
+    /// <summary>
     /// Indicates if this is a negative gamma regime (dealers short gamma = amplifies moves)
     /// </summary>
     public bool IsNegativeGamma => Regime == "NEGATIVE_GAMMA";

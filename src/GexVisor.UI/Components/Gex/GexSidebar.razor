@@ -129,6 +129,49 @@
         <div class="shortcut-row"><span class="shortcut-key">F</span><span class="shortcut-action">Fullscreen</span></div>
     </div>
 
+    <!-- Regime Persistence Section -->
+    <div class="section-title">Regime Persistence</div>
+    <div class="persistence-card">
+        <div class="persistence-meter">
+            @for (int i = 0; i < 10; i++)
+            {
+                <div class="persistence-bar @(i < PersistenceBars ? "active" : "")"></div>
+            }
+        </div>
+        <div class="persistence-stats">
+            <span>Avg Duration: <strong>~8 days</strong></span>
+            <span>@PersistenceLabel</span>
+        </div>
+    </div>
+
+    <!-- Lead-Lag Signal Section -->
+    <div class="section-title">Lead-Lag Signal</div>
+    <div class="lead-lag-card">
+        <div class="lead-lag-visual">
+            <span class="lead-lag-symbol uvxy-badge">UVXY</span>
+            <span class="lead-arrow">→</span>
+            <span class="lead-lag-symbol spy-badge">SPY</span>
+        </div>
+        <div class="lead-lag-stats">1-day lead | 0.456 correlation</div>
+    </div>
+
+    <!-- Research Metrics Section -->
+    <div class="section-title">Research Metrics</div>
+    <div class="perf-card">
+        <div class="perf-row">
+            <span class="perf-label">GEX vs Technicals</span>
+            <span class="perf-badge">5/6 WINS</span>
+        </div>
+        <div class="perf-row">
+            <span class="perf-label">Sharpe Improvement</span>
+            <span class="perf-value positive">+52%</span>
+        </div>
+        <div class="perf-row">
+            <span class="perf-label">SPY Sharpe Gain</span>
+            <span class="perf-value positive">+0.714</span>
+        </div>
+    </div>
+
     <!-- Legend Section -->
     <div class="section-title">Legend</div>
     <div class="legend">
@@ -136,6 +179,41 @@
         <div class="legend-item"><div class="legend-dot dot-cyan"></div>Long Gamma</div>
         <div class="legend-item"><div class="legend-dot dot-yellow"></div>Spot Price</div>
         <div class="legend-item"><div class="legend-dot dot-purple"></div>Zero Gamma</div>
+    </div>
+
+    <!-- Terminology Section -->
+    <div class="section-title">Terminology</div>
+    <div class="glossary">
+        <div class="glossary-item">
+            <span class="glossary-term">GEX</span>
+            <span class="glossary-def">Gamma Exposure - net gamma dealers hold from hedging options</span>
+        </div>
+        <div class="glossary-item">
+            <span class="glossary-term">S²</span>
+            <span class="glossary-def">Spot price squared - scaling factor in absolute GEX</span>
+        </div>
+        <div class="glossary-item">
+            <span class="glossary-term">γ</span>
+            <span class="glossary-def">Rate of change of delta; hedge adjustment per $1 move</span>
+        </div>
+        <div class="glossary-item">
+            <span class="glossary-term">0γ</span>
+            <span class="glossary-def">Zero gamma level - price where exposure flips long/short</span>
+        </div>
+        <div class="glossary-item">
+            <span class="glossary-term">OI</span>
+            <span class="glossary-def">Open Interest - total outstanding option contracts</span>
+        </div>
+        <div class="glossary-item">
+            <span class="glossary-term">Tilt</span>
+            <span class="glossary-def">Dealer positioning bias; negative = short gamma (amplifies)</span>
+        </div>
+    </div>
+
+    <!-- Research Insight Box -->
+    <div class="insight-box">
+        <div class="insight-title">💡 RESEARCH INSIGHT</div>
+        <div class="insight-text">@InsightText</div>
     </div>
 </div>
 
@@ -168,6 +246,24 @@
             var startYear = first.Date.Split('-')[0];
             var endYear = last.Date.Split('-')[0];
             return $"{SymbolLabel} {startYear}-{endYear}";
+        }
+    }
+
+    private int PersistenceBars => StateService.State.CurrentDataPoint?.RegimeDays ?? 1;
+    private string PersistenceLabel => $"Day {PersistenceBars}";
+
+    private string InsightText
+    {
+        get
+        {
+            var point = StateService.State.CurrentDataPoint;
+            if (point == null)
+                return "Run simulation to see how absolute GEX diverges from normalized ratios during market inflation.";
+
+            if (point.IsNegativeGamma)
+                return "Negative gamma regime detected. Dealers must sell into declines and buy into rallies, amplifying price moves.";
+
+            return "Positive gamma regime. Dealers hedge by buying dips and selling rips, dampening volatility.";
         }
     }
 
