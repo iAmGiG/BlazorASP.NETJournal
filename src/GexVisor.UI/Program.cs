@@ -19,5 +19,6 @@ builder.Services.AddScoped<AnnotationService>();
 builder.Services.AddScoped<TagService>();
 builder.Services.AddScoped<NotebookService>();
 builder.Services.AddScoped<PaperTradeService>();
+builder.Services.AddScoped<BacktestService>();
 
 await builder.Build().RunAsync();

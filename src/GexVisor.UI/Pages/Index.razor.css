@@ -99,6 +99,11 @@
     color: white;
 }
 
+.app-icon.backtest {
+    background: linear-gradient(135deg, #2196f3, #1565c0);
+    color: white;
+}
+
 .app-info {
     flex: 1;
 }

@@ -1,0 +1,588 @@
+@page "/backtests"
+@using GexVisor.UI.Models
+@using GexVisor.UI.Services
+@using GexVisor.UI.Components.Shared
+@inject BacktestService BacktestService
+@inject TagService TagService
+@inject IJSRuntime JS
+@implements IDisposable
+
+<PageTitle>Backtest Results</PageTitle>
+
+<div class="backtest-page">
+    <header class="backtest-header">
+        <div class="header-left">
+            <a href="/" class="back-link">← Home</a>
+            <h1>Backtest Results</h1>
+        </div>
+        <div class="header-actions">
+            <button class="btn-primary" @onclick="ShowAddModal">+ Log Result</button>
+            @if (SelectedCount > 0)
+            {
+                <button class="btn-compare" @onclick="ShowComparison">
+                    Compare (@SelectedCount)
+                </button>
+                <button class="btn-secondary" @onclick="ClearSelections">Clear</button>
+            }
+            <div class="export-dropdown">
+                <button class="btn-secondary" @onclick="@(() => _showExportMenu = !_showExportMenu)">
+                    Export ▾
+                </button>
+                @if (_showExportMenu)
+                {
+                    <div class="dropdown-menu">
+                        <button @onclick="ExportJson">JSON</button>
+                        <button @onclick="ExportCsv">CSV</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </header>
+
+    @* Summary Stats *@
+    <div class="stats-bar">
+        <div class="stat-card">
+            <span class="stat-label">Results</span>
+            <span class="stat-value">@_summary.TotalResults</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Strategies</span>
+            <span class="stat-value">@_summary.UniqueStrategies</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Avg Win Rate</span>
+            <span class="stat-value">@_summary.AvgWinRate.ToString("F1")%</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Avg Return</span>
+            <span class="stat-value @(_summary.AvgReturn >= 0 ? "positive" : "negative")">
+                @(_summary.AvgReturn >= 0 ? "+" : "")@_summary.AvgReturn.ToString("F1")%
+            </span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Best</span>
+            <span class="stat-value positive">+@_summary.BestReturn.ToString("F1")%</span>
+        </div>
+    </div>
+
+    @* Regime Performance *@
+    @if (_regimePerf.ResultsWithRegimeData > 0)
+    {
+        <div class="regime-bar">
+            <div class="regime-item positive">
+                <span class="regime-label">+γ Avg Return:</span>
+                <span class="regime-value">@(_regimePerf.AvgPositiveGammaReturn >= 0 ? "+" : "")@_regimePerf.AvgPositiveGammaReturn.ToString("F1")%</span>
+            </div>
+            <div class="regime-item negative">
+                <span class="regime-label">−γ Avg Return:</span>
+                <span class="regime-value">@(_regimePerf.AvgNegativeGammaReturn >= 0 ? "+" : "")@_regimePerf.AvgNegativeGammaReturn.ToString("F1")%</span>
+            </div>
+        </div>
+    }
+
+    <div class="backtest-content">
+        @if (!Results.Any())
+        {
+            <div class="empty-state">
+                <div class="empty-icon">📊</div>
+                <div class="empty-text">No backtest results yet</div>
+                <div class="empty-hint">Click "Log Result" to record your first backtest</div>
+            </div>
+        }
+        else
+        {
+            <div class="result-list">
+                @foreach (var result in Results)
+                {
+                    <div class="result-card @(result.IsSelected ? "selected" : "")">
+                        <div class="result-select">
+                            <input type="checkbox" checked="@result.IsSelected"
+                                   @onchange="@(() => ToggleSelection(result.Id))" />
+                        </div>
+                        <div class="result-main" @onclick="@(() => ShowDetailModal(result))">
+                            <div class="result-header">
+                                <span class="strategy-name">@result.StrategyName</span>
+                                <span class="result-return @(result.TotalReturn >= 0 ? "positive" : "negative")">
+                                    @(result.TotalReturn >= 0 ? "+" : "")@result.TotalReturn.ToString("F1")%
+                                </span>
+                            </div>
+                            <div class="result-meta">
+                                <span class="date-range">@result.StartDate → @result.EndDate</span>
+                                <span class="trades">@result.TotalTrades trades</span>
+                                <span class="win-rate">@result.WinRate.ToString("F0")% win</span>
+                                @if (result.SharpeRatio.HasValue)
+                                {
+                                    <span class="sharpe">SR: @result.SharpeRatio.Value.ToString("F2")</span>
+                                }
+                            </div>
+                            @if (result.Tags.Count > 0)
+                            {
+                                <div class="result-tags">
+                                    @foreach (var tag in result.Tags.Take(4))
+                                    {
+                                        <span class="tag">@tag</span>
+                                    }
+                                </div>
+                            }
+                            @if (result.ReturnInPositiveGamma.HasValue || result.ReturnInNegativeGamma.HasValue)
+                            {
+                                <div class="regime-breakdown">
+                                    @if (result.ReturnInPositiveGamma.HasValue)
+                                    {
+                                        <span class="regime-stat positive">
+                                            +γ: @(result.ReturnInPositiveGamma >= 0 ? "+" : "")@result.ReturnInPositiveGamma.Value.ToString("F1")%
+                                        </span>
+                                    }
+                                    @if (result.ReturnInNegativeGamma.HasValue)
+                                    {
+                                        <span class="regime-stat negative">
+                                            −γ: @(result.ReturnInNegativeGamma >= 0 ? "+" : "")@result.ReturnInNegativeGamma.Value.ToString("F1")%
+                                        </span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                        <div class="result-actions">
+                            <button class="action-btn delete" @onclick="@(() => DeleteResult(result.Id))" title="Delete">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@* New Result Modal *@
+@if (_showModal)
+{
+    <div class="modal-overlay" @onclick="CloseModal">
+        <div class="modal-content large" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2>Log Backtest Result</h2>
+                <button class="close-btn" @onclick="CloseModal">×</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-section">
+                    <h3>Strategy Info</h3>
+                    <div class="form-row two-col">
+                        <div class="form-group">
+                            <label>Strategy Name *</label>
+                            <input type="text" @bind="_strategyName" placeholder="e.g., GammaFlip_v2" />
+                        </div>
+                        <div class="form-group">
+                            <label>Tags</label>
+                            <TagInput @bind-SelectedTags="_tags" Placeholder="Add tags..." />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea @bind="_description" placeholder="Strategy description..." rows="2"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Test Period</h3>
+                    <div class="form-row two-col">
+                        <div class="form-group">
+                            <label>Start Date *</label>
+                            <input type="text" @bind="_startDate" placeholder="YYYY-MM-DD" />
+                        </div>
+                        <div class="form-group">
+                            <label>End Date *</label>
+                            <input type="text" @bind="_endDate" placeholder="YYYY-MM-DD" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Performance Metrics</h3>
+                    <div class="form-row three-col">
+                        <div class="form-group">
+                            <label>Total Trades *</label>
+                            <input type="number" @bind="_totalTrades" />
+                        </div>
+                        <div class="form-group">
+                            <label>Winning Trades *</label>
+                            <input type="number" @bind="_winningTrades" />
+                        </div>
+                        <div class="form-group">
+                            <label>Total Return % *</label>
+                            <input type="number" step="0.1" @bind="_totalReturn" />
+                        </div>
+                    </div>
+                    <div class="form-row three-col">
+                        <div class="form-group">
+                            <label>Max Drawdown %</label>
+                            <input type="number" step="0.1" @bind="_maxDrawdown" />
+                        </div>
+                        <div class="form-group">
+                            <label>Sharpe Ratio</label>
+                            <input type="number" step="0.01" @bind="_sharpeRatio" />
+                        </div>
+                        <div class="form-group">
+                            <label>Profit Factor</label>
+                            <input type="number" step="0.01" @bind="_profitFactor" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Regime Breakdown (Optional)</h3>
+                    <div class="form-row two-col">
+                        <div class="form-group">
+                            <label>Return in +γ %</label>
+                            <input type="number" step="0.1" @bind="_returnPositiveGamma" />
+                        </div>
+                        <div class="form-group">
+                            <label>Return in −γ %</label>
+                            <input type="number" step="0.1" @bind="_returnNegativeGamma" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Notes</h3>
+                    <div class="form-group">
+                        <textarea @bind="_notes" placeholder="Key observations, what worked, what didn't..." rows="3"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-cancel" @onclick="CloseModal">Cancel</button>
+                <button class="btn-save" @onclick="SaveResult">Save Result</button>
+            </div>
+        </div>
+    </div>
+}
+
+@* Detail Modal *@
+@if (_showDetailModal && _selectedResult != null)
+{
+    <div class="modal-overlay" @onclick="CloseDetailModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2>@_selectedResult.StrategyName</h2>
+                <button class="close-btn" @onclick="CloseDetailModal">×</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="detail-section">
+                    <div class="detail-row">
+                        <span class="detail-label">Period:</span>
+                        <span class="detail-value">@_selectedResult.StartDate → @_selectedResult.EndDate</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Logged:</span>
+                        <span class="detail-value">@_selectedResult.CreatedAt.ToString("MMM d, yyyy")</span>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h4>Performance</h4>
+                    <div class="metrics-grid">
+                        <div class="metric">
+                            <span class="metric-label">Total Return</span>
+                            <span class="metric-value @(_selectedResult.TotalReturn >= 0 ? "positive" : "negative")">
+                                @(_selectedResult.TotalReturn >= 0 ? "+" : "")@_selectedResult.TotalReturn.ToString("F2")%
+                            </span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Win Rate</span>
+                            <span class="metric-value">@_selectedResult.WinRate.ToString("F1")%</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Total Trades</span>
+                            <span class="metric-value">@_selectedResult.TotalTrades</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Max Drawdown</span>
+                            <span class="metric-value negative">-@_selectedResult.MaxDrawdown.ToString("F1")%</span>
+                        </div>
+                        @if (_selectedResult.SharpeRatio.HasValue)
+                        {
+                            <div class="metric">
+                                <span class="metric-label">Sharpe Ratio</span>
+                                <span class="metric-value">@_selectedResult.SharpeRatio.Value.ToString("F2")</span>
+                            </div>
+                        }
+                        @if (_selectedResult.ProfitFactor.HasValue)
+                        {
+                            <div class="metric">
+                                <span class="metric-label">Profit Factor</span>
+                                <span class="metric-value">@_selectedResult.ProfitFactor.Value.ToString("F2")</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                @if (_selectedResult.ReturnInPositiveGamma.HasValue || _selectedResult.ReturnInNegativeGamma.HasValue)
+                {
+                    <div class="detail-section">
+                        <h4>Regime Performance</h4>
+                        <div class="regime-grid">
+                            @if (_selectedResult.ReturnInPositiveGamma.HasValue)
+                            {
+                                <div class="regime-metric positive">
+                                    <span class="regime-label">+γ Return</span>
+                                    <span class="regime-value">
+                                        @(_selectedResult.ReturnInPositiveGamma >= 0 ? "+" : "")@_selectedResult.ReturnInPositiveGamma.Value.ToString("F1")%
+                                    </span>
+                                </div>
+                            }
+                            @if (_selectedResult.ReturnInNegativeGamma.HasValue)
+                            {
+                                <div class="regime-metric negative">
+                                    <span class="regime-label">−γ Return</span>
+                                    <span class="regime-value">
+                                        @(_selectedResult.ReturnInNegativeGamma >= 0 ? "+" : "")@_selectedResult.ReturnInNegativeGamma.Value.ToString("F1")%
+                                    </span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(_selectedResult.Notes))
+                {
+                    <div class="detail-section">
+                        <h4>Notes</h4>
+                        <p class="notes-text">@_selectedResult.Notes</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@* Comparison Modal *@
+@if (_showCompareModal)
+{
+    <div class="modal-overlay" @onclick="CloseCompareModal">
+        <div class="modal-content large" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2>Strategy Comparison (@_comparison.Results.Count selected)</h2>
+                <button class="close-btn" @onclick="CloseCompareModal">×</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="comparison-summary">
+                    <div class="compare-stat">
+                        <span class="compare-label">Avg Return</span>
+                        <span class="compare-value @(_comparison.AvgReturn >= 0 ? "positive" : "negative")">
+                            @(_comparison.AvgReturn >= 0 ? "+" : "")@_comparison.AvgReturn.ToString("F1")%
+                        </span>
+                    </div>
+                    <div class="compare-stat">
+                        <span class="compare-label">Avg Win Rate</span>
+                        <span class="compare-value">@_comparison.AvgWinRate.ToString("F1")%</span>
+                    </div>
+                    <div class="compare-stat">
+                        <span class="compare-label">Best</span>
+                        <span class="compare-value positive">+@_comparison.BestReturn.ToString("F1")%</span>
+                    </div>
+                    <div class="compare-stat">
+                        <span class="compare-label">Worst</span>
+                        <span class="compare-value @(_comparison.WorstReturn >= 0 ? "positive" : "negative")">
+                            @(_comparison.WorstReturn >= 0 ? "+" : "")@_comparison.WorstReturn.ToString("F1")%
+                        </span>
+                    </div>
+                </div>
+
+                <div class="comparison-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Strategy</th>
+                                <th>Period</th>
+                                <th>Return</th>
+                                <th>Win Rate</th>
+                                <th>Sharpe</th>
+                                <th>+γ</th>
+                                <th>−γ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var r in _comparison.Results)
+                            {
+                                <tr>
+                                    <td>@r.StrategyName</td>
+                                    <td class="period">@r.StartDate</td>
+                                    <td class="@(r.TotalReturn >= 0 ? "positive" : "negative")">
+                                        @(r.TotalReturn >= 0 ? "+" : "")@r.TotalReturn.ToString("F1")%
+                                    </td>
+                                    <td>@r.WinRate.ToString("F0")%</td>
+                                    <td>@(r.SharpeRatio?.ToString("F2") ?? "-")</td>
+                                    <td class="@(r.ReturnInPositiveGamma >= 0 ? "positive" : "negative")">
+                                        @(r.ReturnInPositiveGamma.HasValue ? $"{(r.ReturnInPositiveGamma >= 0 ? "+" : "")}{r.ReturnInPositiveGamma:F1}%" : "-")
+                                    </td>
+                                    <td class="@(r.ReturnInNegativeGamma >= 0 ? "positive" : "negative")">
+                                        @(r.ReturnInNegativeGamma.HasValue ? $"{(r.ReturnInNegativeGamma >= 0 ? "+" : "")}{r.ReturnInNegativeGamma:F1}%" : "-")
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _showModal;
+    private bool _showDetailModal;
+    private bool _showCompareModal;
+    private bool _showExportMenu;
+
+    // Form fields
+    private string _strategyName = "";
+    private string _description = "";
+    private string _startDate = "";
+    private string _endDate = "";
+    private int _totalTrades;
+    private int _winningTrades;
+    private decimal _totalReturn;
+    private decimal _maxDrawdown;
+    private decimal? _sharpeRatio;
+    private decimal? _profitFactor;
+    private decimal? _returnPositiveGamma;
+    private decimal? _returnNegativeGamma;
+    private string _notes = "";
+    private List<string> _tags = [];
+
+    // Selected result for detail view
+    private BacktestResult? _selectedResult;
+
+    // Cached analytics
+    private BacktestSummary _summary = new();
+    private RegimePerformance _regimePerf = new();
+    private BacktestComparison _comparison = new() { Results = [] };
+
+    private IEnumerable<BacktestResult> Results => BacktestService.GetOrderedResults();
+    private int SelectedCount => BacktestService.GetSelectedResults().Count();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await BacktestService.LoadAsync();
+        await TagService.LoadAsync();
+        BacktestService.OnEntriesChanged += RefreshAnalytics;
+        RefreshAnalytics();
+    }
+
+    private void RefreshAnalytics()
+    {
+        _summary = BacktestService.GetSummary();
+        _regimePerf = BacktestService.GetRegimePerformance();
+        _comparison = BacktestService.GetComparison();
+        StateHasChanged();
+    }
+
+    private void ShowAddModal()
+    {
+        _strategyName = "";
+        _description = "";
+        _startDate = "";
+        _endDate = "";
+        _totalTrades = 0;
+        _winningTrades = 0;
+        _totalReturn = 0;
+        _maxDrawdown = 0;
+        _sharpeRatio = null;
+        _profitFactor = null;
+        _returnPositiveGamma = null;
+        _returnNegativeGamma = null;
+        _notes = "";
+        _tags = [];
+        _showModal = true;
+        _showExportMenu = false;
+    }
+
+    private void CloseModal() => _showModal = false;
+
+    private async Task SaveResult()
+    {
+        if (string.IsNullOrWhiteSpace(_strategyName) ||
+            string.IsNullOrWhiteSpace(_startDate) ||
+            string.IsNullOrWhiteSpace(_endDate))
+            return;
+
+        var result = new BacktestResult
+        {
+            StrategyName = _strategyName,
+            Description = string.IsNullOrWhiteSpace(_description) ? null : _description,
+            StartDate = _startDate,
+            EndDate = _endDate,
+            TotalTrades = _totalTrades,
+            WinningTrades = _winningTrades,
+            TotalReturn = _totalReturn,
+            MaxDrawdown = _maxDrawdown,
+            SharpeRatio = _sharpeRatio,
+            ProfitFactor = _profitFactor,
+            ReturnInPositiveGamma = _returnPositiveGamma,
+            ReturnInNegativeGamma = _returnNegativeGamma,
+            Notes = string.IsNullOrWhiteSpace(_notes) ? null : _notes,
+            Tags = _tags
+        };
+
+        await BacktestService.AddAsync(result);
+        CloseModal();
+    }
+
+    private void ShowDetailModal(BacktestResult result)
+    {
+        _selectedResult = result;
+        _showDetailModal = true;
+    }
+
+    private void CloseDetailModal()
+    {
+        _showDetailModal = false;
+        _selectedResult = null;
+    }
+
+    private void ShowComparison()
+    {
+        _comparison = BacktestService.GetComparison();
+        _showCompareModal = true;
+    }
+
+    private void CloseCompareModal() => _showCompareModal = false;
+
+    private async Task ToggleSelection(Guid id)
+    {
+        await BacktestService.ToggleSelectionAsync(id);
+    }
+
+    private async Task ClearSelections()
+    {
+        await BacktestService.ClearSelectionsAsync();
+    }
+
+    private async Task DeleteResult(Guid id)
+    {
+        await BacktestService.DeleteAsync(id);
+    }
+
+    private async Task ExportJson()
+    {
+        var json = BacktestService.ExportAsJson();
+        await JS.InvokeVoidAsync("GexInterop.downloadFile", "backtest-results.json", json, "application/json");
+        _showExportMenu = false;
+    }
+
+    private async Task ExportCsv()
+    {
+        var csv = BacktestService.ExportAsCsv();
+        await JS.InvokeVoidAsync("GexInterop.downloadFile", "backtest-results.csv", csv, "text/csv");
+        _showExportMenu = false;
+    }
+
+    public void Dispose()
+    {
+        BacktestService.OnEntriesChanged -= RefreshAnalytics;
+    }
+}
