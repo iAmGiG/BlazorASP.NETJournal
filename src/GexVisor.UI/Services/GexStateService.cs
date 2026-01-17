@@ -1,3 +1,4 @@
+using System.Timers;
 using GexVisor.UI.Models;
 
 namespace GexVisor.UI.Services;
@@ -6,11 +7,12 @@ namespace GexVisor.UI.Services;
 /// Manages application state for the GEX visualizer.
 /// Provides reactive state updates via events.
 /// </summary>
-public class GexStateService
+public class GexStateService : IDisposable
 {
     private readonly GexState _state = new();
     private List<GexDataPoint> _timeline = [];
     private List<GexDataPoint> _demoTimeline = [];
+    private System.Timers.Timer? _simulationTimer;
 
     public event Action? OnStateChanged;
 
@@ -24,6 +26,11 @@ public class GexStateService
         // Start at the first data point so charts render on load
         if (_timeline.Count > 0)
             SetCurrentIndex(0);
+
+        // Initialize simulation timer
+        _simulationTimer = new System.Timers.Timer();
+        _simulationTimer.Elapsed += OnSimulationTick;
+        UpdateTimerInterval();
     }
 
     /// <summary>
@@ -234,6 +241,19 @@ public class GexStateService
     public void ToggleSimulation()
     {
         _state.IsSimulating = !_state.IsSimulating;
+
+        if (_state.IsSimulating)
+        {
+            // If at end, wrap to start
+            if (_state.CurrentIndex >= _timeline.Count - 1)
+                SetCurrentIndex(0);
+            _simulationTimer?.Start();
+        }
+        else
+        {
+            _simulationTimer?.Stop();
+        }
+
         NotifyStateChanged();
     }
 
@@ -243,6 +263,7 @@ public class GexStateService
     public void SetPlaybackSpeed(int speed)
     {
         _state.PlaybackSpeed = speed;
+        UpdateTimerInterval();
         NotifyStateChanged();
     }
 
@@ -257,5 +278,38 @@ public class GexStateService
         NotifyStateChanged();
     }
 
+    private void UpdateTimerInterval()
+    {
+        if (_simulationTimer == null) return;
+
+        // Base interval of 1000ms at 1x speed
+        // Speed 1 = 0.5x (2000ms), Speed 2 = 1x (1000ms), Speed 4 = 2x (500ms)
+        var baseInterval = 1000.0;
+        _simulationTimer.Interval = baseInterval / (_state.PlaybackSpeed / 2.0);
+    }
+
+    private void OnSimulationTick(object? sender, ElapsedEventArgs e)
+    {
+        if (!_state.IsSimulating) return;
+
+        if (_state.CurrentIndex < _timeline.Count - 1)
+        {
+            SetCurrentIndex(_state.CurrentIndex + 1);
+        }
+        else
+        {
+            // Stop at end
+            _state.IsSimulating = false;
+            _simulationTimer?.Stop();
+            NotifyStateChanged();
+        }
+    }
+
     private void NotifyStateChanged() => OnStateChanged?.Invoke();
+
+    public void Dispose()
+    {
+        _simulationTimer?.Stop();
+        _simulationTimer?.Dispose();
+    }
 }

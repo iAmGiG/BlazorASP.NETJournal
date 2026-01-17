@@ -126,10 +126,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for commit message guidelines.
 - [x] GexSidebar component - controls and parameters
 - [x] PriceSparkline component - interactive price history
 - [x] GexChart component - dual-mode SVG rendering with axis labels
-
-### In Progress
-- [ ] Real-time data simulation (auto-play timer)
-- [ ] Keyboard shortcuts and event handling (#62)
+- [x] Keyboard shortcuts (Space, arrows, Home/End)
+- [x] Real-time data simulation (auto-play timer)
 
 ### Planned
 - [ ] Axis zoom/pan interactions (#26)
