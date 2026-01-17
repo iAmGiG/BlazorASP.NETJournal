@@ -27,6 +27,11 @@
     color: var(--text-primary);
 }
 
+.y-axis.dragging {
+    cursor: grabbing;
+    color: var(--accent-cyan);
+}
+
 .y-label {
     line-height: 1;
 }
@@ -38,7 +43,8 @@
     cursor: grab;
 }
 
-.chart-main:active {
+.chart-main:active,
+.chart-main.dragging {
     cursor: grabbing;
 }
 
@@ -61,6 +67,11 @@
 
 .x-axis:hover {
     color: var(--text-primary);
+}
+
+.x-axis.dragging {
+    cursor: grabbing;
+    color: var(--accent-cyan);
 }
 
 .x-label {

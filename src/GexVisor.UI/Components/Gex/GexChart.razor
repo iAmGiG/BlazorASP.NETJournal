@@ -1,16 +1,27 @@
 @using GexVisor.UI.Models
 @using GexVisor.UI.Services
+@using Microsoft.JSInterop
 @inject GexStateService StateService
-@implements IDisposable
+@inject IJSRuntime JS
+@implements IAsyncDisposable
 
 <div class="gex-chart @(IsAbsolute ? "absolute-mode" : "normalized-mode")">
-    <div class="y-axis" @onwheel="OnYAxisWheel" @onwheel:preventDefault @ondblclick="OnYAxisDoubleClick" title="Scroll to zoom Y-axis, double-click to reset">
+    <div class="y-axis @(_isDragging ? "dragging" : "")"
+         @onwheel="OnYAxisWheel" @onwheel:preventDefault
+         @ondblclick="OnYAxisDoubleClick"
+         @onmousedown="OnYAxisMouseDown"
+         @onmousedown:preventDefault
+         title="Drag or scroll to zoom Y-axis, double-click to reset">
         @foreach (var label in YAxisLabels)
         {
             <div class="y-label">@label</div>
         }
     </div>
-    <div class="chart-main" @onwheel="OnChartWheel" @onwheel:preventDefault title="Scroll to adjust price (Shift for faster)">
+    <div class="chart-main @(_isDragging ? "dragging" : "")"
+         @onwheel="OnChartWheel" @onwheel:preventDefault
+         @onmousedown="OnChartMouseDown"
+         @onmousedown:preventDefault
+         title="Drag or scroll to adjust price (Shift for faster)">
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="chart-svg">
             <!-- Center line (0 axis) -->
             <line x1="50" y1="0" x2="50" y2="100" class="center-line" />
@@ -36,7 +47,12 @@
             <line x1="0" y1="@PriceY" x2="100" y2="@PriceY" class="price-line" />
             <text x="2" y="@(PriceY - 1)" class="price-marker">SPOT</text>
         </svg>
-        <div class="x-axis" @onwheel="OnXAxisWheel" @onwheel:preventDefault @ondblclick="OnXAxisDoubleClick" title="Scroll to zoom X-axis, double-click to reset">
+        <div class="x-axis @(_isDragging ? "dragging" : "")"
+             @onwheel="OnXAxisWheel" @onwheel:preventDefault
+             @ondblclick="OnXAxisDoubleClick"
+             @onmousedown="OnXAxisMouseDown"
+             @onmousedown:preventDefault
+             title="Drag or scroll to zoom X-axis, double-click to reset">
             @foreach (var label in XAxisLabels)
             {
                 <span class="x-label">@label</span>
@@ -53,6 +69,9 @@
     private const double Sigma = 12.0;
 
     private List<GammaBar> GammaBars { get; set; } = new();
+    private DotNetObjectReference<GexChart>? _dotNetRef;
+    private bool _isDragging;
+    private bool _jsInitialized;
 
     private double PriceY => CalculatePriceY();
     private double ZeroGammaY => CalculateZeroGammaY();
@@ -64,6 +83,16 @@
     {
         StateService.OnStateChanged += OnStateChanged;
         CalculateBars();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_jsInitialized)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("GexInterop.initAxisDrag", _dotNetRef);
+            _jsInitialized = true;
+        }
     }
 
     private void OnStateChanged()
@@ -233,7 +262,7 @@
         return new[] { "-50", "-25", "0 (γ)", "+25", "+50" };
     }
 
-    // --- Interactive Controls ---
+    // --- Interactive Controls (Wheel) ---
 
     private void OnChartWheel(WheelEventArgs e)
     {
@@ -256,27 +285,77 @@
         StateService.AdjustYAxisScale(delta);
     }
 
-    private void OnYAxisDoubleClick()
-    {
-        StateService.State.YAxisScale = 1.0m;
-        StateService.ResetView(); // Resets both axes for simplicity
-    }
-
     private void OnXAxisWheel(WheelEventArgs e)
     {
         var delta = e.DeltaY > 0 ? 0.1m : -0.1m;
         StateService.AdjustXAxisScale(delta);
     }
 
-    private void OnXAxisDoubleClick()
+    private void OnYAxisDoubleClick() => StateService.ResetView();
+    private void OnXAxisDoubleClick() => StateService.ResetView();
+
+    // --- Interactive Controls (Drag) ---
+
+    private async Task OnYAxisMouseDown(MouseEventArgs e)
     {
-        StateService.State.XAxisScale = 1.0m;
-        StateService.ResetView(); // Resets both axes for simplicity
+        _isDragging = true;
+        await JS.InvokeVoidAsync("GexInterop.startYAxisDrag", e.ClientY, (double)StateService.State.YAxisScale);
     }
 
-    public void Dispose()
+    private async Task OnXAxisMouseDown(MouseEventArgs e)
+    {
+        _isDragging = true;
+        await JS.InvokeVoidAsync("GexInterop.startXAxisDrag", e.ClientX, (double)StateService.State.XAxisScale);
+    }
+
+    private async Task OnChartMouseDown(MouseEventArgs e)
+    {
+        if (StateService.State.IsSimulating) return;
+        _isDragging = true;
+        await JS.InvokeVoidAsync("GexInterop.startChartDrag", e.ClientY, (double)StateService.State.Price);
+    }
+
+    [JSInvokable]
+    public void OnYAxisDrag(double newScale)
+    {
+        StateService.State.YAxisScale = (decimal)newScale;
+        StateService.AdjustYAxisScale(0); // Trigger notification
+    }
+
+    [JSInvokable]
+    public void OnXAxisDrag(double newScale)
+    {
+        StateService.State.XAxisScale = (decimal)newScale;
+        StateService.AdjustXAxisScale(0); // Trigger notification
+    }
+
+    [JSInvokable]
+    public void OnChartDrag(double newPrice)
+    {
+        var clampedPrice = Math.Max((double)StateService.State.StrikeStart,
+                                    Math.Min((double)StateService.State.StrikeEnd, newPrice));
+        StateService.UpdatePrice((decimal)clampedPrice);
+    }
+
+    [JSInvokable]
+    public void OnDragEnd()
+    {
+        _isDragging = false;
+        StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
     {
         StateService.OnStateChanged -= OnStateChanged;
+        if (_jsInitialized)
+        {
+            try
+            {
+                await JS.InvokeVoidAsync("GexInterop.disposeAxisDrag");
+            }
+            catch (JSDisconnectedException) { }
+        }
+        _dotNetRef?.Dispose();
     }
 
     private record GammaBar
