@@ -1,0 +1,299 @@
+@page "/notebook"
+@using GexVisor.UI.Models
+@using GexVisor.UI.Services
+@using GexVisor.UI.Components.Shared
+@inject NotebookService NotebookService
+@inject TagService TagService
+@inject IJSRuntime JS
+@implements IDisposable
+
+<PageTitle>Research Notebook</PageTitle>
+
+<div class="notebook-page">
+    <header class="notebook-header">
+        <div class="header-left">
+            <a href="/" class="back-link">← Home</a>
+            <h1>Research Notebook</h1>
+        </div>
+        <div class="header-actions">
+            <button class="btn-primary" @onclick="ShowAddModal">+ New Entry</button>
+            <div class="export-dropdown">
+                <button class="btn-secondary" @onclick="() => _showExportMenu = !_showExportMenu">
+                    Export ▾
+                </button>
+                @if (_showExportMenu)
+                {
+                    <div class="dropdown-menu">
+                        <button @onclick="ExportJson">JSON</button>
+                        <button @onclick="ExportMarkdown">Markdown</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </header>
+
+    <div class="notebook-toolbar">
+        <div class="search-box">
+            <input type="text" @bind="_searchQuery" @bind:event="oninput" placeholder="Search entries..." />
+        </div>
+        <div class="filter-tags">
+            @foreach (var tag in AvailableTags.Take(8))
+            {
+                <button class="filter-tag @(_filterTags.Contains(tag) ? "active" : "")"
+                        @onclick="() => ToggleFilterTag(tag)">
+                    @tag
+                </button>
+            }
+        </div>
+        <div class="entry-count">@FilteredEntries.Count() entries</div>
+    </div>
+
+    <div class="notebook-content">
+        @if (!FilteredEntries.Any())
+        {
+            <div class="empty-state">
+                <div class="empty-icon">📓</div>
+                <div class="empty-text">No entries yet</div>
+                <div class="empty-hint">Click "New Entry" to start documenting your research</div>
+            </div>
+        }
+        else
+        {
+            <div class="entry-list">
+                @foreach (var entry in FilteredEntries)
+                {
+                    <div class="entry-card @(entry.IsPinned ? "pinned" : "")" @onclick="() => SelectEntry(entry)">
+                        <div class="entry-header">
+                            <div class="entry-meta">
+                                @if (entry.IsPinned)
+                                {
+                                    <span class="pin-icon" title="Pinned">📌</span>
+                                }
+                                <span class="entry-date">@entry.CreatedAt.ToString("MMM d, yyyy")</span>
+                                @if (!string.IsNullOrEmpty(entry.LinkedDate))
+                                {
+                                    <span class="linked-date" title="Linked to visualizer">🔗 @entry.LinkedDate</span>
+                                }
+                            </div>
+                            <div class="entry-actions">
+                                <button class="action-btn" @onclick:stopPropagation="true" @onclick="() => TogglePin(entry.Id)" title="@(entry.IsPinned ? "Unpin" : "Pin")">
+                                    @(entry.IsPinned ? "📌" : "📍")
+                                </button>
+                                <button class="action-btn" @onclick:stopPropagation="true" @onclick="() => EditEntry(entry)" title="Edit">✏️</button>
+                                <button class="action-btn delete" @onclick:stopPropagation="true" @onclick="() => DeleteEntry(entry.Id)" title="Delete">🗑️</button>
+                            </div>
+                        </div>
+                        <h3 class="entry-title">@entry.Title</h3>
+                        <p class="entry-preview">@GetPreview(entry.Content)</p>
+                        @if (entry.Tags.Count > 0)
+                        {
+                            <div class="entry-tags">
+                                @foreach (var tag in entry.Tags.Take(5))
+                                {
+                                    <span class="tag">@tag</span>
+                                }
+                                @if (entry.Tags.Count > 5)
+                                {
+                                    <span class="tag more">+@(entry.Tags.Count - 5)</span>
+                                }
+                            </div>
+                        }
+                        @if (entry.GexAtCreation.HasValue)
+                        {
+                            <div class="entry-context">
+                                <span class="context-item">$@entry.PriceAtCreation?.ToString("F0")</span>
+                                <span class="context-item @(entry.IsNegativeGammaAtCreation == true ? "negative" : "positive")">
+                                    @(entry.IsNegativeGammaAtCreation == true ? "−γ" : "+γ")
+                                </span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@if (_showModal)
+{
+    <div class="modal-overlay" @onclick="CloseModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2>@(_editingEntry != null ? "Edit Entry" : "New Entry")</h2>
+                <button class="close-btn" @onclick="CloseModal">×</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" @bind="_title" placeholder="Entry title..." />
+                </div>
+
+                <div class="form-group">
+                    <label>Content</label>
+                    <textarea @bind="_content" placeholder="Your observations, hypotheses, findings..." rows="8"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Tags</label>
+                    <TagInput @bind-SelectedTags="_tags" Placeholder="Add tags..." />
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" @bind="_linkToVisualizer" />
+                        Link to current visualizer date
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-cancel" @onclick="CloseModal">Cancel</button>
+                <button class="btn-save" @onclick="SaveEntry">Save</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _showModal;
+    private bool _showExportMenu;
+    private string _searchQuery = "";
+    private HashSet<string> _filterTags = [];
+    private NotebookEntry? _selectedEntry;
+    private NotebookEntry? _editingEntry;
+
+    // Form fields
+    private string _title = "";
+    private string _content = "";
+    private List<string> _tags = [];
+    private bool _linkToVisualizer;
+
+    private IEnumerable<NotebookEntry> FilteredEntries
+    {
+        get
+        {
+            var entries = NotebookService.GetOrderedEntries();
+
+            if (!string.IsNullOrWhiteSpace(_searchQuery))
+                entries = NotebookService.Search(_searchQuery);
+
+            if (_filterTags.Count > 0)
+                entries = entries.Where(e => e.Tags.Any(t => _filterTags.Contains(t)));
+
+            return entries;
+        }
+    }
+
+    private IEnumerable<string> AvailableTags => NotebookService.GetAllTags();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await NotebookService.LoadAsync();
+        await TagService.LoadAsync();
+        NotebookService.OnEntriesChanged += StateHasChanged;
+    }
+
+    private void ShowAddModal()
+    {
+        _editingEntry = null;
+        _title = "";
+        _content = "";
+        _tags = [];
+        _linkToVisualizer = false;
+        _showModal = true;
+        _showExportMenu = false;
+    }
+
+    private void EditEntry(NotebookEntry entry)
+    {
+        _editingEntry = entry;
+        _title = entry.Title;
+        _content = entry.Content;
+        _tags = [.. entry.Tags];
+        _linkToVisualizer = !string.IsNullOrEmpty(entry.LinkedDate);
+        _showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        _showModal = false;
+        _editingEntry = null;
+    }
+
+    private async Task SaveEntry()
+    {
+        if (string.IsNullOrWhiteSpace(_title)) return;
+
+        var entry = new NotebookEntry
+        {
+            Id = _editingEntry?.Id ?? Guid.NewGuid(),
+            CreatedAt = _editingEntry?.CreatedAt ?? DateTime.UtcNow,
+            UpdatedAt = _editingEntry != null ? DateTime.UtcNow : null,
+            Title = _title,
+            Content = _content,
+            Tags = _tags,
+            IsPinned = _editingEntry?.IsPinned ?? false,
+            LinkedDate = _linkToVisualizer ? _editingEntry?.LinkedDate : null,
+            PriceAtCreation = _editingEntry?.PriceAtCreation,
+            GexAtCreation = _editingEntry?.GexAtCreation,
+            IsNegativeGammaAtCreation = _editingEntry?.IsNegativeGammaAtCreation
+        };
+
+        if (_editingEntry != null)
+            await NotebookService.UpdateAsync(entry);
+        else
+            await NotebookService.AddAsync(entry);
+
+        CloseModal();
+    }
+
+    private void SelectEntry(NotebookEntry entry)
+    {
+        _selectedEntry = _selectedEntry?.Id == entry.Id ? null : entry;
+    }
+
+    private async Task TogglePin(Guid id)
+    {
+        await NotebookService.TogglePinAsync(id);
+    }
+
+    private async Task DeleteEntry(Guid id)
+    {
+        await NotebookService.DeleteAsync(id);
+        if (_selectedEntry?.Id == id)
+            _selectedEntry = null;
+    }
+
+    private void ToggleFilterTag(string tag)
+    {
+        if (!_filterTags.Remove(tag))
+            _filterTags.Add(tag);
+    }
+
+    private async Task ExportJson()
+    {
+        var json = NotebookService.ExportAsJson();
+        await JS.InvokeVoidAsync("GexInterop.downloadFile", "notebook.json", json, "application/json");
+        _showExportMenu = false;
+    }
+
+    private async Task ExportMarkdown()
+    {
+        var md = NotebookService.ExportAsMarkdown();
+        await JS.InvokeVoidAsync("GexInterop.downloadFile", "notebook.md", md, "text/markdown");
+        _showExportMenu = false;
+    }
+
+    private static string GetPreview(string content)
+    {
+        if (string.IsNullOrEmpty(content)) return "";
+        var preview = content.Length > 150 ? content[..150] + "..." : content;
+        return preview.Replace('\n', ' ');
+    }
+
+    public void Dispose()
+    {
+        NotebookService.OnEntriesChanged -= StateHasChanged;
+    }
+}

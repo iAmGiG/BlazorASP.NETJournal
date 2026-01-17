@@ -109,10 +109,11 @@ public static class StorageKeys
     public const string PlaybackSpeed = "gexvisor.playbackSpeed";
     public const string AxisScales = "gexvisor.axisScales";
 
-    // Future feature keys
+    // Journal features
     public const string NotebookEntries = "gexvisor.notebook";
     public const string PaperTrades = "gexvisor.paperTrades";
     public const string Annotations = "gexvisor.annotations";
     public const string BacktestResults = "gexvisor.backtests";
     public const string TaskBoard = "gexvisor.tasks";
+    public const string CustomTags = "gexvisor.customTags";
 }

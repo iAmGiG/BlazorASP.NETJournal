@@ -1,0 +1,104 @@
+@namespace GexVisor.UI.Components.Shared
+@using GexVisor.UI.Services
+@inject TagService TagService
+
+<div class="tag-input-container">
+    <div class="selected-tags">
+        @foreach (var tag in SelectedTags)
+        {
+            <span class="tag">
+                @tag
+                <button type="button" class="tag-remove" @onclick="() => RemoveTag(tag)">×</button>
+            </span>
+        }
+    </div>
+
+    <div class="tag-input-wrapper">
+        <input type="text"
+               @bind="_inputValue"
+               @bind:event="oninput"
+               @onkeydown="HandleKeyDown"
+               @onfocus="() => _showSuggestions = true"
+               @onblur="HandleBlur"
+               placeholder="@Placeholder"
+               class="tag-input" />
+
+        @if (_showSuggestions && Suggestions.Any())
+        {
+            <div class="tag-suggestions">
+                @foreach (var suggestion in Suggestions)
+                {
+                    <button type="button"
+                            class="suggestion @(TagService.IsPredefinedTag(suggestion) ? "predefined" : "")"
+                            @onmousedown="() => AddTag(suggestion)">
+                        @suggestion
+                    </button>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<string> SelectedTags { get; set; } = [];
+    [Parameter] public EventCallback<List<string>> SelectedTagsChanged { get; set; }
+    [Parameter] public string Placeholder { get; set; } = "Add tags...";
+
+    private string _inputValue = "";
+    private bool _showSuggestions;
+
+    private IEnumerable<string> Suggestions => TagService.GetSuggestions(_inputValue)
+        .Where(s => !SelectedTags.Contains(s, StringComparer.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await TagService.LoadAsync();
+    }
+
+    private async Task AddTag(string tag)
+    {
+        var normalized = TagService.NormalizeTag(tag);
+        if (string.IsNullOrEmpty(normalized)) return;
+        if (SelectedTags.Contains(normalized, StringComparer.OrdinalIgnoreCase)) return;
+
+        SelectedTags.Add(normalized);
+        _inputValue = "";
+        _showSuggestions = false;
+
+        // Add custom tag if new
+        if (!TagService.IsPredefinedTag(normalized))
+        {
+            await TagService.AddCustomTagAsync(normalized);
+        }
+
+        await SelectedTagsChanged.InvokeAsync(SelectedTags);
+    }
+
+    private async Task RemoveTag(string tag)
+    {
+        SelectedTags.Remove(tag);
+        await SelectedTagsChanged.InvokeAsync(SelectedTags);
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(_inputValue))
+        {
+            await AddTag(_inputValue);
+        }
+        else if (e.Key == "Backspace" && string.IsNullOrEmpty(_inputValue) && SelectedTags.Count > 0)
+        {
+            await RemoveTag(SelectedTags[^1]);
+        }
+    }
+
+    private void HandleBlur()
+    {
+        // Delay to allow click on suggestion
+        _ = Task.Delay(200).ContinueWith(_ =>
+        {
+            _showSuggestions = false;
+            InvokeAsync(StateHasChanged);
+        });
+    }
+}

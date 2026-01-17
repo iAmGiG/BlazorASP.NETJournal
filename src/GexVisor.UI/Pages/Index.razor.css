@@ -89,6 +89,11 @@
     color: white;
 }
 
+.app-icon.notebook {
+    background: linear-gradient(135deg, var(--accent-orange), #e65100);
+    color: white;
+}
+
 .app-info {
     flex: 1;
 }

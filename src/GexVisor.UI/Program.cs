@@ -15,4 +15,8 @@ builder.Services.AddScoped<GexDataService>();
 builder.Services.AddScoped<LocalStorageService>();
 builder.Services.AddScoped<AnnotationService>();
 
+// Journal Services
+builder.Services.AddScoped<TagService>();
+builder.Services.AddScoped<NotebookService>();
+
 await builder.Build().RunAsync();
