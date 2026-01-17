@@ -19,6 +19,13 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+}
+
+.logo:hover {
+    opacity: 0.8;
+    text-decoration: none;
 }
 
 .logo-icon {
