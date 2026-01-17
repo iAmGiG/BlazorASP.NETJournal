@@ -13,5 +13,6 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddSingleton<GexStateService>();
 builder.Services.AddScoped<GexDataService>();
 builder.Services.AddScoped<LocalStorageService>();
+builder.Services.AddScoped<AnnotationService>();
 
 await builder.Build().RunAsync();

@@ -1,0 +1,357 @@
+@namespace GexVisor.UI.Components.Gex
+@using GexVisor.UI.Models
+@using GexVisor.UI.Services
+@inject AnnotationService AnnotationService
+@inject GexStateService StateService
+@inject IJSRuntime JS
+@implements IDisposable
+
+<div class="annotation-panel @(IsCollapsed ? "collapsed" : "")">
+    <div class="panel-toggle" @onclick="TogglePanel">
+        <span class="toggle-icon">@(IsCollapsed ? "◀" : "▶")</span>
+        <span class="toggle-label">Annotations (@AnnotationCount)</span>
+    </div>
+
+    @if (!IsCollapsed)
+    {
+        <div class="panel-content">
+            <div class="panel-actions">
+                <button class="action-btn primary" @onclick="ShowAddModal" title="Add annotation at current date">
+                    + Add
+                </button>
+                <div class="export-dropdown">
+                    <button class="action-btn" @onclick="ToggleExportMenu">
+                        Export ▾
+                    </button>
+                    @if (_showExportMenu)
+                    {
+                        <div class="dropdown-menu">
+                            <button @onclick="ExportJson">JSON (LLM)</button>
+                            <button @onclick="ExportCsv">CSV</button>
+                            <button @onclick="ExportObfuscated">Obfuscated</button>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="annotation-list">
+                @if (!Annotations.Any())
+                {
+                    <div class="empty-state">
+                        <div class="empty-icon">🏷️</div>
+                        <div class="empty-text">No annotations yet</div>
+                        <div class="empty-hint">Click "Add" to mark a pattern</div>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var annotation in Annotations)
+                    {
+                        <div class="annotation-item @(annotation.Taxonomy.ToLower())" @onclick="() => SelectAnnotation(annotation)">
+                            <div class="annotation-badge">@annotation.Taxonomy</div>
+                            <div class="annotation-info">
+                                <div class="annotation-date">@annotation.DateDisplay</div>
+                                <div class="annotation-type">@GetPatternLabel(annotation.PatternType)</div>
+                            </div>
+                            <div class="annotation-confidence @annotation.Confidence">
+                                @GetConfidenceIndicator(annotation.Confidence)
+                            </div>
+                            <button class="delete-btn" @onclick:stopPropagation="true" @onclick="() => DeleteAnnotation(annotation.Id)" title="Delete">
+                                ×
+                            </button>
+                        </div>
+                    }
+                }
+            </div>
+
+            @if (SelectedAnnotation != null)
+            {
+                <div class="annotation-detail">
+                    <div class="detail-header">
+                        <span>@GetPatternLabel(SelectedAnnotation.PatternType)</span>
+                        <button class="edit-btn" @onclick="EditSelected">Edit</button>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Date:</span>
+                        <span>@SelectedAnnotation.DateDisplay</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Taxonomy:</span>
+                        <span class="taxonomy-badge @SelectedAnnotation.Taxonomy.ToLower()">@GetTaxonomyLabel(SelectedAnnotation.Taxonomy)</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Confidence:</span>
+                        <span>@GetConfidenceLabel(SelectedAnnotation.Confidence)</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Price:</span>
+                        <span>$@SelectedAnnotation.PriceAtAnnotation.ToString("F2")</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">GEX:</span>
+                        <span>@SelectedAnnotation.GexAtAnnotation.ToString("F2")B</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(SelectedAnnotation.Notes))
+                    {
+                        <div class="detail-notes">
+                            @SelectedAnnotation.Notes
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Add/Edit Modal -->
+@if (_showModal)
+{
+    <div class="modal-overlay" @onclick="CloseModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h3>@(_editingAnnotation != null ? "Edit" : "Add") Annotation</h3>
+                <button class="close-btn" @onclick="CloseModal">×</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Date(s)</label>
+                    <div class="date-inputs">
+                        <input type="text" @bind="_startDate" placeholder="YYYY-MM-DD" />
+                        <label class="range-toggle">
+                            <input type="checkbox" @bind="_isRange" />
+                            Range
+                        </label>
+                        @if (_isRange)
+                        {
+                            <input type="text" @bind="_endDate" placeholder="YYYY-MM-DD" />
+                        }
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Pattern Type</label>
+                    <select @bind="_patternType">
+                        @foreach (var pt in PatternTypes.All)
+                        {
+                            <option value="@pt.Code">@pt.Label</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Taxonomy</label>
+                    <div class="taxonomy-options">
+                        <button type="button" class="taxonomy-btn mech @(_taxonomy == PatternTaxonomy.Mechanical ? "selected" : "")"
+                                @onclick="@(() => _taxonomy = PatternTaxonomy.Mechanical)">
+                            <span class="tax-code">MECH</span>
+                            <span class="tax-desc">Mechanical</span>
+                        </button>
+                        <button type="button" class="taxonomy-btn prob @(_taxonomy == PatternTaxonomy.Probabilistic ? "selected" : "")"
+                                @onclick="@(() => _taxonomy = PatternTaxonomy.Probabilistic)">
+                            <span class="tax-code">PROB</span>
+                            <span class="tax-desc">Probabilistic</span>
+                        </button>
+                        <button type="button" class="taxonomy-btn narr @(_taxonomy == PatternTaxonomy.Narrative ? "selected" : "")"
+                                @onclick="@(() => _taxonomy = PatternTaxonomy.Narrative)">
+                            <span class="tax-code">NARR</span>
+                            <span class="tax-desc">Narrative</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Confidence</label>
+                    <div class="confidence-options">
+                        <button type="button" class="confidence-btn high @(_confidence == ConfidenceLevels.High ? "selected" : "")"
+                                @onclick="@(() => _confidence = ConfidenceLevels.High)">High</button>
+                        <button type="button" class="confidence-btn medium @(_confidence == ConfidenceLevels.Medium ? "selected" : "")"
+                                @onclick="@(() => _confidence = ConfidenceLevels.Medium)">Medium</button>
+                        <button type="button" class="confidence-btn low @(_confidence == ConfidenceLevels.Low ? "selected" : "")"
+                                @onclick="@(() => _confidence = ConfidenceLevels.Low)">Low</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Notes (optional)</label>
+                    <textarea @bind="_notes" placeholder="Additional context or observations..."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-cancel" @onclick="CloseModal">Cancel</button>
+                <button class="btn-save" @onclick="SaveAnnotation">Save</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsCollapsed { get; set; } = true;
+    [Parameter] public EventCallback<bool> IsCollapsedChanged { get; set; }
+
+    private IReadOnlyList<PatternAnnotation> Annotations => AnnotationService.Annotations;
+    private int AnnotationCount => Annotations.Count;
+    private PatternAnnotation? SelectedAnnotation;
+    private bool _showExportMenu;
+    private bool _showModal;
+
+    // Form fields
+    private PatternAnnotation? _editingAnnotation;
+    private string _startDate = "";
+    private string? _endDate;
+    private bool _isRange;
+    private string _patternType = PatternTypes.GammaFlipPositive;
+    private string _taxonomy = PatternTaxonomy.Probabilistic;
+    private string _confidence = ConfidenceLevels.Medium;
+    private string _notes = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AnnotationService.LoadAsync();
+        AnnotationService.OnAnnotationsChanged += StateHasChanged;
+    }
+
+    private async Task TogglePanel()
+    {
+        IsCollapsed = !IsCollapsed;
+        await IsCollapsedChanged.InvokeAsync(IsCollapsed);
+    }
+
+    private void ToggleExportMenu() => _showExportMenu = !_showExportMenu;
+
+    private void SelectAnnotation(PatternAnnotation annotation)
+    {
+        SelectedAnnotation = SelectedAnnotation?.Id == annotation.Id ? null : annotation;
+    }
+
+    private void ShowAddModal()
+    {
+        _editingAnnotation = null;
+        var currentPoint = StateService.State.CurrentDataPoint;
+        _startDate = currentPoint?.Date ?? DateTime.Today.ToString("yyyy-MM-dd");
+        _endDate = null;
+        _isRange = false;
+        _patternType = PatternTypes.GammaFlipPositive;
+        _taxonomy = PatternTaxonomy.Probabilistic;
+        _confidence = ConfidenceLevels.Medium;
+        _notes = "";
+        _showModal = true;
+        _showExportMenu = false;
+    }
+
+    private void EditSelected()
+    {
+        if (SelectedAnnotation == null) return;
+        _editingAnnotation = SelectedAnnotation;
+        _startDate = SelectedAnnotation.StartDate;
+        _endDate = SelectedAnnotation.EndDate;
+        _isRange = SelectedAnnotation.IsRange;
+        _patternType = SelectedAnnotation.PatternType;
+        _taxonomy = SelectedAnnotation.Taxonomy;
+        _confidence = SelectedAnnotation.Confidence;
+        _notes = SelectedAnnotation.Notes ?? "";
+        _showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        _showModal = false;
+        _editingAnnotation = null;
+    }
+
+    private async Task SaveAnnotation()
+    {
+        if (string.IsNullOrWhiteSpace(_startDate)) return;
+
+        var currentPoint = StateService.State.CurrentDataPoint;
+        var annotation = new PatternAnnotation
+        {
+            Id = _editingAnnotation?.Id ?? Guid.NewGuid(),
+            StartDate = _startDate,
+            EndDate = _isRange ? _endDate : null,
+            PatternType = _patternType,
+            Taxonomy = _taxonomy,
+            Confidence = _confidence,
+            Notes = string.IsNullOrWhiteSpace(_notes) ? null : _notes,
+            PriceAtAnnotation = currentPoint?.Price ?? 0,
+            GexAtAnnotation = currentPoint?.Gex ?? 0,
+            IsNegativeGamma = currentPoint?.IsNegativeGamma ?? false,
+            Outcome = _editingAnnotation?.Outcome,
+            PriceMove = _editingAnnotation?.PriceMove
+        };
+
+        if (_editingAnnotation != null)
+        {
+            await AnnotationService.UpdateAsync(annotation);
+        }
+        else
+        {
+            await AnnotationService.AddAsync(annotation);
+        }
+
+        CloseModal();
+        SelectedAnnotation = annotation;
+    }
+
+    private async Task DeleteAnnotation(Guid id)
+    {
+        await AnnotationService.DeleteAsync(id);
+        if (SelectedAnnotation?.Id == id)
+            SelectedAnnotation = null;
+    }
+
+    private async Task ExportJson()
+    {
+        var json = AnnotationService.ExportAsJson();
+        await DownloadFile("annotations.json", json, "application/json");
+        _showExportMenu = false;
+    }
+
+    private async Task ExportCsv()
+    {
+        var csv = AnnotationService.ExportAsCsv();
+        await DownloadFile("annotations.csv", csv, "text/csv");
+        _showExportMenu = false;
+    }
+
+    private async Task ExportObfuscated()
+    {
+        var json = AnnotationService.ExportObfuscated();
+        await DownloadFile("annotations_obfuscated.json", json, "application/json");
+        _showExportMenu = false;
+    }
+
+    private async Task DownloadFile(string filename, string content, string mimeType)
+    {
+        await JS.InvokeVoidAsync("GexInterop.downloadFile", filename, content, mimeType);
+    }
+
+    private static string GetPatternLabel(string code)
+    {
+        return PatternTypes.All.FirstOrDefault(p => p.Code == code).Label ?? code;
+    }
+
+    private static string GetTaxonomyLabel(string code)
+    {
+        return PatternTaxonomy.All.FirstOrDefault(t => t.Code == code).Label ?? code;
+    }
+
+    private static string GetConfidenceLabel(string code)
+    {
+        return ConfidenceLevels.All.FirstOrDefault(c => c.Code == code).Label ?? code;
+    }
+
+    private static string GetConfidenceIndicator(string confidence) => confidence switch
+    {
+        "high" => "●●●",
+        "medium" => "●●○",
+        "low" => "●○○",
+        _ => "○○○"
+    };
+
+    public void Dispose()
+    {
+        AnnotationService.OnAnnotationsChanged -= StateHasChanged;
+    }
+}
