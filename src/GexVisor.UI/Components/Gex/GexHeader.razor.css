@@ -98,6 +98,67 @@
     gap: 1rem;
 }
 
+.export-dropdown {
+    position: relative;
+}
+
+.export-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    border-radius: 50%;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.export-btn:hover {
+    background: var(--accent-cyan);
+    border-color: var(--accent-cyan);
+    color: var(--bg-dark);
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+}
+
+.export-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.5rem;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    overflow: hidden;
+    z-index: 100;
+    min-width: 150px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.export-menu button {
+    display: block;
+    width: 100%;
+    padding: 0.6rem 1rem;
+    font-size: 0.8rem;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.export-menu button:hover {
+    background: var(--bg-card);
+}
+
+.export-menu button:not(:last-child) {
+    border-bottom: 1px solid var(--border-color);
+}
+
 .help-btn {
     width: 32px;
     height: 32px;

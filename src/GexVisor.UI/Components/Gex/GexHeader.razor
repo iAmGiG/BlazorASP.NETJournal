@@ -1,6 +1,7 @@
 @using GexVisor.UI.Models
 @using GexVisor.UI.Services
 @inject GexStateService StateService
+@inject IJSRuntime JS
 @implements IDisposable
 
 <header class="gex-header">
@@ -29,6 +30,19 @@
     </div>
 
     <div class="header-right">
+        <div class="export-dropdown">
+            <button class="export-btn" @onclick="ToggleExportMenu" title="Export Chart as PNG">
+                <i class="fas fa-camera"></i>
+            </button>
+            @if (_showExportMenu)
+            {
+                <div class="export-menu">
+                    <button @onclick="ExportPractitioner">Practitioner View</button>
+                    <button @onclick="ExportPaper2">Paper 2 View</button>
+                    <button @onclick="ExportBoth">Export Both</button>
+                </div>
+            }
+        </div>
         <button class="help-btn" @onclick="OnHelpClick" title="Keyboard Shortcuts (?)">?</button>
         <div class="year-badge @(HasData ? "" : "inactive")">@YearDisplay</div>
     </div>
@@ -54,6 +68,8 @@
 
 @code {
     [Parameter] public EventCallback OnHelpRequested { get; set; }
+
+    private bool _showExportMenu;
 
     private decimal Price => StateService.State.Price;
     private decimal S2Factor => StateService.State.S2Factor;
@@ -94,6 +110,36 @@
     }
 
     private async Task OnHelpClick() => await OnHelpRequested.InvokeAsync();
+
+    private void ToggleExportMenu() => _showExportMenu = !_showExportMenu;
+
+    private string GetFilename(string suffix)
+    {
+        var symbol = SymbolLabel;
+        var date = StateService.State.CurrentDataPoint?.Date ?? "unknown";
+        return $"gex-{symbol}-{date}-{suffix}.png";
+    }
+
+    private async Task ExportPractitioner()
+    {
+        _showExportMenu = false;
+        await JS.InvokeVoidAsync("GexInterop.exportChartAsPng",
+            ".chart-panel:first-child", GetFilename("practitioner"));
+    }
+
+    private async Task ExportPaper2()
+    {
+        _showExportMenu = false;
+        await JS.InvokeVoidAsync("GexInterop.exportChartAsPng",
+            ".chart-panel:last-child", GetFilename("paper2"));
+    }
+
+    private async Task ExportBoth()
+    {
+        _showExportMenu = false;
+        await JS.InvokeVoidAsync("GexInterop.exportBothChartsAsPng",
+            GetFilename("combined"));
+    }
 
     protected override void OnInitialized()
     {
