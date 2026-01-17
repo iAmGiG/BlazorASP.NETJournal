@@ -29,6 +29,7 @@
     </div>
 
     <div class="header-right">
+        <button class="help-btn" @onclick="OnHelpClick" title="Keyboard Shortcuts (?)">?</button>
         <div class="year-badge @(HasData ? "" : "inactive")">@YearDisplay</div>
     </div>
 </header>
@@ -52,6 +53,8 @@
 }
 
 @code {
+    [Parameter] public EventCallback OnHelpRequested { get; set; }
+
     private decimal Price => StateService.State.Price;
     private decimal S2Factor => StateService.State.S2Factor;
     private decimal TotalGex => StateService.State.CurrentDataPoint?.Gex ?? 0;
@@ -89,6 +92,8 @@
             _ => $"${gex * 1000:F0}M"
         };
     }
+
+    private async Task OnHelpClick() => await OnHelpRequested.InvokeAsync();
 
     protected override void OnInitialized()
     {

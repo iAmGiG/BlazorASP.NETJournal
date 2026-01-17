@@ -8,7 +8,7 @@
 <PageTitle>GEX Visualizer</PageTitle>
 
 <div class="gex-app" tabindex="0" @ref="_appRef" @onkeydown="HandleKeyDown" @onkeydown:preventDefault="@_preventKeyDefault">
-    <GexHeader />
+    <GexHeader OnHelpRequested="ShowHelp" />
 
     <div class="gex-dashboard">
         <GexSidebar />
@@ -57,6 +57,8 @@
     </div>
 </div>
 
+<KeyboardShortcutsOverlay IsVisible="_showHelp" OnClose="HideHelp" />
+
 @code {
     [Inject] private GexStateService StateService { get; set; } = default!;
 
@@ -64,6 +66,7 @@
     private bool _preventKeyDefault;
     private System.Timers.Timer? _saveTimer;
     private bool _settingsPending;
+    private bool _showHelp;
 
     private decimal S2Factor => StateService.State.S2Factor;
     private decimal TotalGex => StateService.State.CurrentDataPoint?.Gex ?? 0;
@@ -145,38 +148,59 @@
         switch (e.Key)
         {
             case " ":
-                StateService.ToggleSimulation();
+                if (!_showHelp) StateService.ToggleSimulation();
                 break;
             case "ArrowRight":
-                StateService.StepForward();
+                if (!_showHelp) StateService.StepForward();
                 break;
             case "ArrowLeft":
-                StateService.StepBackward();
+                if (!_showHelp) StateService.StepBackward();
                 break;
             case "ArrowUp":
-                JumpToNextYear();
+                if (!_showHelp) JumpToNextYear();
                 break;
             case "ArrowDown":
-                JumpToPrevYear();
+                if (!_showHelp) JumpToPrevYear();
                 break;
             case "Home":
-                StateService.JumpToStart();
+                if (!_showHelp) StateService.JumpToStart();
                 break;
             case "End":
-                StateService.JumpToEnd();
+                if (!_showHelp) StateService.JumpToEnd();
                 break;
             case "r":
             case "R":
-                StateService.ResetView();
+                if (!_showHelp) StateService.ResetView();
                 break;
             case "f":
             case "F":
-                await ToggleFullscreen();
+                if (!_showHelp) await ToggleFullscreen();
+                break;
+            case "?":
+                ToggleHelp();
+                break;
+            case "Escape":
+                HideHelp();
                 break;
             default:
                 _preventKeyDefault = false;
                 break;
         }
+    }
+
+    private void ShowHelp()
+    {
+        _showHelp = true;
+    }
+
+    private void HideHelp()
+    {
+        _showHelp = false;
+    }
+
+    private void ToggleHelp()
+    {
+        _showHelp = !_showHelp;
     }
 
     private async Task ToggleFullscreen()

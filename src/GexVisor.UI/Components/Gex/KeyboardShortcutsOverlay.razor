@@ -1,0 +1,78 @@
+@namespace GexVisor.UI.Components.Gex
+
+<div class="shortcuts-overlay @(IsVisible ? "visible" : "")" @onclick="Close" @onclick:stopPropagation="true">
+    <div class="shortcuts-modal" @onclick:stopPropagation="true">
+        <div class="modal-header">
+            <h2>Keyboard Shortcuts</h2>
+            <button class="close-btn" @onclick="Close">×</button>
+        </div>
+
+        <div class="shortcuts-content">
+            <div class="shortcut-section">
+                <h3>Playback</h3>
+                <div class="shortcut-item">
+                    <span class="key">Space</span>
+                    <span class="desc">Play / Pause simulation</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="key">←</span>
+                    <span class="desc">Step backward one data point</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="key">→</span>
+                    <span class="desc">Step forward one data point</span>
+                </div>
+            </div>
+
+            <div class="shortcut-section">
+                <h3>Navigation</h3>
+                <div class="shortcut-item">
+                    <span class="key">↑</span>
+                    <span class="desc">Jump to next year</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="key">↓</span>
+                    <span class="desc">Jump to previous year</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="key">Home</span>
+                    <span class="desc">Jump to start of timeline</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="key">End</span>
+                    <span class="desc">Jump to end of timeline</span>
+                </div>
+            </div>
+
+            <div class="shortcut-section">
+                <h3>View</h3>
+                <div class="shortcut-item">
+                    <span class="key">R</span>
+                    <span class="desc">Reset axis zoom to default</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="key">F</span>
+                    <span class="desc">Toggle fullscreen mode</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="key">?</span>
+                    <span class="desc">Show this help overlay</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <span class="hint">Press <span class="key small">Esc</span> or click outside to close</span>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private async Task Close()
+    {
+        await OnClose.InvokeAsync();
+    }
+}
