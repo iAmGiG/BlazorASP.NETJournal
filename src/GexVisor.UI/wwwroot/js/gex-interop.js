@@ -102,5 +102,36 @@ window.GexInterop = {
         if (this._dotNetRef) {
             this._dotNetRef.invokeMethodAsync('OnDragEnd');
         }
+    },
+
+    // LocalStorage operations
+    localStorage: {
+        getItem: function (key) {
+            return localStorage.getItem(key);
+        },
+
+        setItem: function (key, value) {
+            localStorage.setItem(key, value);
+        },
+
+        removeItem: function (key) {
+            localStorage.removeItem(key);
+        },
+
+        clear: function () {
+            localStorage.clear();
+        },
+
+        getKeys: function () {
+            const keys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                keys.push(localStorage.key(i));
+            }
+            return keys;
+        },
+
+        length: function () {
+            return localStorage.length;
+        }
     }
 };

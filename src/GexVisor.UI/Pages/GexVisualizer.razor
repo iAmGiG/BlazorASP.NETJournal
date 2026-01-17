@@ -1,6 +1,8 @@
 @page "/gex"
 @using GexVisor.UI.Services
+@using GexVisor.UI.Models
 @inject IJSRuntime JS
+@inject LocalStorageService Storage
 @implements IDisposable
 
 <PageTitle>GEX Visualizer</PageTitle>
@@ -60,6 +62,8 @@
 
     private ElementReference _appRef;
     private bool _preventKeyDefault;
+    private System.Timers.Timer? _saveTimer;
+    private bool _settingsPending;
 
     private decimal S2Factor => StateService.State.S2Factor;
     private decimal TotalGex => StateService.State.CurrentDataPoint?.Gex ?? 0;
@@ -74,14 +78,63 @@
     protected override void OnInitialized()
     {
         StateService.OnStateChanged += StateHasChanged;
+        StateService.OnSettingsChanged += OnSettingsChanged;
+
+        // Debounce timer for saving settings (500ms delay)
+        _saveTimer = new System.Timers.Timer(500);
+        _saveTimer.AutoReset = false;
+        _saveTimer.Elapsed += async (s, e) => await SaveSettingsAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            // Load saved settings
+            await LoadSettingsAsync();
+
             // Focus the app container to enable keyboard events
             await _appRef.FocusAsync();
+        }
+    }
+
+    private async Task LoadSettingsAsync()
+    {
+        try
+        {
+            var settings = await Storage.GetAsync<AppSettings>(StorageKeys.AppSettings);
+            if (settings != null)
+            {
+                StateService.ApplySettings(settings);
+            }
+        }
+        catch
+        {
+            // Ignore errors loading settings
+        }
+    }
+
+    private void OnSettingsChanged()
+    {
+        // Debounce: restart the timer on each change
+        _settingsPending = true;
+        _saveTimer?.Stop();
+        _saveTimer?.Start();
+    }
+
+    private async Task SaveSettingsAsync()
+    {
+        if (!_settingsPending) return;
+        _settingsPending = false;
+
+        try
+        {
+            var settings = StateService.GetSettings();
+            await Storage.SetAsync(StorageKeys.AppSettings, settings);
+        }
+        catch
+        {
+            // Ignore errors saving settings
         }
     }
 
@@ -178,5 +231,8 @@
     public void Dispose()
     {
         StateService.OnStateChanged -= StateHasChanged;
+        StateService.OnSettingsChanged -= OnSettingsChanged;
+        _saveTimer?.Stop();
+        _saveTimer?.Dispose();
     }
 }

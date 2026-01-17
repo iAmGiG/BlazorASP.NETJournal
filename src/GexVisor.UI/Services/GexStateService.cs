@@ -15,6 +15,7 @@ public class GexStateService : IDisposable
     private System.Timers.Timer? _simulationTimer;
 
     public event Action? OnStateChanged;
+    public event Action? OnSettingsChanged;
 
     public GexState State => _state;
     public IReadOnlyList<GexDataPoint> Timeline => _timeline;
@@ -251,6 +252,7 @@ public class GexStateService : IDisposable
     public void AdjustYAxisScale(decimal delta)
     {
         _state.YAxisScale = Math.Max(0.2m, Math.Min(3.0m, _state.YAxisScale + delta));
+        OnSettingsChanged?.Invoke();
         NotifyStateChanged();
     }
 
@@ -260,6 +262,35 @@ public class GexStateService : IDisposable
     public void AdjustXAxisScale(decimal delta)
     {
         _state.XAxisScale = Math.Max(0.3m, Math.Min(3.0m, _state.XAxisScale + delta));
+        OnSettingsChanged?.Invoke();
+        NotifyStateChanged();
+    }
+
+    /// <summary>
+    /// Get current settings for persistence.
+    /// </summary>
+    public AppSettings GetSettings()
+    {
+        return new AppSettings
+        {
+            PlaybackSpeed = _state.PlaybackSpeed,
+            YAxisScale = _state.YAxisScale,
+            XAxisScale = _state.XAxisScale,
+            LastSymbol = _state.CurrentSymbol,
+            LastDataMode = _state.Mode
+        };
+    }
+
+    /// <summary>
+    /// Apply settings from storage.
+    /// </summary>
+    public void ApplySettings(AppSettings settings)
+    {
+        _state.PlaybackSpeed = settings.PlaybackSpeed;
+        _state.YAxisScale = settings.YAxisScale;
+        _state.XAxisScale = settings.XAxisScale;
+        _state.Mode = settings.LastDataMode;
+        UpdateTimerInterval();
         NotifyStateChanged();
     }
 
@@ -292,6 +323,7 @@ public class GexStateService : IDisposable
     {
         _state.PlaybackSpeed = speed;
         UpdateTimerInterval();
+        OnSettingsChanged?.Invoke();
         NotifyStateChanged();
     }
 
