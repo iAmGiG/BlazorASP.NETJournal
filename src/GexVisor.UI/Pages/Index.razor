@@ -1,115 +1,47 @@
-﻿@page "/"
+@page "/"
 
-@* <PageTitle>Journal Me</PageTitle> *@
+<PageTitle>GexVisor</PageTitle>
 
-<div>
-	<article>
-		<section>
-			<h2>1. Create a Dedicated Class Library</h2>
-			<p>
-				<br />Instead of placing your model classes (like the logging class)
-				directly in the Blazor project, consider creating a separate class library project.
-				<br />This will make your codebase more modular and organized.
-				For example, you can name it MyLog.Core
-			</p>
-			<h3>Questions to answer:</h3>
-			<ul>
-				<li>
-					Within the context of a .NET Project,
-					<br />what would it take to craft this separate class library project?
-				</li>
-			</ul>
-		</section>
-		<section>
-			<h2>2. Use Entity Framework Core (EF Core)</h2>
-			<p>
-				EF Core is a lightweight, extensible, open-source, and cross-platform ORM.
-				You can use it to define your data models and relationships, and to interact with your database.
-				In your class library (MyLog.Core), you would define your entities and their relationships.
-			</p>
-		</section>
-		<section>
-			<h2>3. Create a Generic Logging Entity</h2>
-			<p>
-				Given your description, consider creating a generic logging entity, something like:
-				<br />
-				<pre>
-				<code>
-				public class LogEntry
-				{
-				public Guid Id { get; set; } = Guid.NewGuid();
-				public Guid UserId { get; set; } // To associate the log with a user.
-				public DateTime CreatedDate { get; set; } = DateTime.Now;
-				public string Content { get; set; }
-				public LogType Type { get; set; } // Enum indicating type: Journal, Trade, Todo, etc.
-				public Guid? LinkedLogId { get; set; } // For linking with other logs, nullable.
-				// ... other properties ...
-				}
-				</code>
-				</pre>
-			</p>
-			<h4>Notes:</h4>
-			<ul>Will have to bring in the parts of the todo from/daily log I want to rescue, while also considering the replacement.</ul>
-		</section>
-		<section>
-			<h2>4. User Management</h2>
-			<p>
-				To manage users and their logs, consider using Identity Framework along with EF Core.
-				<br />This will allow you to manage user accounts, authenticate, and associate logs with users.
-			</p>
-		</section>
-		<section>
-			<h2>5. In Blazor</h2>
-			<p>
-				In your Blazor project, you'd reference the MyLog.Core class library.
+<div class="landing-page">
+    <header class="landing-header">
+        <h1>GexVisor</h1>
+        <p class="tagline">Options Flow Analysis & Research Tools</p>
+    </header>
 
-				Create Razor components for each type of log you need (e.g., TodoLog.razor, TradeLog.razor).
-				When a log entry is created in one component,
-				<br />you can save it to the database with a link (using LinkedLogId) to another log entry if needed.
-			</p>
-		</section>
-		<section>
-			<h2>6. Cross-Talk Between Logs</h2>
-			<p>
-				By using the LinkedLogId, you can retrieve linked logs.
-				<br />For example, a journal log for a day might have a linked Trade log.
-			</p>
-		</section>
-		<section>
-			<h2>7. Displaying Linked Logs</h2>
-			<p>
-				When displaying a log in the UI, you can check if there's a LinkedLogId.
-				<br />If there is, you can fetch and display the linked log, or provide a link/button to view it.
-			</p>
-		</section>
-	</article>
+    <div class="app-grid">
+        <a href="/gex" class="app-card featured">
+            <div class="app-icon">
+                <i class="fas fa-chart-bar"></i>
+            </div>
+            <div class="app-info">
+                <h2>GEX Visualizer</h2>
+                <p>Interactive gamma exposure visualization with dual-view analysis (Practitioner & Paper 2 models)</p>
+                <div class="app-status ready">
+                    <i class="fas fa-check-circle"></i> Ready
+                </div>
+            </div>
+        </a>
 
-	@*	<h1>Start Me</h1>
-	<ol>
-	<li>Get this todo list started.</li>
-	<li>Following the donet projects for now.</li>
-	</ol>
-	<ul>
-	<li>This app's text side lives here.</li>
+        <div class="app-card coming-soon">
+            <div class="app-icon">
+                <i class="fas fa-flask"></i>
+            </div>
+            <div class="app-info">
+                <h2>Research Arcade</h2>
+                <p>Pattern discovery pipeline, paper implementations, and experimental analysis tools</p>
+                <div class="app-status pending">
+                    <i class="fas fa-clock"></i> Coming Soon
+                </div>
+            </div>
+        </div>
+    </div>
 
-	<li>Sub List work?</li>
-	</ul>*@
-	@*	<Counter IncrementAmount="1" LowerBounds="0" UpperBounds="10" />*@
-	<ToDoForm />
-	@*	<h3>would be console app</h3>
-	<h3>
-	In the C# code, make a list of strings.
-	In the HTML do a foreach on the list of strings and do something like <br />string <br /> and bam, anything in the list ends up in the html.
-	then all you have to do is get strings into that list.
-	Which there may be easier ways, but off the top of my head I'm thinking you could just make a textbox, bind the value to a string variable, then make a submit button and bind the onclick to a method.
-	In the method take the string variable, add it to the list, then clear it back to empty string. Then bam done.
-	</h3>*@
-	@*	@foreach (string s in stringList)
-	{
-	using [Paramater] get/set for imputing the stringList?
-	<p>s</p>
-	}*@
+    <footer class="landing-footer">
+        <div class="shortcuts-hint">
+            <span class="key">Space</span> Play/Pause
+            <span class="key">←→</span> Step
+            <span class="key">R</span> Reset
+            <span class="key">F</span> Fullscreen
+        </div>
+    </footer>
 </div>
-@*@code{
-	private List<string> stringlist;
-}*@
