@@ -1,0 +1,158 @@
+@namespace GexVisor.UI.Components.Gex
+@using GexVisor.UI.Models
+
+<div class="regime-timeline">
+    <div class="timeline-header">
+        <h3>Regime Transition Timeline</h3>
+        <div class="header-stats">
+            <span class="stat positive">+γ @Analysis.PositiveGammaPercent%</span>
+            <span class="stat negative">-γ @Analysis.NegativeGammaPercent%</span>
+            <span class="stat transitions">@Analysis.TotalTransitions flips</span>
+        </div>
+    </div>
+
+    <div class="timeline-bar-container">
+        <div class="timeline-bar">
+            @foreach (var segment in Analysis.Segments)
+            {
+                <div class="segment @segment.Regime.ToCssClass()"
+                     style="left: @(segment.StartPosition)%; width: @(segment.WidthPercent)%;"
+                     title="@GetSegmentTooltip(segment)"
+                     @onclick="() => SelectSegment(segment)">
+                </div>
+            }
+            @foreach (var transition in Analysis.Transitions)
+            {
+                <div class="transition-marker"
+                     style="left: @(transition.Position)%;"
+                     title="@GetTransitionTooltip(transition)">
+                </div>
+            }
+        </div>
+        <div class="timeline-labels">
+            <span class="label start">@GetStartDate()</span>
+            <span class="label end">@GetEndDate()</span>
+        </div>
+    </div>
+
+    <div class="timeline-metrics">
+        <div class="metric-card">
+            <span class="metric-value">@Analysis.TotalDays</span>
+            <span class="metric-label">Total Days</span>
+        </div>
+        <div class="metric-card">
+            <span class="metric-value">@Analysis.AverageRegimeDuration</span>
+            <span class="metric-label">Avg Regime Duration</span>
+        </div>
+        <div class="metric-card positive">
+            <span class="metric-value">@Analysis.LongestPositiveStreak</span>
+            <span class="metric-label">Longest +γ Streak</span>
+        </div>
+        <div class="metric-card negative">
+            <span class="metric-value">@Analysis.LongestNegativeStreak</span>
+            <span class="metric-label">Longest -γ Streak</span>
+        </div>
+    </div>
+
+    @if (SelectedSegment != null)
+    {
+        <div class="segment-detail">
+            <div class="detail-header">
+                <span class="regime-badge @SelectedSegment.Regime.ToCssClass()">@SelectedSegment.Regime.ToLabel()</span>
+                <span class="detail-dates">@SelectedSegment.StartDate → @SelectedSegment.EndDate</span>
+                <button class="close-btn" @onclick="() => SelectedSegment = null">×</button>
+            </div>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span class="detail-label">Duration</span>
+                    <span class="detail-value">@SelectedSegment.DurationDays days</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Avg GEX</span>
+                    <span class="detail-value">@SelectedSegment.AverageGex.ToString("F2")B</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">GEX Range</span>
+                    <span class="detail-value">@SelectedSegment.MinGex.ToString("F2") → @SelectedSegment.MaxGex.ToString("F2")</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Price Change</span>
+                    <span class="detail-value @(SelectedSegment.PriceChange >= 0 ? "positive" : "negative")">
+                        @(SelectedSegment.PriceChange >= 0 ? "+" : "")@SelectedSegment.PriceChange.ToString("F2") (@SelectedSegment.PriceChangePercent.ToString("F1")%)
+                    </span>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (ShowTransitionList)
+    {
+        <div class="transition-list">
+            <div class="list-header">
+                <h4>Regime Transitions (@Analysis.TotalTransitions)</h4>
+                <button class="toggle-btn" @onclick="() => ShowTransitionList = false">Hide</button>
+            </div>
+            <div class="list-content">
+                @foreach (var transition in Analysis.Transitions.TakeLast(10).Reverse())
+                {
+                    <div class="transition-item">
+                        <span class="transition-date">@transition.Date</span>
+                        <span class="transition-flow">
+                            <span class="@transition.FromRegime.ToCssClass()">@transition.FromRegime.ToShortLabel()</span>
+                            →
+                            <span class="@transition.ToRegime.ToCssClass()">@transition.ToRegime.ToShortLabel()</span>
+                        </span>
+                        <span class="transition-duration">after @transition.DaysInPreviousRegime days</span>
+                    </div>
+                }
+            </div>
+            @if (Analysis.TotalTransitions > 10)
+            {
+                <div class="list-footer">
+                    <span>Showing last 10 of @Analysis.TotalTransitions transitions</span>
+                </div>
+            }
+        </div>
+    }
+    else if (Analysis.TotalTransitions > 0)
+    {
+        <button class="show-transitions-btn" @onclick="() => ShowTransitionList = true">
+            Show @Analysis.TotalTransitions Transitions
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public required RegimeAnalysisSummary Analysis { get; set; }
+
+    private RegimeSegment? SelectedSegment { get; set; }
+    private bool ShowTransitionList { get; set; }
+
+    private void SelectSegment(RegimeSegment segment)
+    {
+        SelectedSegment = SelectedSegment == segment ? null : segment;
+    }
+
+    private string GetSegmentTooltip(RegimeSegment segment)
+    {
+        return $"{segment.Regime.ToLabel()}: {segment.DurationDays} days ({segment.StartDate} - {segment.EndDate})";
+    }
+
+    private string GetTransitionTooltip(RegimeTransition transition)
+    {
+        return $"Flip on {transition.Date}: {transition.FromRegime.ToShortLabel()} → {transition.ToRegime.ToShortLabel()}";
+    }
+
+    private string GetStartDate()
+    {
+        var parts = Analysis.DateRange.Split('→');
+        return parts.Length > 0 ? parts[0].Trim() : Analysis.DateRange;
+    }
+
+    private string GetEndDate()
+    {
+        var parts = Analysis.DateRange.Split('→');
+        return parts.Length > 1 ? parts[^1].Trim() : Analysis.DateRange;
+    }
+}

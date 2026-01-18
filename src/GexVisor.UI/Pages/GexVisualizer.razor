@@ -54,7 +54,21 @@
                 </div>
             </div>
         </div>
+
+        @if (_showRegimeTimeline && RegimeAnalysis != null)
+        {
+            <div class="regime-timeline-section">
+                <RegimeTimeline Analysis="RegimeAnalysis" />
+            </div>
+        }
     </div>
+
+    <button class="toggle-timeline-btn @(_showRegimeTimeline ? "active" : "")"
+            @onclick="ToggleRegimeTimeline"
+            title="@(_showRegimeTimeline ? "Hide" : "Show") Regime Timeline">
+        <i class="fas fa-chart-bar"></i>
+        <span>@(_showRegimeTimeline ? "Hide" : "Show") Timeline</span>
+    </button>
 </div>
 
 <KeyboardShortcutsOverlay IsVisible="_showHelp" OnClose="HideHelp" />
@@ -68,6 +82,10 @@
     private System.Timers.Timer? _saveTimer;
     private bool _settingsPending;
     private bool _showHelp;
+    private bool _showRegimeTimeline;
+    private RegimeAnalysisSummary? _regimeAnalysis;
+
+    private RegimeAnalysisSummary? RegimeAnalysis => _regimeAnalysis ??= StateService.GetRegimeAnalysis();
 
     private decimal S2Factor => StateService.State.S2Factor;
     private decimal TotalGex => StateService.State.CurrentDataPoint?.Gex ?? 0;
@@ -202,6 +220,16 @@
     private void ToggleHelp()
     {
         _showHelp = !_showHelp;
+    }
+
+    private void ToggleRegimeTimeline()
+    {
+        _showRegimeTimeline = !_showRegimeTimeline;
+        if (_showRegimeTimeline)
+        {
+            // Invalidate cache to get fresh analysis
+            _regimeAnalysis = null;
+        }
     }
 
     private async Task ToggleFullscreen()

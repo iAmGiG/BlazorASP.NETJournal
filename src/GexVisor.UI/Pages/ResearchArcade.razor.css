@@ -66,6 +66,11 @@
     letter-spacing: 0.5px;
 }
 
+/* Validation Section */
+.validation-section {
+    margin-bottom: 2rem;
+}
+
 /* Arcade Grid */
 .arcade-grid {
     display: grid;

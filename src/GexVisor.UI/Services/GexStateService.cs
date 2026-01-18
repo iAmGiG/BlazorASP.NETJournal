@@ -369,6 +369,31 @@ public class GexStateService : IDisposable
 
     private void NotifyStateChanged() => OnStateChanged?.Invoke();
 
+    /// <summary>
+    /// Get regime analysis for the current timeline.
+    /// </summary>
+    public RegimeAnalysisSummary? GetRegimeAnalysis()
+    {
+        if (_timeline.Count == 0)
+            return null;
+
+        // Build a temporary GexTimeline to use its AnalyzeRegimes method
+        var timeline = new GexTimeline
+        {
+            Symbol = _state.CurrentSymbol ?? "Demo",
+            AssetClass = "Index",
+            DateRange = new DateRange
+            {
+                Start = _timeline.First().Date,
+                End = _timeline.Last().Date
+            },
+            Count = _timeline.Count,
+            Timeline = _timeline
+        };
+
+        return timeline.AnalyzeRegimes();
+    }
+
     public void Dispose()
     {
         _simulationTimer?.Stop();

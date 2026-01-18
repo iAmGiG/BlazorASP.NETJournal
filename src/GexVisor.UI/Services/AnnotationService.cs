@@ -189,4 +189,77 @@ public class AnnotationService
         }
         return value;
     }
+
+    /// <summary>
+    /// Get validation statistics for all pattern types.
+    /// </summary>
+    public IReadOnlyList<PatternValidationStats> GetValidationStats()
+    {
+        var stats = new List<PatternValidationStats>();
+
+        foreach (var (code, label) in PatternTypes.All)
+        {
+            var patternAnnotations = _annotations.Where(a => a.PatternType == code).ToList();
+
+            if (patternAnnotations.Count == 0 && code == PatternTypes.Other)
+                continue;
+
+            var taxonomyBreakdown = patternAnnotations
+                .GroupBy(a => a.Taxonomy)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            var confidenceBreakdown = patternAnnotations
+                .GroupBy(a => a.Confidence)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            stats.Add(new PatternValidationStats
+            {
+                PatternType = code,
+                PatternLabel = label,
+                TotalAnnotations = patternAnnotations.Count,
+                ConfirmedCount = patternAnnotations.Count(a => a.Outcome == AnnotationOutcomes.Confirmed),
+                InvalidatedCount = patternAnnotations.Count(a => a.Outcome == AnnotationOutcomes.Invalidated),
+                PendingCount = patternAnnotations.Count(a => a.Outcome == AnnotationOutcomes.Pending || a.Outcome == null),
+                TaxonomyBreakdown = taxonomyBreakdown,
+                ConfidenceBreakdown = confidenceBreakdown
+            });
+        }
+
+        return stats;
+    }
+
+    /// <summary>
+    /// Get validation statistics for a specific pattern type.
+    /// </summary>
+    public PatternValidationStats? GetStatsForPattern(string patternType)
+    {
+        return GetValidationStats().FirstOrDefault(s => s.PatternType == patternType);
+    }
+
+    /// <summary>
+    /// Get overall validation summary across all patterns.
+    /// </summary>
+    public ValidationSummary GetValidationSummary()
+    {
+        var stats = GetValidationStats();
+        var total = _annotations.Count;
+        var confirmed = _annotations.Count(a => a.Outcome == AnnotationOutcomes.Confirmed);
+        var invalidated = _annotations.Count(a => a.Outcome == AnnotationOutcomes.Invalidated);
+        var pending = _annotations.Count(a => a.Outcome == AnnotationOutcomes.Pending || a.Outcome == null);
+
+        return new ValidationSummary
+        {
+            TotalAnnotations = total,
+            ConfirmedCount = confirmed,
+            InvalidatedCount = invalidated,
+            PendingCount = pending,
+            ValidatedPatterns = stats.Count(s => s.Status == ValidationStatus.Validated),
+            PartialPatterns = stats.Count(s => s.Status == ValidationStatus.Partial),
+            UnvalidatedPatterns = stats.Count(s => s.Status == ValidationStatus.Unvalidated),
+            FailedPatterns = stats.Count(s => s.Status == ValidationStatus.Failed),
+            OverallWinRate = confirmed + invalidated > 0
+                ? Math.Round((double)confirmed / (confirmed + invalidated) * 100, 1)
+                : null
+        };
+    }
 }

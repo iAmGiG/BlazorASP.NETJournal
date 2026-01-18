@@ -136,3 +136,67 @@
 .data-val.red {
     color: var(--accent-red);
 }
+
+/* Regime Timeline Section */
+.regime-timeline-section {
+    padding: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Toggle Timeline Button */
+.toggle-timeline-btn {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 100;
+}
+
+.toggle-timeline-btn:hover {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+}
+
+.toggle-timeline-btn.active {
+    background: rgba(0, 229, 255, 0.1);
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+}
+
+.toggle-timeline-btn i {
+    font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .chart-panels {
+        flex-direction: column;
+    }
+
+    .regime-timeline-section {
+        padding: 0.75rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .toggle-timeline-btn {
+        bottom: 4rem;
+        right: 0.5rem;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.7rem;
+    }
+
+    .toggle-timeline-btn span {
+        display: none;
+    }
+}

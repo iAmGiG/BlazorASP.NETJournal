@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Pipeline State Diagram - Course Example</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0d1117;
+            min-height: 100vh;
+            color: #c9d1d9;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            color: #58a6ff;
+            margin-bottom: 8px;
+        }
+
+        .header .subtitle {
+            color: #8b949e;
+            font-size: 0.95rem;
+        }
+
+        /* State Diagram Styles */
+        .state-diagram {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            padding: 20px;
+        }
+
+        .state-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .state {
+            background: #161b22;
+            border: 2px solid #30363d;
+            border-radius: 8px;
+            padding: 16px 24px;
+            min-width: 200px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .state:hover {
+            border-color: #58a6ff;
+            background: #1c2128;
+        }
+
+        .state.active {
+            border-color: #58a6ff;
+            box-shadow: 0 0 20px rgba(88, 166, 255, 0.2);
+        }
+
+        .state.source { border-left: 4px solid #f85149; }
+        .state.storage { border-left: 4px solid #3fb950; }
+        .state.process { border-left: 4px solid #58a6ff; }
+        .state.output { border-left: 4px solid #a371f7; }
+
+        .state-name {
+            font-weight: 600;
+            color: #f0f6fc;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+
+        .state-type {
+            font-size: 0.75rem;
+            color: #8b949e;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Arrows */
+        .arrow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #484f58;
+            padding: 8px 0;
+        }
+
+        .arrow-line {
+            width: 2px;
+            height: 30px;
+            background: #30363d;
+        }
+
+        .arrow-head {
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 8px solid #30363d;
+        }
+
+        .arrow-label {
+            font-size: 0.7rem;
+            color: #8b949e;
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        .arrow-horizontal {
+            display: flex;
+            align-items: center;
+            color: #484f58;
+            padding: 0 8px;
+        }
+
+        .arrow-line-h {
+            width: 40px;
+            height: 2px;
+            background: #30363d;
+        }
+
+        .arrow-head-h {
+            width: 0;
+            height: 0;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            border-left: 8px solid #30363d;
+        }
+
+        /* Parallel states container */
+        .parallel-states {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .fork-join {
+            width: 120px;
+            height: 4px;
+            background: #30363d;
+            border-radius: 2px;
+        }
+
+        /* Detail Panel */
+        .detail-panel {
+            display: none;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 24px;
+            margin-top: 30px;
+        }
+
+        .detail-panel.active {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #30363d;
+        }
+
+        .detail-title {
+            font-size: 1.1rem;
+            color: #58a6ff;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #8b949e;
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .close-btn:hover {
+            background: #30363d;
+            color: #f0f6fc;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .detail-card {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 16px;
+        }
+
+        .detail-card h4 {
+            color: #3fb950;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .detail-card ul {
+            list-style: none;
+            font-size: 0.8rem;
+            color: #8b949e;
+        }
+
+        .detail-card li {
+            padding: 6px 0;
+            border-bottom: 1px solid #21262d;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .detail-card li:last-child {
+            border-bottom: none;
+        }
+
+        .detail-card li::before {
+            content: ">";
+            color: #484f58;
+            font-family: monospace;
+        }
+
+        .concept-tag {
+            background: #388bfd26;
+            color: #58a6ff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.65rem;
+            margin-left: auto;
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: #8b949e;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        /* Concepts Section */
+        .section-title {
+            font-size: 1.1rem;
+            color: #58a6ff;
+            margin: 40px 0 20px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #30363d;
+        }
+
+        .concepts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .concept-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            transition: border-color 0.2s ease;
+        }
+
+        .concept-card:hover {
+            border-color: #484f58;
+        }
+
+        .concept-card h3 {
+            color: #f0f6fc;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .concept-card p {
+            color: #8b949e;
+            font-size: 0.8rem;
+            line-height: 1.5;
+        }
+
+        .concept-card .code-example {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 12px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.75rem;
+            color: #7ee787;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        /* Discussion Box */
+        .discussion-box {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-left: 3px solid #a371f7;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .discussion-box h3 {
+            color: #a371f7;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+
+        .discussion-box ul {
+            color: #8b949e;
+            margin-left: 20px;
+            font-size: 0.85rem;
+        }
+
+        .discussion-box li {
+            margin: 8px 0;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #30363d;
+            color: #484f58;
+            font-size: 0.8rem;
+        }
+
+        .hint {
+            text-align: center;
+            color: #8b949e;
+            font-size: 0.8rem;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .parallel-states {
+                flex-direction: column;
+            }
+            .arrow-horizontal {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Multi-Tier Data Pipeline</h1>
+            <div class="subtitle">State Diagram View | Big Data Engineering</div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #f85149;"></div>
+                <span>Data Source</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #58a6ff;"></div>
+                <span>Processing</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #3fb950;"></div>
+                <span>Storage</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #a371f7;"></div>
+                <span>Output</span>
+            </div>
+        </div>
+
+        <p class="hint">Click any state to see implementation details</p>
+
+        <div class="state-diagram">
+            <!-- Initial State: Data Sources -->
+            <div class="state-row">
+                <div class="parallel-states">
+                    <div class="state source" data-state="sources">
+                        <div class="state-name">API Source A</div>
+                        <div class="state-type">External</div>
+                    </div>
+                    <div class="state source" data-state="sources">
+                        <div class="state-name">API Source B</div>
+                        <div class="state-type">External</div>
+                    </div>
+                    <div class="state source" data-state="sources">
+                        <div class="state-name">File Source</div>
+                        <div class="state-type">Batch</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="arrow">
+                <div class="arrow-line"></div>
+                <div class="arrow-head"></div>
+                <div class="arrow-label">rate limited</div>
+            </div>
+
+            <!-- Ingestion State -->
+            <div class="state-row">
+                <div class="state process" data-state="ingestion">
+                    <div class="state-name">Ingestion Layer</div>
+                    <div class="state-type">Normalize + Validate</div>
+                </div>
+            </div>
+
+            <div class="arrow">
+                <div class="arrow-line"></div>
+                <div class="arrow-head"></div>
+                <div class="arrow-label">validated records</div>
+            </div>
+
+            <!-- Storage Layer -->
+            <div class="state-row">
+                <div class="state storage" data-state="primary-db">
+                    <div class="state-name">Primary Database</div>
+                    <div class="state-type">Partitioned Storage</div>
+                </div>
+            </div>
+
+            <div class="arrow">
+                <div class="arrow-line"></div>
+                <div class="arrow-head"></div>
+                <div class="arrow-label">query</div>
+            </div>
+
+            <!-- Cache Layer -->
+            <div class="state-row">
+                <div class="parallel-states">
+                    <div class="state storage" data-state="cache">
+                        <div class="state-name">Metadata Cache</div>
+                        <div class="state-type">SQLite</div>
+                    </div>
+                    <div class="state storage" data-state="cache">
+                        <div class="state-name">File Cache</div>
+                        <div class="state-type">Pickle/Parquet</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="arrow">
+                <div class="arrow-line"></div>
+                <div class="arrow-head"></div>
+                <div class="arrow-label">cache hit/miss</div>
+            </div>
+
+            <!-- Processing State -->
+            <div class="state-row">
+                <div class="state process" data-state="processing">
+                    <div class="state-name">Parallel Processor</div>
+                    <div class="state-type">ThreadPool Workers</div>
+                </div>
+            </div>
+
+            <div class="arrow">
+                <div class="arrow-line"></div>
+                <div class="arrow-head"></div>
+                <div class="arrow-label">results</div>
+            </div>
+
+            <!-- Output State -->
+            <div class="state-row">
+                <div class="state output" data-state="output">
+                    <div class="state-name">Output / Analysis</div>
+                    <div class="state-type">Final State</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detail Panels -->
+        <div class="detail-panel" id="detail-sources">
+            <div class="detail-header">
+                <div class="detail-title">Data Sources (Heterogeneous Ingestion)</div>
+                <button class="close-btn" onclick="closeDetail()">&times;</button>
+            </div>
+            <div class="detail-grid">
+                <div class="detail-card">
+                    <h4>Challenge</h4>
+                    <ul>
+                        <li>Different schemas per source <span class="concept-tag">Integration</span></li>
+                        <li>Varying rate limits <span class="concept-tag">Throttling</span></li>
+                        <li>Multiple formats (JSON, CSV) <span class="concept-tag">Parsing</span></li>
+                        <li>Availability differences <span class="concept-tag">Reliability</span></li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Design Pattern</h4>
+                    <ul>
+                        <li>Adapter per source type</li>
+                        <li>Common interface contract</li>
+                        <li>Fallback chain on failure</li>
+                        <li>Exponential backoff retry</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Discussion</h4>
+                    <ul>
+                        <li>When add another source?</li>
+                        <li>How handle schema changes?</li>
+                        <li>Cost of redundancy?</li>
+                        <li>Testing strategy?</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-panel" id="detail-ingestion">
+            <div class="detail-header">
+                <div class="detail-title">Ingestion Layer (Normalize + Validate)</div>
+                <button class="close-btn" onclick="closeDetail()">&times;</button>
+            </div>
+            <div class="detail-grid">
+                <div class="detail-card">
+                    <h4>Responsibilities</h4>
+                    <ul>
+                        <li>Schema normalization <span class="concept-tag">ETL</span></li>
+                        <li>Data type coercion <span class="concept-tag">Transform</span></li>
+                        <li>Quality validation <span class="concept-tag">Quality</span></li>
+                        <li>Deduplication <span class="concept-tag">Cleaning</span></li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Validation Rules</h4>
+                    <ul>
+                        <li>Required fields present</li>
+                        <li>Value range checks</li>
+                        <li>Cross-field consistency</li>
+                        <li>Format validation</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Discussion</h4>
+                    <ul>
+                        <li>Fail fast vs collect errors?</li>
+                        <li>Quarantine bad records?</li>
+                        <li>Schema evolution handling?</li>
+                        <li>Idempotency guarantees?</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-panel" id="detail-primary-db">
+            <div class="detail-header">
+                <div class="detail-title">Primary Database (Partitioned Storage)</div>
+                <button class="close-btn" onclick="closeDetail()">&times;</button>
+            </div>
+            <div class="detail-grid">
+                <div class="detail-card">
+                    <h4>Partitioning Strategy</h4>
+                    <ul>
+                        <li>Range (by date) <span class="concept-tag">Time-series</span></li>
+                        <li>Hash (by key) <span class="concept-tag">Distribution</span></li>
+                        <li>List (by category) <span class="concept-tag">Grouping</span></li>
+                        <li>Composite strategies</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Benefits</h4>
+                    <ul>
+                        <li>Partition pruning in queries</li>
+                        <li>Parallel reads possible</li>
+                        <li>Independent maintenance</li>
+                        <li>Easier data lifecycle</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Discussion</h4>
+                    <ul>
+                        <li>When NOT to partition?</li>
+                        <li>Choosing partition key?</li>
+                        <li>Cross-partition queries?</li>
+                        <li>Rebalancing partitions?</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-panel" id="detail-cache">
+            <div class="detail-header">
+                <div class="detail-title">Cache Layer (Multi-Format)</div>
+                <button class="close-btn" onclick="closeDetail()">&times;</button>
+            </div>
+            <div class="detail-grid">
+                <div class="detail-card">
+                    <h4>Cache Tiers</h4>
+                    <ul>
+                        <li>In-memory (hot) <span class="concept-tag">Fast</span></li>
+                        <li>File-based (warm) <span class="concept-tag">Persistent</span></li>
+                        <li>Database (warm) <span class="concept-tag">Queryable</span></li>
+                        <li>Origin (cold) <span class="concept-tag">Source</span></li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Format Trade-offs</h4>
+                    <ul>
+                        <li>Pickle: Fast, Python-only</li>
+                        <li>Parquet: Columnar, portable</li>
+                        <li>JSON: Readable, verbose</li>
+                        <li>CSV: Universal, inefficient</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Discussion</h4>
+                    <ul>
+                        <li>Cache invalidation strategy?</li>
+                        <li>TTL vs event-based expiry?</li>
+                        <li>Cache warming approaches?</li>
+                        <li>Measuring hit rate?</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-panel" id="detail-processing">
+            <div class="detail-header">
+                <div class="detail-title">Parallel Processor (ThreadPool Workers)</div>
+                <button class="close-btn" onclick="closeDetail()">&times;</button>
+            </div>
+            <div class="detail-grid">
+                <div class="detail-card">
+                    <h4>Parallelism Types</h4>
+                    <ul>
+                        <li>Task parallel <span class="concept-tag">Different ops</span></li>
+                        <li>Data parallel <span class="concept-tag">Same op</span></li>
+                        <li>Pipeline parallel <span class="concept-tag">Stages</span></li>
+                        <li>Hybrid approaches</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Worker Allocation</h4>
+                    <ul>
+                        <li>Adaptive to CPU count</li>
+                        <li>Leave headroom for OS</li>
+                        <li>Memory-bounded limits</li>
+                        <li>I/O vs CPU bound tuning</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Discussion</h4>
+                    <ul>
+                        <li>Threads vs Processes?</li>
+                        <li>When use Spark instead?</li>
+                        <li>Handling partial failures?</li>
+                        <li>Progress monitoring?</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-panel" id="detail-output">
+            <div class="detail-header">
+                <div class="detail-title">Output / Analysis (Final State)</div>
+                <button class="close-btn" onclick="closeDetail()">&times;</button>
+            </div>
+            <div class="detail-grid">
+                <div class="detail-card">
+                    <h4>Output Formats</h4>
+                    <ul>
+                        <li>Structured reports <span class="concept-tag">Analytics</span></li>
+                        <li>API responses <span class="concept-tag">Service</span></li>
+                        <li>File exports <span class="concept-tag">Batch</span></li>
+                        <li>Database writes <span class="concept-tag">Persist</span></li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Quality Assurance</h4>
+                    <ul>
+                        <li>Output validation</li>
+                        <li>Completeness checks</li>
+                        <li>Audit logging</li>
+                        <li>Rollback capability</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Discussion</h4>
+                    <ul>
+                        <li>Downstream consumers?</li>
+                        <li>SLA requirements?</li>
+                        <li>Error notification?</li>
+                        <li>Reprocessing strategy?</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Concepts Section -->
+        <h2 class="section-title">Key Concepts in This Pipeline</h2>
+
+        <div class="concepts-grid">
+            <div class="concept-card">
+                <h3>1. Heterogeneous Data Integration</h3>
+                <p>Combining data from multiple sources with different schemas, formats, and access patterns into a unified pipeline.</p>
+                <div class="code-example">class SourceAdapter(ABC):
+    @abstractmethod
+    def fetch(self, params) -> DataFrame:
+        pass
+
+    @abstractmethod
+    def normalize(self, raw) -> DataFrame:
+        pass</div>
+            </div>
+
+            <div class="concept-card">
+                <h3>2. Multi-Tier Storage</h3>
+                <p>Hot/warm/cold data tiers optimize for different access patterns - frequently used data stays fast, historical data moves to cheaper storage.</p>
+                <div class="code-example">def get_data(key):
+    if key in memory_cache:      # Hot
+        return memory_cache[key]
+    if key in file_cache:        # Warm
+        return file_cache[key]
+    return fetch_from_api(key)   # Cold</div>
+            </div>
+
+            <div class="concept-card">
+                <h3>3. Rate Limiting</h3>
+                <p>External APIs have request limits. Efficient rate limiting prevents wasted requests and handles backpressure gracefully.</p>
+                <div class="code-example">from collections import deque
+
+class RateLimiter:
+    def __init__(self, max_req, window_sec):
+        self.window = deque(maxlen=max_req)
+        self.window_sec = window_sec</div>
+            </div>
+
+            <div class="concept-card">
+                <h3>4. Horizontal Partitioning</h3>
+                <p>Splitting large tables by a key (often date) enables parallel processing and efficient queries via partition pruning.</p>
+                <div class="code-example">CREATE TABLE events (
+    id SERIAL,
+    event_date DATE,
+    data JSONB
+) PARTITION BY RANGE (event_date);
+
+CREATE TABLE events_2024
+PARTITION OF events
+FOR VALUES FROM ('2024-01-01')
+TO ('2025-01-01');</div>
+            </div>
+
+            <div class="concept-card">
+                <h3>5. Data Quality Scoring</h3>
+                <p>Quantifiable quality metrics enable automated decisions about data fitness for downstream use.</p>
+                <div class="code-example">def quality_score(record):
+    checks = {
+        'complete': all_fields_present(record),
+        'valid': values_in_range(record),
+        'consistent': cross_field_ok(record)
+    }
+    weights = [0.4, 0.35, 0.25]
+    return sum(c*w for c,w in zip(checks.values(), weights))</div>
+            </div>
+
+            <div class="concept-card">
+                <h3>6. Parallel Processing</h3>
+                <p>For I/O-bound work that fits on one machine, thread pools provide simple parallelism without distributed system complexity.</p>
+                <div class="code-example">from concurrent.futures import ThreadPoolExecutor
+
+workers = max(2, min(8, cpu_count() - 1))
+
+with ThreadPoolExecutor(workers) as pool:
+    results = list(pool.map(process, items))</div>
+            </div>
+        </div>
+
+        <!-- Discussion Section -->
+        <div class="discussion-box">
+            <h3>Discussion: When to Scale Out?</h3>
+            <ul>
+                <li><strong>Single-machine parallelism</strong> works when data fits in memory and processing is I/O-bound. When would you switch to Spark or similar?</li>
+                <li><strong>Relational databases</strong> scale vertically well. At what point do you need horizontal scaling (sharding)?</li>
+                <li><strong>File caching</strong> works great for single nodes. What would you use for a distributed deployment?</li>
+                <li><strong>Rate limiting in-process</strong> is simple. How would you coordinate limits across multiple workers?</li>
+            </ul>
+        </div>
+
+        <div class="discussion-box">
+            <h3>For Your Project</h3>
+            <ul>
+                <li>What are your data sources? How do their schemas differ?</li>
+                <li>Where does validation happen in your pipeline?</li>
+                <li>What storage tier(s) make sense for your data volume?</li>
+                <li>Do you need parallelism? What type?</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p>Big Data Engineering | Pipeline Architecture</p>
+        </div>
+    </div>
+
+    <script>
+        const stateToPanel = {
+            'sources': 'detail-sources',
+            'ingestion': 'detail-ingestion',
+            'primary-db': 'detail-primary-db',
+            'cache': 'detail-cache',
+            'processing': 'detail-processing',
+            'output': 'detail-output'
+        };
+
+        document.querySelectorAll('.state').forEach(state => {
+            state.addEventListener('click', function() {
+                const stateType = this.getAttribute('data-state');
+                const panelId = stateToPanel[stateType];
+
+                document.querySelectorAll('.state').forEach(s => s.classList.remove('active'));
+                document.querySelectorAll('.detail-panel').forEach(p => p.classList.remove('active'));
+
+                this.classList.add('active');
+                const panel = document.getElementById(panelId);
+                if (panel) {
+                    panel.classList.add('active');
+                    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        function closeDetail() {
+            document.querySelectorAll('.state').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.detail-panel').forEach(p => p.classList.remove('active'));
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeDetail();
+        });
+    </script>
+</body>
+</html>

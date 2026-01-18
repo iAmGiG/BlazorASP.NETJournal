@@ -1,0 +1,1659 @@
+<!DOCTYPE html>
+<!--
+    Research Complexity Map
+    =======================
+    Interactive visualization of abandoned/deferred research paths by barrier type.
+
+    Source: https://github.com/iAmGiG/gex-llm-patterns
+    Documentation: RESEARCH_COMPLEXITY_MAP_README.md
+
+    This is a self-contained visualization with no external dependencies.
+    All data, styles, and scripts are embedded within this file.
+
+    Key GitHub Issues Referenced:
+    - #46  Dynamic Trailing Stops
+    - #11  Monte Carlo Testing
+    - #27  CPCV Cross-Validation
+    - #20  Multi-Agent Architecture
+    - #38  Few-Shot Training
+    - #39  Forward Testing
+    - #130 0DTE Gamma
+    - #132 Cross-Asset Hedging
+
+    Last Updated: 2025-01-09
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Complexity Map</title>
+    <meta name="description" content="Interactive visualization mapping research paths by barrier type, complexity, and status. 71.5% detection rate, 91.2% accuracy across 242 trading days.">
+    <!-- Open Graph / Social Media -->
+    <meta property="og:title" content="Research Complexity Map - LLM Pattern Detection">
+    <meta property="og:description" content="Mapping abandoned & deferred research by barrier type. Data access, domain knowledge, scope, and methodology barriers visualized.">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Research Complexity Map">
+    <meta name="twitter:description" content="16 research paths across 6 complexity rings. 71.5% detection, 91.2% accuracy validated.">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 50%, #0a0a1a 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            color: #7eb8ff;
+            margin-bottom: 5px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        /* Research Foundation Banner */
+        .foundation-banner {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            padding: 15px 30px;
+            background: linear-gradient(90deg, rgba(46, 204, 113, 0.1), rgba(52, 152, 219, 0.1), rgba(155, 89, 182, 0.1));
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(100, 150, 200, 0.2);
+            flex-wrap: wrap;
+        }
+
+        .foundation-stat {
+            text-align: center;
+        }
+
+        .foundation-value {
+            font-size: 28px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #2ecc71, #3498db);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .foundation-label {
+            font-size: 10px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .foundation-source {
+            font-size: 9px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        /* Main Container */
+        .main-container {
+            display: flex;
+            gap: 25px;
+            max-width: 1700px;
+            margin: 0 auto;
+        }
+
+        /* Left Panel - Three Paper Arc */
+        .left-panel {
+            flex: 0 0 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .paper-arc {
+            background: rgba(30, 30, 50, 0.8);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid #333;
+        }
+
+        .paper-arc-title {
+            font-size: 11px;
+            color: #7eb8ff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .paper-item {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 3px solid;
+            background: rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .paper-item:hover {
+            background: rgba(100, 150, 255, 0.1);
+        }
+
+        .paper-item.paper-1 { border-color: #2ecc71; }
+        .paper-item.paper-2 { border-color: #3498db; }
+        .paper-item.paper-3 { border-color: #9b59b6; }
+
+        .paper-number {
+            font-size: 10px;
+            color: #888;
+            margin-bottom: 3px;
+        }
+
+        .paper-title {
+            font-size: 12px;
+            color: #ddd;
+            font-weight: 500;
+        }
+
+        .paper-status {
+            font-size: 9px;
+            margin-top: 4px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        .paper-status.complete { background: rgba(46, 204, 113, 0.2); color: #2ecc71; }
+        .paper-status.in-progress { background: rgba(52, 152, 219, 0.2); color: #3498db; }
+        .paper-status.planned { background: rgba(155, 89, 182, 0.2); color: #9b59b6; }
+
+        /* Pattern Taxonomy Legend */
+        .taxonomy-legend {
+            background: rgba(30, 30, 50, 0.8);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid #333;
+        }
+
+        .taxonomy-title {
+            font-size: 11px;
+            color: #7eb8ff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .taxonomy-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-size: 11px;
+        }
+
+        .taxonomy-badge {
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 8px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .taxonomy-badge.mechanical { background: #2ecc71; color: #000; }
+        .taxonomy-badge.probabilistic { background: #f39c12; color: #000; }
+        .taxonomy-badge.narrative { background: #e74c3c; color: #fff; }
+
+        .taxonomy-desc {
+            color: #aaa;
+            line-height: 1.3;
+        }
+
+        /* Map Container */
+        .map-container {
+            flex: 1;
+            min-width: 700px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        svg {
+            overflow: visible;
+        }
+
+        /* SVG Styles */
+        .ring { fill: none; stroke-width: 1; }
+        .ring-0 { stroke: rgba(100, 255, 150, 0.3); }
+        .ring-1 { stroke: rgba(150, 255, 100, 0.25); }
+        .ring-2 { stroke: rgba(255, 255, 100, 0.2); }
+        .ring-3 { stroke: rgba(255, 180, 100, 0.15); }
+        .ring-4 { stroke: rgba(255, 100, 100, 0.1); }
+        .ring-5 { stroke: rgba(255, 50, 50, 0.08); }
+
+        .ring-fill-0 { fill: rgba(100, 255, 150, 0.03); }
+        .ring-fill-1 { fill: rgba(150, 255, 100, 0.025); }
+        .ring-fill-2 { fill: rgba(255, 255, 100, 0.02); }
+        .ring-fill-3 { fill: rgba(255, 180, 100, 0.015); }
+        .ring-fill-4 { fill: rgba(255, 100, 100, 0.01); }
+        .ring-fill-5 { fill: rgba(255, 50, 50, 0.008); }
+
+        .ring-label { font-size: 9px; fill: #555; text-anchor: start; }
+        .quadrant-label { font-size: 11px; fill: #666; text-anchor: middle; font-weight: 500; }
+        .quadrant-line { stroke: rgba(100, 100, 150, 0.15); stroke-width: 1; stroke-dasharray: 4 4; }
+        .quadrant-bg { opacity: 0.03; }
+
+        /* Status colors */
+        .status-implemented { fill: #2ecc71; stroke: #27ae60; }
+        .status-partial { fill: #f39c12; stroke: #e67e22; }
+        .status-deferred { fill: #3498db; stroke: #2980b9; }
+        .status-abandoned { fill: #9b59b6; stroke: #8e44ad; }
+        .status-infeasible { fill: #e74c3c; stroke: #c0392b; }
+        .status-superseded { fill: #1abc9c; stroke: #16a085; }
+        .status-blocked { fill: #e67e22; stroke: #d35400; }
+
+        .center-label { font-size: 11px; fill: #2ecc71; text-anchor: middle; font-weight: bold; }
+        .center-sublabel { font-size: 8px; fill: #888; text-anchor: middle; }
+
+        /* Pulse animation for center */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .center-pulse {
+            animation: pulse 2.5s ease-in-out infinite;
+        }
+
+        /* Node styles */
+        @keyframes nodeEntrance {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        .node {
+            cursor: pointer;
+            opacity: 0;
+            animation: nodeEntrance 0.5s ease-out forwards;
+        }
+        .node.delay-1 { animation-delay: 0.08s; }
+        .node.delay-2 { animation-delay: 0.16s; }
+        .node.delay-3 { animation-delay: 0.24s; }
+        .node.delay-4 { animation-delay: 0.32s; }
+        .node.delay-5 { animation-delay: 0.4s; }
+
+        .node.dimmed { opacity: 0.15 !important; pointer-events: none; }
+        .node.highlighted circle { filter: brightness(1.4) drop-shadow(0 0 18px currentColor); }
+        .node.connected { opacity: 1 !important; }
+
+        .node circle {
+            stroke-width: 2;
+            transition: filter 0.2s ease, stroke-width 0.2s ease;
+        }
+        .node:hover circle {
+            stroke-width: 3;
+            filter: brightness(1.25) drop-shadow(0 0 12px currentColor);
+        }
+
+        .node text {
+            font-size: 7px;
+            fill: #fff;
+            text-anchor: middle;
+            pointer-events: none;
+            font-weight: 600;
+        }
+        .node text.long-label { font-size: 6px; }
+
+        /* Connection lines */
+        .connection-line {
+            stroke: rgba(100, 180, 255, 0.5);
+            stroke-width: 2;
+            fill: none;
+            stroke-dasharray: 6 3;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            filter: drop-shadow(0 0 3px rgba(100, 180, 255, 0.5));
+        }
+        .connection-line.visible {
+            opacity: 1;
+            animation: dashFlow 1s linear infinite;
+        }
+        @keyframes dashFlow {
+            0% { stroke-dashoffset: 0; }
+            100% { stroke-dashoffset: -18; }
+        }
+
+        /* Glow effect for related nodes */
+        .node.related-glow circle {
+            filter: brightness(1.3) drop-shadow(0 0 12px currentColor);
+        }
+
+        /* Right Sidebar */
+        .sidebar {
+            flex: 0 0 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .panel {
+            background: rgba(30, 30, 50, 0.8);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid #333;
+        }
+
+        .section-title {
+            font-size: 12px;
+            color: #7eb8ff;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Filter buttons */
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .filter-btn {
+            padding: 4px 8px;
+            font-size: 10px;
+            border: 1px solid #444;
+            background: transparent;
+            color: #aaa;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-btn:hover { border-color: #666; color: #fff; }
+        .filter-btn.active {
+            background: rgba(100, 150, 255, 0.2);
+            border-color: #7eb8ff;
+            color: #7eb8ff;
+        }
+
+        /* Search box */
+        .search-container {
+            margin-bottom: 12px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 8px 12px;
+            font-size: 11px;
+            border: 1px solid #444;
+            background: rgba(0, 0, 0, 0.3);
+            color: #e0e0e0;
+            border-radius: 6px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-input:focus {
+            border-color: #7eb8ff;
+        }
+        .search-input::placeholder {
+            color: #666;
+        }
+
+        /* Reset button */
+        .reset-btn {
+            padding: 4px 10px;
+            font-size: 9px;
+            border: 1px solid #e74c3c;
+            background: transparent;
+            color: #e74c3c;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .reset-btn.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .reset-btn:hover {
+            background: rgba(231, 76, 60, 0.2);
+        }
+
+        /* Legend items */
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+            font-size: 11px;
+            cursor: pointer;
+            padding: 3px 5px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .legend-item:hover { background: rgba(255,255,255,0.05); }
+        .legend-item.active { background: rgba(100, 150, 255, 0.15); }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .legend-count {
+            margin-left: auto;
+            color: #666;
+            font-size: 10px;
+        }
+
+        /* Details panel */
+        .details-panel { min-height: 280px; }
+        .details-empty {
+            color: #555;
+            font-style: italic;
+            text-align: center;
+            padding: 50px 0;
+            font-size: 12px;
+        }
+        .details-content { display: none; }
+        .details-content.visible { display: block; }
+
+        .detail-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .detail-title {
+            font-size: 15px;
+            color: #7eb8ff;
+            flex: 1;
+        }
+
+        .detail-taxonomy {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: bold;
+        }
+
+        .detail-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .detail-meta-item {
+            font-size: 11px;
+        }
+
+        .detail-meta-label {
+            color: #666;
+            font-size: 9px;
+            text-transform: uppercase;
+        }
+
+        .detail-meta-value {
+            color: #ccc;
+        }
+
+        .detail-issue {
+            margin-bottom: 10px;
+        }
+        .detail-issue a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 10px;
+            background: rgba(100, 150, 255, 0.12);
+            border: 1px solid rgba(100, 150, 255, 0.3);
+            border-radius: 6px;
+            color: #7eb8ff;
+            font-size: 11px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .detail-issue a:hover {
+            background: rgba(100, 150, 255, 0.25);
+            border-color: #7eb8ff;
+        }
+        .detail-issue a::before {
+            content: "GitHub";
+            font-size: 9px;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        .detail-desc {
+            padding: 10px;
+            background: rgba(100, 150, 255, 0.06);
+            border-radius: 6px;
+            font-size: 11px;
+            color: #bbb;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+
+        .detail-barrier {
+            padding: 10px;
+            background: rgba(255, 100, 100, 0.08);
+            border-left: 3px solid #e74c3c;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 10px;
+        }
+
+        .detail-barrier-title {
+            font-size: 10px;
+            color: #e74c3c;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .detail-barrier-text {
+            font-size: 11px;
+            color: #ccc;
+            line-height: 1.4;
+        }
+
+        .detail-unblock {
+            padding: 10px;
+            background: rgba(46, 204, 113, 0.08);
+            border-left: 3px solid #2ecc71;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 10px;
+        }
+
+        .detail-unblock-title {
+            font-size: 10px;
+            color: #2ecc71;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .detail-unblock-text {
+            font-size: 11px;
+            color: #ccc;
+            line-height: 1.4;
+        }
+
+        .detail-related {
+            padding-top: 8px;
+            border-top: 1px solid #333;
+        }
+
+        .detail-related-title {
+            font-size: 9px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .related-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            background: rgba(100, 150, 255, 0.12);
+            border-radius: 10px;
+            font-size: 9px;
+            color: #7eb8ff;
+            margin-right: 4px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .related-tag:hover { background: rgba(100, 150, 255, 0.25); }
+
+        /* Key Insight Box */
+        .insight-box {
+            padding: 12px;
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(52, 152, 219, 0.1));
+            border: 1px solid rgba(46, 204, 113, 0.3);
+            border-radius: 8px;
+        }
+
+        .insight-title {
+            font-size: 10px;
+            color: #2ecc71;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .insight-text {
+            font-size: 11px;
+            color: #aaa;
+            line-height: 1.5;
+        }
+
+        .insight-text strong { color: #7eb8ff; }
+
+        /* Keyboard hints */
+        .keyboard-hint {
+            text-align: center;
+            font-size: 10px;
+            color: #555;
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid #333;
+        }
+        .hint-key {
+            display: inline-block;
+            padding: 2px 6px;
+            background: rgba(100, 100, 150, 0.2);
+            border-radius: 3px;
+            color: #888;
+            font-size: 9px;
+            margin-right: 4px;
+        }
+        .hint-sep {
+            color: #444;
+            margin: 0 8px;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: fixed;
+            background: rgba(20, 20, 40, 0.95);
+            border: 1px solid #555;
+            border-radius: 8px;
+            padding: 10px 14px;
+            max-width: 260px;
+            font-size: 11px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        .tooltip.visible { opacity: 1; }
+        .tooltip-title { font-weight: bold; color: #7eb8ff; margin-bottom: 3px; }
+        .tooltip-status { font-size: 9px; text-transform: uppercase; margin-bottom: 5px; }
+        .tooltip-desc { color: #bbb; line-height: 1.3; }
+
+        /* Responsive */
+        @media (max-width: 1400px) {
+            .main-container { flex-direction: column; align-items: center; }
+            .left-panel { flex-direction: row; width: 100%; max-width: 800px; }
+            .sidebar { width: 100%; max-width: 600px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>RESEARCH COMPLEXITY MAP</h1>
+        <p class="subtitle">Mapping Abandoned & Deferred Research by Barrier Type</p>
+    </div>
+
+    <!-- Research Foundation Banner -->
+    <div class="foundation-banner">
+        <div class="foundation-stat">
+            <div class="foundation-value">71.5%</div>
+            <div class="foundation-label">Detection Rate</div>
+            <div class="foundation-source">Unbiased prompts</div>
+        </div>
+        <div class="foundation-stat">
+            <div class="foundation-value">91.2%</div>
+            <div class="foundation-label">Predictive Accuracy</div>
+            <div class="foundation-source">When pattern detected</div>
+        </div>
+        <div class="foundation-stat">
+            <div class="foundation-value">242</div>
+            <div class="foundation-label">Trading Days</div>
+            <div class="foundation-source">Full year 2024</div>
+        </div>
+        <div class="foundation-stat">
+            <div class="foundation-value">15</div>
+            <div class="foundation-label">Patterns Cataloged</div>
+            <div class="foundation-source">Pattern library</div>
+        </div>
+        <div class="foundation-stat">
+            <div class="foundation-value">16</div>
+            <div class="foundation-label">Research Paths</div>
+            <div class="foundation-source">Explored/abandoned</div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <!-- Left Panel -->
+        <div class="left-panel">
+            <!-- Three Paper Arc -->
+            <div class="paper-arc">
+                <div class="paper-arc-title">Research Arc</div>
+                <div class="paper-item paper-1">
+                    <div class="paper-number">Paper 1</div>
+                    <div class="paper-title">LLM Pattern Detection</div>
+                    <div class="paper-status complete">Validated</div>
+                </div>
+                <div class="paper-item paper-2">
+                    <div class="paper-number">Paper 2</div>
+                    <div class="paper-title">Regime Detection</div>
+                    <div class="paper-status in-progress">In Progress</div>
+                </div>
+                <div class="paper-item paper-3">
+                    <div class="paper-number">Paper 3</div>
+                    <div class="paper-title">Sector Rotation</div>
+                    <div class="paper-status planned">Planned</div>
+                </div>
+            </div>
+
+            <!-- Pattern Taxonomy -->
+            <div class="taxonomy-legend">
+                <div class="taxonomy-title">Pattern Classification</div>
+                <div class="taxonomy-item">
+                    <span class="taxonomy-badge mechanical">MECH</span>
+                    <span class="taxonomy-desc">Must occur due to dealer constraints. Passes obfuscation test.</span>
+                </div>
+                <div class="taxonomy-item">
+                    <span class="taxonomy-badge probabilistic">PROB</span>
+                    <span class="taxonomy-desc">Statistical edge (>60%) but not guaranteed.</span>
+                </div>
+                <div class="taxonomy-item">
+                    <span class="taxonomy-badge narrative">NARR</span>
+                    <span class="taxonomy-desc">Market folklore. Fails obfuscation test.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map -->
+        <div class="map-container">
+            <svg id="complexity-map" width="700" height="700" viewBox="-350 -350 700 700"></svg>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="sidebar">
+            <!-- Filters -->
+            <div class="panel">
+                <div class="section-title">
+                    Filter
+                    <button class="reset-btn" id="reset-btn">Reset All</button>
+                </div>
+                <div class="search-container">
+                    <input type="text" class="search-input" id="search-input" placeholder="Search research paths...">
+                </div>
+                <div class="filter-row">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="data">Data</button>
+                    <button class="filter-btn" data-filter="knowledge">Knowledge</button>
+                    <button class="filter-btn" data-filter="compute">Compute</button>
+                    <button class="filter-btn" data-filter="scope">Scope</button>
+                    <button class="filter-btn" data-filter="methodology">Methodology</button>
+                </div>
+                <div class="filter-row">
+                    <div class="legend-item" data-status="implemented">
+                        <div class="legend-dot" style="background: #2ecc71;"></div>
+                        <span>Implemented</span>
+                        <span class="legend-count" id="count-implemented">1</span>
+                    </div>
+                    <div class="legend-item" data-status="partial">
+                        <div class="legend-dot" style="background: #f39c12;"></div>
+                        <span>Partial</span>
+                        <span class="legend-count" id="count-partial">4</span>
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="legend-item" data-status="deferred">
+                        <div class="legend-dot" style="background: #3498db;"></div>
+                        <span>Deferred</span>
+                        <span class="legend-count" id="count-deferred">3</span>
+                    </div>
+                    <div class="legend-item" data-status="abandoned">
+                        <div class="legend-dot" style="background: #9b59b6;"></div>
+                        <span>Abandoned</span>
+                        <span class="legend-count" id="count-abandoned">5</span>
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="legend-item" data-status="blocked">
+                        <div class="legend-dot" style="background: #e67e22;"></div>
+                        <span>Blocked</span>
+                        <span class="legend-count" id="count-blocked">1</span>
+                    </div>
+                    <div class="legend-item" data-status="infeasible">
+                        <div class="legend-dot" style="background: #e74c3c;"></div>
+                        <span>Infeasible</span>
+                        <span class="legend-count" id="count-infeasible">2</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Details -->
+            <div class="panel details-panel">
+                <div class="section-title">Details</div>
+                <div class="details-empty">Click a node to explore</div>
+                <div class="details-content" id="details-content">
+                    <div class="detail-header">
+                        <div class="detail-title" id="detail-title"></div>
+                        <div class="detail-taxonomy" id="detail-taxonomy"></div>
+                    </div>
+                    <div class="detail-meta">
+                        <div class="detail-meta-item">
+                            <div class="detail-meta-label">Status</div>
+                            <div class="detail-meta-value" id="detail-status"></div>
+                        </div>
+                        <div class="detail-meta-item">
+                            <div class="detail-meta-label">Complexity</div>
+                            <div class="detail-meta-value" id="detail-ring"></div>
+                        </div>
+                        <div class="detail-meta-item">
+                            <div class="detail-meta-label">Barrier Type</div>
+                            <div class="detail-meta-value" id="detail-barrier-type"></div>
+                        </div>
+                        <div class="detail-meta-item">
+                            <div class="detail-meta-label">Paper</div>
+                            <div class="detail-meta-value" id="detail-paper"></div>
+                        </div>
+                    </div>
+                    <div class="detail-issue" id="detail-issue-container" style="display: none;">
+                        <a id="detail-issue-link" href="#" target="_blank" rel="noopener noreferrer"></a>
+                    </div>
+                    <div class="detail-desc" id="detail-desc"></div>
+                    <div class="detail-barrier">
+                        <div class="detail-barrier-title">Why It Stalled</div>
+                        <div class="detail-barrier-text" id="detail-barrier"></div>
+                    </div>
+                    <div class="detail-unblock" id="detail-unblock-container">
+                        <div class="detail-unblock-title">What Would Unblock</div>
+                        <div class="detail-unblock-text" id="detail-unblock"></div>
+                    </div>
+                    <div class="detail-related">
+                        <div class="detail-related-title">Related Concepts</div>
+                        <div id="detail-related"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Insight -->
+            <div class="insight-box">
+                <div class="insight-title">Key Insight</div>
+                <div class="insight-text">
+                    Research paths fail primarily due to <strong>data access barriers</strong> ($10K+ feeds) or
+                    <strong>scope creep</strong> (production vs research). Technical infeasibility is rare.
+                    The validated core (71.5% detection) proves <strong>LLMs reason about structure</strong>, not just memorize.
+                </div>
+            </div>
+
+            <!-- Keyboard hints -->
+            <div class="keyboard-hint">
+                <span class="hint-key">Arrow Keys</span> Navigate
+                <span class="hint-sep">|</span>
+                <span class="hint-key">Esc</span> Clear
+                <span class="hint-sep">|</span>
+                <span class="hint-key">Click</span> Select
+            </div>
+        </div>
+    </div>
+
+    <div class="tooltip" id="tooltip">
+        <div class="tooltip-title"></div>
+        <div class="tooltip-status"></div>
+        <div class="tooltip-desc"></div>
+    </div>
+
+    <script>
+        // ===========================================
+        // RESEARCH DATA
+        // ===========================================
+        const researchPaths = [
+            // Ring 0 - Core (Implemented)
+            {
+                id: "core", ring: 0, quadrant: "scope", angle: 0,
+                label: "Core", labelLong: "GEX",
+                status: "implemented", taxonomy: "mechanical",
+                title: "Core GEX Analysis System",
+                paper: "Paper 1",
+                description: "GEX calculations, 15-pattern library, single LLM agent (MarketMechanicsAgent), O3-mini integration. WHO→WHOM→WHAT causal attribution framework.",
+                barrier: "None - this is the validated foundation achieving 71.5% detection and 91.2% accuracy",
+                unblock: null,
+                barrierType: "none",
+                related: ["Pattern Library", "Obfuscation Testing", "WHO→WHOM→WHAT"]
+            },
+
+            // Ring 1 - Minor Extensions
+            {
+                id: "trailing", ring: 1, quadrant: "scope", angle: 35,
+                label: "Trailing", labelLong: "Stops",
+                status: "partial", taxonomy: "probabilistic",
+                title: "Dynamic Trailing Stops",
+                paper: "Paper 2+",
+                issueUrl: "https://github.com/iAmGiG/gex-llm-patterns/issues/46",
+                issueNum: "#46",
+                description: "Adaptive position management that adjusts stops based on volatility and pattern confidence. ActionableSignal has trailing_stop_pct field (2.0% default) but no execution logic.",
+                barrier: "Trade execution is outside research scope - production trading belongs in AutoTrader-AgentEdge project",
+                unblock: "Post-PhD commercialization with dedicated trading system development",
+                barrierType: "scope",
+                related: ["Position Sizing", "Risk Management", "AutoTrader Integration"]
+            },
+            {
+                id: "sixcat", ring: 1, quadrant: "knowledge", angle: 145,
+                label: "6-Cat", labelLong: "Patterns",
+                status: "partial", taxonomy: "probabilistic",
+                title: "Six-Category Pattern Classification",
+                paper: "Paper 1",
+                description: "Gamma Trap, Gamma Squeeze, Vol Compression, Mean Reversion, Momentum, Neutral. Structure exists but only gamma_trap (60% win rate) fully validated.",
+                barrier: "Each category requires dedicated historical event testing - validation bottleneck with limited time",
+                unblock: "Dedicated validation sprints for remaining 5 categories with curated historical events",
+                barrierType: "knowledge",
+                related: ["Pattern Taxonomy", "Historical Validation", "Win Rate Analysis"]
+            },
+
+            // Ring 2 - Statistical Expertise
+            {
+                id: "montecarlo", ring: 2, quadrant: "compute", angle: 10,
+                label: "Monte", labelLong: "Carlo",
+                status: "partial", taxonomy: "mechanical",
+                title: "Monte Carlo & Permutation Testing",
+                paper: "Paper 1",
+                issueUrl: "https://github.com/iAmGiG/gex-llm-patterns/issues/11",
+                issueNum: "#11",
+                description: "Basic stats completed (Wilson CI, Sharpe ratio, Kelly Criterion). Missing: 10K+ permutation iterations, FDR correction (Benjamini-Hochberg), 4-regime robustness, temporal rolling windows.",
+                barrier: "Massive compute for 10K+ iterations; PhD timeline pressure made basic validation sufficient for publication",
+                unblock: "Cloud compute budget for large-scale permutation testing; post-publication enhancement",
+                barrierType: "compute",
+                related: ["Statistical Significance", "FDR Correction", "Regime Testing"]
+            },
+            {
+                id: "cpcv", ring: 2, quadrant: "knowledge", angle: 75,
+                label: "CPCV", labelLong: "",
+                status: "deferred", taxonomy: "mechanical",
+                title: "Combinatorial Purged Cross-Validation",
+                paper: "Paper 2+",
+                issueUrl: "https://github.com/iAmGiG/gex-llm-patterns/issues/27",
+                issueNum: "#27",
+                description: "de Prado's AFML methodology. Proper time-series CV with purging (remove overlapping samples) and embargo periods (gap between train/test).",
+                barrier: "Requires advanced ML validation expertise; with only 7-15 pattern instances per type, sophisticated CV provides marginal benefit",
+                unblock: "Scale to 100+ pattern instances; dedicated implementation sprint with ML expertise",
+                barrierType: "knowledge",
+                related: ["de Prado AFML Ch.7", "Time-Series CV", "Overfitting Prevention"]
+            },
+            {
+                id: "prefixspan", ring: 2, quadrant: "methodology", angle: 140,
+                label: "Seq", labelLong: "Mining",
+                status: "superseded", taxonomy: "probabilistic",
+                title: "Sequential Pattern Mining (PrefixSpan)",
+                paper: "Paper 1",
+                description: "Algorithmic approach using frequency analysis and support/confidence thresholds. PatternProbabilityMapper was implemented and functional.",
+                barrier: "LLM-based detection became core thesis contribution; algorithmic mining relegated to potential baseline comparison",
+                unblock: "Revisit as comparative baseline in future work to quantify LLM value-add vs pure statistical approaches",
+                barrierType: "methodology",
+                related: ["PrefixSpan Algorithm", "Frequent Patterns", "Baseline Comparison"]
+            },
+
+            // Ring 3 - Infrastructure
+            {
+                id: "multiagent", ring: 3, quadrant: "scope", angle: 25,
+                label: "Multi", labelLong: "Agent",
+                status: "abandoned", taxonomy: "narrative",
+                title: "Multi-Agent LLM Orchestration",
+                paper: "N/A",
+                issueUrl: "https://github.com/iAmGiG/gex-llm-patterns/issues/20",
+                issueNum: "#20",
+                description: "Complex AutoGen system with specialized agents: DataRetrievalAgent, GEXAgent, PatternAgent, plus orchestrator with parallel processing.",
+                barrier: "Architecture analysis concluded: 75% win rate achieved with single agent. Multi-agent complexity not justified for research scope",
+                unblock: "Would reconsider only if single-agent hits performance ceiling requiring specialization",
+                barrierType: "scope",
+                related: ["AutoGen Framework", "Agent Architecture", "Complexity Analysis"]
+            },
+            {
+                id: "fewshot", ring: 3, quadrant: "compute", angle: 90,
+                label: "Few", labelLong: "Shot",
+                status: "abandoned", taxonomy: "narrative",
+                title: "LLM Few-Shot Training Pipeline",
+                paper: "N/A",
+                issueUrl: "https://github.com/iAmGiG/gex-llm-patterns/issues/38",
+                issueNum: "#38",
+                description: "Full ML infrastructure: example library with quality scoring, context templates, prompt A/B testing framework, iterative learning with outcome feedback loops.",
+                barrier: "Production infrastructure, not research contribution. Simple prompts proved sufficient. Would require months of engineering",
+                unblock: "Post-PhD commercialization with dedicated ML engineering team",
+                barrierType: "compute",
+                related: ["Prompt Engineering", "Example Curation", "ML Pipeline"]
+            },
+            {
+                id: "forwardtest", ring: 3, quadrant: "scope", angle: 155,
+                label: "Live", labelLong: "Testing",
+                status: "abandoned", taxonomy: "narrative",
+                title: "Forward-Test Live Trading",
+                paper: "N/A",
+                issueUrl: "https://github.com/iAmGiG/gex-llm-patterns/issues/39",
+                issueNum: "#39",
+                description: "Real-time paper trading: live data feeds (<5s latency), continuous GEX calculation, position management, 30+ days forward validation.",
+                barrier: "Production trading system exceeds research scope. Historical backtesting + obfuscation testing proved sufficient for academic validation",
+                unblock: "Partnership with trading firm for live testing environment; post-PhD production development",
+                barrierType: "scope",
+                related: ["Paper Trading", "Real-Time Systems", "Production Infrastructure"]
+            },
+
+            // Ring 4 - Expensive Data
+            {
+                id: "shortput", ring: 4, quadrant: "data", angle: 45,
+                label: "Short", labelLong: "Put Arb",
+                status: "abandoned", taxonomy: "mechanical",
+                title: "Short Put Arbitrage Detection",
+                paper: "N/A",
+                description: "Identify anomalous short put positioning indicating dealer hedging pressure, volatility selling strategies, potential squeeze setups.",
+                barrier: "Requires fill-side TAQ data ($10K+/year) to determine trade initiator. Without buyer vs seller context, cannot infer positioning intent",
+                unblock: "Academic data partnership (e.g., WRDS subscription) or institutional sponsorship for TAQ access",
+                barrierType: "data",
+                related: ["TAQ Data", "Order Flow Analysis", "Fill-Side Inference"]
+            },
+            {
+                id: "0dte", ring: 4, quadrant: "methodology", angle: 115,
+                label: "0DTE", labelLong: "Gamma",
+                status: "blocked", taxonomy: "mechanical",
+                title: "0DTE Intraday Gamma Dynamics",
+                paper: "Paper 3",
+                issueUrl: "https://github.com/iAmGiG/gex-llm-patterns/issues/130",
+                issueNum: "#130",
+                description: "Time-dependent dealer hedging when same-day expiry gamma concentrated. 0DTE grew from ~5% to 40%+ of SPX volume (2020-2024).",
+                barrier: "Methodological conflict: adding time context ('T hours to close') breaks obfuscation testing that validates LLM reasoning",
+                unblock: "Develop relative-time obfuscation ('T hours until decay') that preserves mechanics without revealing market hours",
+                barrierType: "methodology",
+                related: ["Intraday Analysis", "Gamma Decay", "Obfuscation Methodology"]
+            },
+            {
+                id: "crossasset", ring: 4, quadrant: "data", angle: 185,
+                label: "Cross", labelLong: "Asset",
+                status: "deferred", taxonomy: "probabilistic",
+                title: "Cross-Asset Dealer Hedging Networks",
+                paper: "Paper 4+",
+                issueUrl: "https://github.com/iAmGiG/gex-llm-patterns/issues/132",
+                issueNum: "#132",
+                description: "Test methodology generalization: Treasury options (TLT), FX options (FXE/EUO), Commodities (GLD/USO). Different dealer mechanics per asset class.",
+                barrier: "Each asset class requires separate literature base (Fabozzi/Tuckman for fixed income), data vendors, potentially years of domain expertise",
+                unblock: "Complete Papers 1-3 for credibility; identify multi-asset data vendors; advisor approval for scope extension",
+                barrierType: "data",
+                related: ["Fixed Income", "FX Markets", "Methodology Generalization"]
+            },
+
+            // Ring 5 - Theoretical Barriers
+            {
+                id: "thirdorder", ring: 5, quadrant: "knowledge", angle: 50,
+                label: "3rd", labelLong: "Greeks",
+                status: "infeasible", taxonomy: "narrative",
+                title: "Third-Order Greeks (Speed, Zomma, Color)",
+                paper: "N/A",
+                description: "Higher-order sensitivities: Speed (DgammaDspot), Zomma (DgammaDvol), Color (DgammaDtime). Rate of gamma change analysis.",
+                barrier: "Signal-to-noise ratio makes third-order derivatives unmeasurable with daily data. Numerical differentiation errors compound. No practitioner usage",
+                unblock: "Would require tick-level data with sub-second precision AND academic literature establishing predictive value (currently absent)",
+                barrierType: "knowledge",
+                related: ["Higher-Order Greeks", "Numerical Stability", "Practitioner Relevance"]
+            },
+            {
+                id: "volgreeks", ring: 5, quadrant: "data", angle: 130,
+                label: "Vol", labelLong: "Greeks",
+                status: "infeasible", taxonomy: "narrative",
+                title: "Volatility Greeks (Vomma, Veta, Vanna)",
+                paper: "N/A",
+                description: "Second-order volatility sensitivities requiring full implied volatility surface modeling across all strikes and expirations.",
+                barrier: "Requires real-time IV surface data (OptionMetrics ~$15K/year). Regime-dependent behavior makes interpretation unstable. High LLM hallucination risk",
+                unblock: "Partnership with volatility surface provider; separate research focus on vol trading (different thesis entirely)",
+                barrierType: "data",
+                related: ["IV Surface Modeling", "OptionMetrics", "Volatility Trading"]
+            }
+        ];
+
+        // ===========================================
+        // CONFIGURATION
+        // ===========================================
+        const config = {
+            rings: [0, 55, 105, 155, 210, 265, 315],
+            ringNames: [
+                "Validated Core",
+                "Minor Extensions",
+                "Statistical Expertise",
+                "Infrastructure Required",
+                "Expensive/Rare Data",
+                "Theoretical Barriers"
+            ],
+            quadrants: {
+                data: { start: 0, end: 90, label: "DATA ACCESS", color: "#e74c3c" },
+                knowledge: { start: 90, end: 180, label: "DOMAIN KNOWLEDGE", color: "#9b59b6" },
+                scope: { start: 180, end: 270, label: "SCOPE / FOCUS", color: "#3498db" },
+                methodology: { start: 270, end: 360, label: "METHODOLOGY", color: "#f39c12" }
+            },
+            statusColors: {
+                implemented: { fill: "#2ecc71", stroke: "#27ae60" },
+                partial: { fill: "#f39c12", stroke: "#e67e22" },
+                deferred: { fill: "#3498db", stroke: "#2980b9" },
+                abandoned: { fill: "#9b59b6", stroke: "#8e44ad" },
+                infeasible: { fill: "#e74c3c", stroke: "#c0392b" },
+                superseded: { fill: "#1abc9c", stroke: "#16a085" },
+                blocked: { fill: "#e67e22", stroke: "#d35400" }
+            },
+            taxonomyColors: {
+                mechanical: { bg: "#2ecc71", text: "#000" },
+                probabilistic: { bg: "#f39c12", text: "#000" },
+                narrative: { bg: "#e74c3c", text: "#fff" }
+            }
+        };
+
+        // ===========================================
+        // STATE
+        // ===========================================
+        let activeFilter = "all";
+        let activeStatus = null;
+        let selectedNode = null;
+
+        // ===========================================
+        // SVG SETUP
+        // ===========================================
+        const svg = document.getElementById('complexity-map');
+        const tooltip = document.getElementById('tooltip');
+
+        const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+        defs.innerHTML = `
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" fill="#444"/>
+            </marker>
+        `;
+        svg.appendChild(defs);
+
+        // ===========================================
+        // DRAW FUNCTIONS
+        // ===========================================
+        function drawQuadrantBackgrounds() {
+            Object.entries(config.quadrants).forEach(([key, q]) => {
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                const startAngle = (q.start - 90) * Math.PI / 180;
+                const endAngle = (q.end - 90) * Math.PI / 180;
+                const outerR = config.rings[config.rings.length - 1];
+                const x1 = outerR * Math.cos(startAngle);
+                const y1 = outerR * Math.sin(startAngle);
+                const x2 = outerR * Math.cos(endAngle);
+                const y2 = outerR * Math.sin(endAngle);
+                path.setAttribute("d", `M 0 0 L ${x1} ${y1} A ${outerR} ${outerR} 0 0 1 ${x2} ${y2} Z`);
+                path.setAttribute("fill", q.color);
+                path.setAttribute("class", "quadrant-bg");
+                svg.appendChild(path);
+            });
+        }
+
+        function drawRings() {
+            config.rings.forEach((r, i) => {
+                if (r === 0) return;
+                const fillCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                fillCircle.setAttribute("cx", 0);
+                fillCircle.setAttribute("cy", 0);
+                fillCircle.setAttribute("r", r);
+                fillCircle.setAttribute("class", `ring-fill-${i-1}`);
+                fillCircle.setAttribute("stroke", "none");
+                svg.appendChild(fillCircle);
+
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", 0);
+                circle.setAttribute("cy", 0);
+                circle.setAttribute("r", r);
+                circle.setAttribute("class", `ring ring-${i-1}`);
+                svg.appendChild(circle);
+            });
+        }
+
+        function drawQuadrantLines() {
+            Object.values(config.quadrants).forEach(q => {
+                const angle = (q.start - 90) * Math.PI / 180;
+                const r = config.rings[config.rings.length - 1];
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", 0);
+                line.setAttribute("y1", 0);
+                line.setAttribute("x2", r * Math.cos(angle));
+                line.setAttribute("y2", r * Math.sin(angle));
+                line.setAttribute("class", "quadrant-line");
+                svg.appendChild(line);
+            });
+        }
+
+        function drawQuadrantLabels() {
+            Object.entries(config.quadrants).forEach(([key, q]) => {
+                const midAngle = ((q.start + q.end) / 2 - 90) * Math.PI / 180;
+                const r = config.rings[config.rings.length - 1] + 22;
+                const x = r * Math.cos(midAngle);
+                const y = r * Math.sin(midAngle);
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("x", x);
+                text.setAttribute("y", y);
+                text.setAttribute("class", "quadrant-label");
+                text.setAttribute("fill", q.color);
+                const rotation = (q.start + q.end) / 2;
+                if (rotation > 90 && rotation < 270) {
+                    text.setAttribute("transform", `rotate(${rotation + 180} ${x} ${y})`);
+                } else {
+                    text.setAttribute("transform", `rotate(${rotation} ${x} ${y})`);
+                }
+                text.textContent = q.label;
+                svg.appendChild(text);
+            });
+        }
+
+        function drawRingLabels() {
+            config.ringNames.forEach((name, i) => {
+                if (i === 0) return;
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("x", 5);
+                text.setAttribute("y", -config.rings[i] + 11);
+                text.setAttribute("class", "ring-label");
+                text.textContent = name;
+                svg.appendChild(text);
+            });
+        }
+
+        function drawCenter() {
+            const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            g.setAttribute("class", "center-pulse");
+            const bg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            bg.setAttribute("cx", 0);
+            bg.setAttribute("cy", 0);
+            bg.setAttribute("r", 45);
+            bg.setAttribute("fill", "rgba(46, 204, 113, 0.12)");
+            bg.setAttribute("stroke", "rgba(46, 204, 113, 0.4)");
+            bg.setAttribute("stroke-width", 2);
+            g.appendChild(bg);
+
+            const t1 = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            t1.setAttribute("x", 0);
+            t1.setAttribute("y", -8);
+            t1.setAttribute("class", "center-label");
+            t1.textContent = "VALIDATED";
+            g.appendChild(t1);
+
+            const t2 = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            t2.setAttribute("x", 0);
+            t2.setAttribute("y", 7);
+            t2.setAttribute("class", "center-sublabel");
+            t2.textContent = "71.5% / 91.2%";
+            g.appendChild(t2);
+
+            svg.appendChild(g);
+        }
+
+        function drawArrow() {
+            const arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            arrow.setAttribute("d", "M -325 0 L -55 0");
+            arrow.setAttribute("stroke", "#333");
+            arrow.setAttribute("stroke-width", 2);
+            arrow.setAttribute("fill", "none");
+            arrow.setAttribute("marker-end", "url(#arrowhead)");
+            svg.appendChild(arrow);
+
+            const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            label.setAttribute("x", -190);
+            label.setAttribute("y", -10);
+            label.setAttribute("font-size", "8px");
+            label.setAttribute("fill", "#444");
+            label.setAttribute("text-anchor", "middle");
+            label.textContent = "INCREASING DIFFICULTY";
+            svg.appendChild(label);
+        }
+
+        function getNodePosition(item) {
+            const q = config.quadrants[item.quadrant];
+            const angleRange = q.end - q.start;
+            const normalizedAngle = q.start + (item.angle / 180) * angleRange;
+            const rad = (normalizedAngle - 90) * Math.PI / 180;
+            const innerR = config.rings[item.ring];
+            const outerR = config.rings[item.ring + 1] || config.rings[item.ring] + 50;
+            const r = (innerR + outerR) / 2;
+            return { x: r * Math.cos(rad), y: r * Math.sin(rad) };
+        }
+
+        function drawNodes() {
+            researchPaths.forEach((item, index) => {
+                const pos = getNodePosition(item);
+                const colors = config.statusColors[item.status];
+                const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                const delayClass = `delay-${Math.min(item.ring, 5)}`;
+                g.setAttribute("class", `node ${delayClass}`);
+                g.setAttribute("data-id", item.id);
+                g.setAttribute("data-status", item.status);
+                g.setAttribute("data-barrier", item.barrierType);
+                g.setAttribute("data-title", item.title.toLowerCase());
+                g.setAttribute("data-related", item.related.join(',').toLowerCase());
+                g.setAttribute("transform", `translate(${pos.x}, ${pos.y})`);
+
+                const radius = item.ring === 0 ? 22 : 17;
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", 0);
+                circle.setAttribute("cy", 0);
+                circle.setAttribute("r", radius);
+                circle.setAttribute("fill", colors.fill);
+                circle.setAttribute("stroke", colors.stroke);
+                g.appendChild(circle);
+
+                if (item.labelLong) {
+                    const t1 = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                    t1.setAttribute("x", 0);
+                    t1.setAttribute("y", -2);
+                    t1.textContent = item.label;
+                    g.appendChild(t1);
+                    const t2 = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                    t2.setAttribute("x", 0);
+                    t2.setAttribute("y", 6);
+                    t2.setAttribute("class", "long-label");
+                    t2.textContent = item.labelLong;
+                    g.appendChild(t2);
+                } else {
+                    const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                    t.setAttribute("x", 0);
+                    t.setAttribute("y", 3);
+                    t.textContent = item.label;
+                    g.appendChild(t);
+                }
+
+                g.addEventListener('mouseenter', (e) => showTooltip(e, item));
+                g.addEventListener('mousemove', (e) => moveTooltip(e));
+                g.addEventListener('mouseleave', hideTooltip);
+                g.addEventListener('click', () => selectNode(item));
+                svg.appendChild(g);
+            });
+        }
+
+        // ===========================================
+        // INTERACTIONS
+        // ===========================================
+        function showTooltip(e, item) {
+            tooltip.querySelector('.tooltip-title').textContent = item.title;
+            tooltip.querySelector('.tooltip-status').textContent = item.status.toUpperCase();
+            tooltip.querySelector('.tooltip-status').style.color = config.statusColors[item.status].fill;
+            tooltip.querySelector('.tooltip-desc').textContent = item.description.substring(0, 100) + '...';
+            tooltip.classList.add('visible');
+            moveTooltip(e);
+        }
+
+        function moveTooltip(e) {
+            let x = e.clientX + 15, y = e.clientY - 10;
+            if (x + 260 > window.innerWidth) x = e.clientX - 270;
+            if (y + 100 > window.innerHeight) y = window.innerHeight - 110;
+            tooltip.style.left = `${x}px`;
+            tooltip.style.top = `${y}px`;
+        }
+
+        function hideTooltip() { tooltip.classList.remove('visible'); }
+
+        function selectNode(item) {
+            selectedNode = item;
+            showDetails(item);
+            showConnections(item);
+            document.querySelectorAll('.node').forEach(n => {
+                n.classList.remove('highlighted');
+                if (n.dataset.id === item.id) n.classList.add('highlighted');
+            });
+        }
+
+        function showDetails(item) {
+            document.querySelector('.details-empty').style.display = 'none';
+            document.getElementById('details-content').classList.add('visible');
+
+            document.getElementById('detail-title').textContent = item.title;
+
+            const taxonomyEl = document.getElementById('detail-taxonomy');
+            const taxColors = config.taxonomyColors[item.taxonomy];
+            taxonomyEl.textContent = item.taxonomy.toUpperCase();
+            taxonomyEl.style.background = taxColors.bg;
+            taxonomyEl.style.color = taxColors.text;
+
+            document.getElementById('detail-status').textContent = item.status.charAt(0).toUpperCase() + item.status.slice(1);
+            document.getElementById('detail-status').style.color = config.statusColors[item.status].fill;
+
+            document.getElementById('detail-ring').textContent = config.ringNames[item.ring];
+
+            const barrierLabel = item.barrierType === 'none' ? 'None' :
+                config.quadrants[item.barrierType]?.label || item.barrierType;
+            document.getElementById('detail-barrier-type').textContent = barrierLabel;
+
+            document.getElementById('detail-paper').textContent = item.paper;
+
+            // Show issue link if available
+            const issueContainer = document.getElementById('detail-issue-container');
+            const issueLink = document.getElementById('detail-issue-link');
+            if (item.issueUrl) {
+                issueContainer.style.display = 'block';
+                issueLink.href = item.issueUrl;
+                issueLink.textContent = `View Issue ${item.issueNum}`;
+            } else {
+                issueContainer.style.display = 'none';
+            }
+
+            document.getElementById('detail-desc').textContent = item.description;
+            document.getElementById('detail-barrier').textContent = item.barrier;
+
+            const unblockContainer = document.getElementById('detail-unblock-container');
+            if (item.unblock) {
+                unblockContainer.style.display = 'block';
+                document.getElementById('detail-unblock').textContent = item.unblock;
+            } else {
+                unblockContainer.style.display = 'none';
+            }
+
+            const relatedContainer = document.getElementById('detail-related');
+            relatedContainer.innerHTML = item.related.map(r =>
+                `<span class="related-tag" data-search="${r.toLowerCase()}">${r}</span>`
+            ).join('');
+
+            // Add click handlers for related tags
+            relatedContainer.querySelectorAll('.related-tag').forEach(tag => {
+                tag.addEventListener('click', () => {
+                    const searchVal = tag.dataset.search;
+                    searchInput.value = searchVal;
+                    searchTerm = searchVal;
+                    applyFilters();
+                });
+            });
+        }
+
+        // ===========================================
+        // FILTERS & SEARCH
+        // ===========================================
+        let searchTerm = '';
+        const searchInput = document.getElementById('search-input');
+        const resetBtn = document.getElementById('reset-btn');
+        const connectionLines = [];
+
+        function updateResetButton() {
+            const hasFilters = activeFilter !== 'all' || activeStatus !== null || searchTerm !== '';
+            resetBtn.classList.toggle('visible', hasFilters);
+        }
+
+        function applyFilters() {
+            document.querySelectorAll('.node').forEach(node => {
+                const barrier = node.dataset.barrier;
+                const status = node.dataset.status;
+                const title = node.dataset.title || '';
+                const related = node.dataset.related || '';
+                let visible = true;
+
+                if (activeFilter !== 'all' && barrier !== activeFilter && barrier !== 'none') visible = false;
+                if (activeStatus && status !== activeStatus) visible = false;
+                if (searchTerm && !title.includes(searchTerm) && !related.includes(searchTerm)) visible = false;
+
+                node.classList.toggle('dimmed', !visible);
+            });
+            updateResetButton();
+        }
+
+        function resetAllFilters() {
+            activeFilter = 'all';
+            activeStatus = null;
+            searchTerm = '';
+            searchInput.value = '';
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('.filter-btn[data-filter="all"]').classList.add('active');
+            document.querySelectorAll('.legend-item').forEach(i => i.classList.remove('active'));
+            applyFilters();
+            clearConnections();
+        }
+
+        searchInput.addEventListener('input', (e) => {
+            searchTerm = e.target.value.toLowerCase();
+            applyFilters();
+        });
+
+        resetBtn.addEventListener('click', resetAllFilters);
+
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeFilter = btn.dataset.filter;
+                applyFilters();
+            });
+        });
+
+        document.querySelectorAll('.legend-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const status = item.dataset.status;
+                if (activeStatus === status) {
+                    activeStatus = null;
+                    item.classList.remove('active');
+                } else {
+                    document.querySelectorAll('.legend-item').forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                    activeStatus = status;
+                }
+                applyFilters();
+            });
+        });
+
+        // ===========================================
+        // CONNECTION LINES
+        // ===========================================
+        function clearConnections() {
+            connectionLines.forEach(line => line.remove());
+            connectionLines.length = 0;
+            document.querySelectorAll('.node').forEach(n => n.classList.remove('related-glow'));
+        }
+
+        function showConnections(item) {
+            clearConnections();
+            const sourcePos = getNodePosition(item);
+
+            // Find nodes with shared related concepts
+            researchPaths.forEach(other => {
+                if (other.id === item.id) return;
+                const sharedConcepts = item.related.filter(r =>
+                    other.related.some(o => o.toLowerCase().includes(r.toLowerCase().split(' ')[0]) ||
+                                          r.toLowerCase().includes(o.toLowerCase().split(' ')[0]))
+                );
+
+                if (sharedConcepts.length > 0) {
+                    const targetPos = getNodePosition(other);
+                    const line = document.createElementNS("http://www.w3.org/2000/svg", "path");
+
+                    // Curved path
+                    const midX = (sourcePos.x + targetPos.x) / 2;
+                    const midY = (sourcePos.y + targetPos.y) / 2;
+                    const dist = Math.sqrt(Math.pow(targetPos.x - sourcePos.x, 2) + Math.pow(targetPos.y - sourcePos.y, 2));
+                    const curve = dist * 0.2;
+                    const perpX = -(targetPos.y - sourcePos.y) / dist * curve;
+                    const perpY = (targetPos.x - sourcePos.x) / dist * curve;
+
+                    line.setAttribute("d", `M ${sourcePos.x} ${sourcePos.y} Q ${midX + perpX} ${midY + perpY} ${targetPos.x} ${targetPos.y}`);
+                    line.setAttribute("class", "connection-line visible");
+                    svg.insertBefore(line, svg.querySelector('.node'));
+                    connectionLines.push(line);
+
+                    // Add glow to related node
+                    const relatedNode = document.querySelector(`.node[data-id="${other.id}"]`);
+                    if (relatedNode) relatedNode.classList.add('related-glow');
+                }
+            });
+        }
+
+        // ===========================================
+        // KEYBOARD NAVIGATION
+        // ===========================================
+        let nodeList = [];
+
+        function setupKeyboardNav() {
+            nodeList = researchPaths.map(p => p);
+            document.addEventListener('keydown', (e) => {
+                if (e.target.tagName === 'INPUT') return;
+
+                if (e.key === 'Escape') {
+                    clearSelection();
+                    return;
+                }
+
+                if (!selectedNode) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        selectNode(nodeList[0]);
+                    }
+                    return;
+                }
+
+                const currentIndex = nodeList.findIndex(n => n.id === selectedNode.id);
+                let newIndex = currentIndex;
+
+                if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                    newIndex = (currentIndex + 1) % nodeList.length;
+                } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                    newIndex = (currentIndex - 1 + nodeList.length) % nodeList.length;
+                }
+
+                if (newIndex !== currentIndex) {
+                    e.preventDefault();
+                    selectNode(nodeList[newIndex]);
+                }
+            });
+        }
+
+        function clearSelection() {
+            selectedNode = null;
+            document.querySelectorAll('.node').forEach(n => n.classList.remove('highlighted'));
+            clearConnections();
+            document.querySelector('.details-empty').style.display = 'block';
+            document.getElementById('details-content').classList.remove('visible');
+        }
+
+        // Clear selection when clicking on SVG background
+        svg.addEventListener('click', (e) => {
+            if (e.target === svg || e.target.classList.contains('ring') ||
+                e.target.classList.contains('quadrant-bg') || e.target.classList.contains('ring-fill')) {
+                clearSelection();
+            }
+        });
+
+        // ===========================================
+        // INIT
+        // ===========================================
+        function updateCounts() {
+            const counts = {};
+            researchPaths.forEach(p => counts[p.status] = (counts[p.status] || 0) + 1);
+            Object.keys(counts).forEach(status => {
+                const el = document.getElementById(`count-${status}`);
+                if (el) el.textContent = counts[status];
+            });
+        }
+
+        function init() {
+            drawQuadrantBackgrounds();
+            drawRings();
+            drawQuadrantLines();
+            drawCenter();
+            drawRingLabels();
+            drawQuadrantLabels();
+            drawArrow();
+            drawNodes();
+            updateCounts();
+            setupKeyboardNav();
+        }
+
+        init();
+    </script>
+</body>
+</html>

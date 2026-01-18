@@ -1,4 +1,5 @@
 @page "/arcade"
+@using GexVisor.UI.Components.Research
 
 <PageTitle>Research Arcade - GexVisor</PageTitle>
 
@@ -32,6 +33,10 @@
         </div>
     </section>
 
+    <section class="validation-section">
+        <PatternValidationTracker />
+    </section>
+
     <div class="arcade-grid">
         <a href="/gex" class="arcade-card featured">
             <div class="card-icon gamma">@GammaSymbol</div>
@@ -46,7 +51,7 @@
             </div>
         </a>
 
-        <a href="docs/research-visuals/research_complexity_map.html" target="_blank" class="arcade-card">
+        <a href="research-visuals/research_complexity_map.html" target="_blank" class="arcade-card">
             <div class="card-icon map">
                 <i class="fas fa-project-diagram"></i>
             </div>
@@ -61,7 +66,7 @@
             </div>
         </a>
 
-        <a href="docs/research-visuals/paper2.html" target="_blank" class="arcade-card">
+        <a href="research-visuals/paper2.html" target="_blank" class="arcade-card">
             <div class="card-icon paper2">
                 <i class="fas fa-balance-scale"></i>
             </div>
@@ -76,7 +81,7 @@
             </div>
         </a>
 
-        <a href="docs/research-visuals/RESEARCH_ROADMAP.md" target="_blank" class="arcade-card">
+        <a href="research-visuals/RESEARCH_ROADMAP.md" target="_blank" class="arcade-card">
             <div class="card-icon roadmap">
                 <i class="fas fa-route"></i>
             </div>
@@ -87,6 +92,36 @@
                     <span class="tag">Strategy</span>
                     <span class="tag">Phase 3-4</span>
                     <span class="tag">ABM</span>
+                </div>
+            </div>
+        </a>
+
+        <a href="research-visuals/data_mining_pattern_discovery.html" target="_blank" class="arcade-card">
+            <div class="card-icon mining">
+                <i class="fas fa-search"></i>
+            </div>
+            <div class="card-content">
+                <h2>Pattern Discovery Pipeline</h2>
+                <p>Data mining KDD process visualization: from raw data to actionable patterns through selection, preprocessing, transformation, and interpretation.</p>
+                <div class="card-tags">
+                    <span class="tag">KDD</span>
+                    <span class="tag">Data Mining</span>
+                    <span class="tag">Educational</span>
+                </div>
+            </div>
+        </a>
+
+        <a href="research-visuals/data_pipeline_state_diagram.html" target="_blank" class="arcade-card">
+            <div class="card-icon pipeline">
+                <i class="fas fa-stream"></i>
+            </div>
+            <div class="card-content">
+                <h2>Data Pipeline States</h2>
+                <p>Interactive state diagram showing data flow from raw sources through storage, processing, and output stages with transition conditions.</p>
+                <div class="card-tags">
+                    <span class="tag">State Machine</span>
+                    <span class="tag">Pipeline</span>
+                    <span class="tag">Architecture</span>
                 </div>
             </div>
         </a>

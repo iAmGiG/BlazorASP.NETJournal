@@ -1,0 +1,130 @@
+@namespace GexVisor.UI.Components.Research
+@using GexVisor.UI.Models
+@using GexVisor.UI.Services
+@inject AnnotationService AnnotationService
+@implements IDisposable
+
+<div class="validation-tracker">
+    <div class="tracker-header">
+        <h3>Pattern Validation Progress</h3>
+        <div class="header-stats">
+            <span class="stat-badge validated">@Summary.ValidatedPatterns Validated</span>
+            <span class="stat-badge partial">@Summary.PartialPatterns In Progress</span>
+            <span class="stat-badge unvalidated">@Summary.UnvalidatedPatterns Unvalidated</span>
+        </div>
+    </div>
+
+    <div class="summary-row">
+        <div class="summary-stat">
+            <span class="stat-value">@Summary.TotalAnnotations</span>
+            <span class="stat-label">Total Annotations</span>
+        </div>
+        <div class="summary-stat">
+            <span class="stat-value">@Summary.CompletedCount</span>
+            <span class="stat-label">Completed</span>
+        </div>
+        <div class="summary-stat">
+            <span class="stat-value @(Summary.OverallWinRate >= 60 ? "positive" : Summary.OverallWinRate < 60 ? "negative" : "")">
+                @(Summary.OverallWinRate?.ToString("F1") ?? "—")%
+            </span>
+            <span class="stat-label">Overall Win Rate</span>
+        </div>
+        <div class="summary-stat">
+            <span class="stat-value">@Summary.PendingCount</span>
+            <span class="stat-label">Pending Review</span>
+        </div>
+    </div>
+
+    <div class="pattern-grid">
+        @foreach (var stat in ValidationStats)
+        {
+            <div class="pattern-card @stat.Status.ToCssClass()">
+                <div class="card-header">
+                    <span class="pattern-name">@stat.PatternLabel</span>
+                    <span class="status-badge @stat.Status.ToCssClass()">@stat.Status.ToLabel()</span>
+                </div>
+
+                <div class="card-metrics">
+                    <div class="metric-row">
+                        <span class="metric-label">Win Rate</span>
+                        <span class="metric-value @(stat.WinRate >= 60 ? "positive" : stat.WinRate < 60 && stat.WinRate != null ? "caution" : "")">
+                            @(stat.WinRate?.ToString("F1") ?? "—")%
+                        </span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Completed</span>
+                        <span class="metric-value">@stat.CompletedCount / 30</span>
+                    </div>
+                </div>
+
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: @stat.SampleProgress%"></div>
+                </div>
+                <div class="progress-label">
+                    @if (stat.SamplesNeeded > 0)
+                    {
+                        <span>@stat.SamplesNeeded more needed for validation</span>
+                    }
+                    else
+                    {
+                        <span>Sample size sufficient (n=@stat.CompletedCount)</span>
+                    }
+                </div>
+
+                <div class="card-breakdown">
+                    <div class="breakdown-row">
+                        <span class="outcome confirmed">✓ @stat.ConfirmedCount</span>
+                        <span class="outcome invalidated">✗ @stat.InvalidatedCount</span>
+                        <span class="outcome pending">◷ @stat.PendingCount</span>
+                    </div>
+                </div>
+
+                @if (stat.TaxonomyBreakdown.Any())
+                {
+                    <div class="taxonomy-breakdown">
+                        @foreach (var (taxonomy, count) in stat.TaxonomyBreakdown)
+                        {
+                            <span class="taxonomy-tag @taxonomy.ToLower()">@taxonomy: @count</span>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="tracker-footer">
+        <div class="methodology-note">
+            <i class="fas fa-info-circle"></i>
+            <span>Validation requires n≥30 completed annotations with ≥60% win rate (per gex-llm-patterns methodology)</span>
+        </div>
+    </div>
+</div>
+
+@code {
+    private IReadOnlyList<PatternValidationStats> ValidationStats { get; set; } = [];
+    private ValidationSummary Summary { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AnnotationService.LoadAsync();
+        RefreshStats();
+        AnnotationService.OnAnnotationsChanged += OnAnnotationsChanged;
+    }
+
+    private void OnAnnotationsChanged()
+    {
+        RefreshStats();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void RefreshStats()
+    {
+        ValidationStats = AnnotationService.GetValidationStats();
+        Summary = AnnotationService.GetValidationSummary();
+    }
+
+    public void Dispose()
+    {
+        AnnotationService.OnAnnotationsChanged -= OnAnnotationsChanged;
+    }
+}

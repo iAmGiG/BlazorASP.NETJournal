@@ -1,0 +1,326 @@
+.validation-tracker {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.tracker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.tracker-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.header-stats {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.stat-badge {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.stat-badge.validated {
+    background: rgba(38, 166, 154, 0.15);
+    color: var(--accent-green);
+    border: 1px solid var(--accent-green);
+}
+
+.stat-badge.partial {
+    background: rgba(255, 193, 7, 0.15);
+    color: var(--accent-yellow);
+    border: 1px solid var(--accent-yellow);
+}
+
+.stat-badge.unvalidated {
+    background: rgba(156, 163, 175, 0.15);
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+}
+
+/* Summary Row */
+.summary-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: var(--bg-card);
+    border-radius: 8px;
+}
+
+.summary-stat {
+    text-align: center;
+}
+
+.summary-stat .stat-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-primary);
+}
+
+.summary-stat .stat-value.positive {
+    color: var(--accent-green);
+}
+
+.summary-stat .stat-value.negative {
+    color: var(--accent-red);
+}
+
+.summary-stat .stat-label {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-top: 0.25rem;
+}
+
+/* Pattern Grid */
+.pattern-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.pattern-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+}
+
+.pattern-card:hover {
+    border-color: var(--accent-cyan);
+}
+
+.pattern-card.status-validated {
+    border-left: 3px solid var(--accent-green);
+}
+
+.pattern-card.status-partial {
+    border-left: 3px solid var(--accent-yellow);
+}
+
+.pattern-card.status-unvalidated {
+    border-left: 3px solid var(--border-color);
+}
+
+.pattern-card.status-failed {
+    border-left: 3px solid var(--accent-red);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.pattern-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.status-badge {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.65rem;
+    font-weight: 600;
+    border-radius: 3px;
+    text-transform: uppercase;
+}
+
+.status-badge.status-validated {
+    background: var(--accent-green);
+    color: var(--bg-dark);
+}
+
+.status-badge.status-partial {
+    background: var(--accent-yellow);
+    color: var(--bg-dark);
+}
+
+.status-badge.status-unvalidated {
+    background: var(--border-color);
+    color: var(--text-muted);
+}
+
+.status-badge.status-failed {
+    background: var(--accent-red);
+    color: var(--bg-dark);
+}
+
+/* Card Metrics */
+.card-metrics {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.metric-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.metric-label {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.metric-value {
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-primary);
+}
+
+.metric-value.positive {
+    color: var(--accent-green);
+}
+
+.metric-value.caution {
+    color: var(--accent-yellow);
+}
+
+/* Progress Bar */
+.progress-bar {
+    height: 6px;
+    background: var(--bg-dark);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--accent-cyan);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.progress-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+}
+
+/* Card Breakdown */
+.card-breakdown {
+    border-top: 1px solid var(--border-color);
+    padding-top: 0.75rem;
+}
+
+.breakdown-row {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.outcome {
+    font-size: 0.75rem;
+    font-weight: 500;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.outcome.confirmed {
+    color: var(--accent-green);
+}
+
+.outcome.invalidated {
+    color: var(--accent-red);
+}
+
+.outcome.pending {
+    color: var(--text-muted);
+}
+
+/* Taxonomy Breakdown */
+.taxonomy-breakdown {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.taxonomy-tag {
+    padding: 0.15rem 0.4rem;
+    font-size: 0.6rem;
+    font-weight: 600;
+    border-radius: 3px;
+    text-transform: uppercase;
+}
+
+.taxonomy-tag.mech {
+    background: rgba(38, 166, 154, 0.15);
+    color: var(--accent-green);
+}
+
+.taxonomy-tag.prob {
+    background: rgba(255, 193, 7, 0.15);
+    color: var(--accent-yellow);
+}
+
+.taxonomy-tag.narr {
+    background: rgba(156, 163, 175, 0.15);
+    color: var(--text-muted);
+}
+
+/* Footer */
+.tracker-footer {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.methodology-note {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.methodology-note i {
+    color: var(--accent-cyan);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .tracker-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .header-stats {
+        flex-wrap: wrap;
+    }
+
+    .summary-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .pattern-grid {
+        grid-template-columns: 1fr;
+    }
+}

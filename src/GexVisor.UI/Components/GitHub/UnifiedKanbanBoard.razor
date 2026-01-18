@@ -1,0 +1,351 @@
+@using GexVisor.UI.Models
+@using GexVisor.UI.Services
+@inject GitHubProjectService ProjectService
+@inject GitHubAuthService AuthService
+@inject BoardStateService BoardState
+@inject StatusMapper StatusMapper
+@inject IJSRuntime JS
+@implements IDisposable
+
+<div class="unified-kanban-board">
+    @if (!AuthService.IsAuthenticated)
+    {
+        <div class="board-message">
+            <i class="fab fa-github"></i>
+            <p>Connect to GitHub to view the unified board</p>
+        </div>
+    }
+    else if (ProjectService.SelectedProject == null)
+    {
+        <div class="board-message">
+            <i class="fas fa-project-diagram"></i>
+            <p>Select a GitHub project to view unified status</p>
+        </div>
+    }
+    else
+    {
+        <div class="board-header">
+            <div class="board-info">
+                <h3><i class="fas fa-layer-group"></i> Unified View</h3>
+                <span class="item-count">@_totalItems items</span>
+                @if (_unmappedStatuses.Count > 0)
+                {
+                    <button class="btn-mappings @(_showMappingPanel ? "active" : "")" @onclick="ToggleMappingPanel">
+                        <i class="fas fa-cog"></i> @_unmappedStatuses.Count unmapped
+                    </button>
+                }
+            </div>
+            <div class="board-actions">
+                <button class="btn-refresh" @onclick="RefreshBoard" disabled="@BoardState.IsLoading">
+                    @if (BoardState.IsLoading)
+                    {
+                        <span class="spinner-small"></span>
+                    }
+                    else
+                    {
+                        <i class="fas fa-sync-alt"></i>
+                    }
+                    Refresh
+                </button>
+            </div>
+        </div>
+
+        @if (_showMappingPanel && _unmappedStatuses.Count > 0)
+        {
+            <div class="mapping-panel">
+                <div class="mapping-header">
+                    <h4>Status Mapping</h4>
+                    <span class="mapping-help">Choose which column these statuses should map to</span>
+                </div>
+                <div class="mapping-list">
+                    @foreach (var status in _unmappedStatuses)
+                    {
+                        var mapping = StatusMapper.MapStatusWithConfidence(ProjectService.SelectedProject?.Id, status);
+                        <div class="mapping-row">
+                            <span class="raw-status">@status</span>
+                            <span class="mapping-arrow"><i class="fas fa-arrow-right"></i></span>
+                            <div class="mapping-options">
+                                @foreach (var normalized in StatusMapper.NormalizedStatus.All)
+                                {
+                                    <button class="mapping-btn @(mapping.NormalizedStatus == normalized ? "active" : "") @normalized.ToLower().Replace(" ", "-")"
+                                            @onclick="@(() => SetMapping(status, normalized))">
+                                        @normalized
+                                    </button>
+                                }
+                            </div>
+                            @if (mapping.IsCustom)
+                            {
+                                <button class="btn-reset-mapping" @onclick="@(() => ResetMapping(status))" title="Reset to inferred">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(BoardState.LastError))
+        {
+            <div class="board-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>@BoardState.LastError</span>
+                <button @onclick="RefreshBoard">Retry</button>
+            </div>
+        }
+
+        @if (BoardState.IsLoading && _items.Count == 0)
+        {
+            <div class="board-loading">
+                <div class="spinner"></div>
+                <p>Loading unified board...</p>
+            </div>
+        }
+        else
+        {
+            <div class="kanban-columns unified">
+                @foreach (var columnName in StatusMapper.NormalizedStatus.All)
+                {
+                    var columnItems = _normalizedData.GetValueOrDefault(columnName, new List<UnifiedItem>());
+                    <div class="kanban-column @columnName.ToLower().Replace(" ", "-")">
+                        <div class="column-header">
+                            <span class="column-title">@columnName</span>
+                            <span class="column-count">@columnItems.Count</span>
+                        </div>
+                        <div class="column-content">
+                            @foreach (var item in columnItems)
+                            {
+                                <div class="unified-card @GetStateClass(item.Item.State) @(item.IsInferred ? "inferred" : "")"
+                                     @onclick="@(() => OpenItem(item.Item))">
+                                    <div class="card-header">
+                                        <span class="state-indicator" title="@item.Item.State"></span>
+                                        <span class="card-title">@item.Item.Title</span>
+                                    </div>
+                                    <div class="card-meta">
+                                        @if (!string.IsNullOrEmpty(item.Item.Status))
+                                        {
+                                            <span class="original-status" title="Original status: @item.Item.Status">
+                                                @item.Item.Status
+                                            </span>
+                                        }
+                                        @if (!item.IsExactMatch && !item.IsCustom)
+                                        {
+                                            <span class="confidence-badge" title="Status was inferred">
+                                                <i class="fas fa-question-circle"></i>
+                                            </span>
+                                        }
+                                        @if (item.IsCustom)
+                                        {
+                                            <span class="custom-badge" title="Custom mapping applied">
+                                                <i class="fas fa-user-cog"></i>
+                                            </span>
+                                        }
+                                    </div>
+                                    @if (item.Item.Labels.Count > 0)
+                                    {
+                                        <div class="card-labels">
+                                            @foreach (var label in item.Item.Labels.Take(3))
+                                            {
+                                                <span class="label">@label</span>
+                                            }
+                                            @if (item.Item.Labels.Count > 3)
+                                            {
+                                                <span class="label more">+@(item.Item.Labels.Count - 3)</span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            @if (columnItems.Count == 0)
+                            {
+                                <div class="empty-column">
+                                    <i class="fas fa-inbox"></i>
+                                    <span>No items</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private List<GitHubProjectItem> _items = new();
+    private Dictionary<string, List<UnifiedItem>> _normalizedData = new();
+    private HashSet<string> _unmappedStatuses = new();
+    private int _totalItems;
+    private bool _showMappingPanel;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthService.OnAuthStateChanged += OnAuthChanged;
+        ProjectService.OnProjectsChanged += OnProjectChanged;
+        BoardState.OnBoardStateChanged += OnBoardStateChanged;
+
+        await StatusMapper.LoadAsync();
+
+        if (AuthService.IsAuthenticated && ProjectService.SelectedProject != null)
+        {
+            await LoadBoard();
+        }
+    }
+
+    private async void OnAuthChanged()
+    {
+        try
+        {
+            await InvokeAsync(async () =>
+            {
+                if (AuthService.IsAuthenticated && ProjectService.SelectedProject != null)
+                {
+                    await LoadBoard();
+                }
+                StateHasChanged();
+            });
+        }
+        catch
+        {
+            // Event handler exceptions are logged by InvokeAsync
+        }
+    }
+
+    private async void OnProjectChanged()
+    {
+        try
+        {
+            await InvokeAsync(async () =>
+            {
+                if (ProjectService.SelectedProject != null)
+                {
+                    await LoadBoard();
+                }
+                else
+                {
+                    _items.Clear();
+                    _normalizedData.Clear();
+                    _unmappedStatuses.Clear();
+                    _totalItems = 0;
+                }
+                StateHasChanged();
+            });
+        }
+        catch
+        {
+            // Event handler exceptions are logged by InvokeAsync
+        }
+    }
+
+    private void OnBoardStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadBoard()
+    {
+        _items = await BoardState.GetItemsAsync();
+        NormalizeItems();
+    }
+
+    private async Task RefreshBoard()
+    {
+        _items = await BoardState.RefreshItemsAsync();
+        NormalizeItems();
+    }
+
+    private void NormalizeItems()
+    {
+        var projectId = ProjectService.SelectedProject?.Id;
+        _normalizedData = new Dictionary<string, List<UnifiedItem>>();
+        _unmappedStatuses = new HashSet<string>();
+
+        foreach (var normalized in StatusMapper.NormalizedStatus.All)
+        {
+            _normalizedData[normalized] = new List<UnifiedItem>();
+        }
+
+        foreach (var item in _items)
+        {
+            var (normalizedStatus, isExact, isCustom) = StatusMapper.MapStatusWithConfidence(projectId, item.Status);
+
+            var unifiedItem = new UnifiedItem
+            {
+                Item = item,
+                NormalizedStatus = normalizedStatus,
+                IsExactMatch = isExact,
+                IsCustom = isCustom,
+                IsInferred = !isExact && !isCustom
+            };
+
+            _normalizedData[normalizedStatus].Add(unifiedItem);
+
+            // Track statuses that aren't exact matches for mapping UI
+            if (!isExact && !isCustom && !string.IsNullOrWhiteSpace(item.Status))
+            {
+                _unmappedStatuses.Add(item.Status);
+            }
+        }
+
+        _totalItems = _items.Count;
+    }
+
+    private void ToggleMappingPanel()
+    {
+        _showMappingPanel = !_showMappingPanel;
+    }
+
+    private async Task SetMapping(string rawStatus, string normalizedStatus)
+    {
+        var projectId = ProjectService.SelectedProject?.Id;
+        if (string.IsNullOrEmpty(projectId)) return;
+
+        await StatusMapper.SetCustomMappingAsync(projectId, rawStatus, normalizedStatus);
+        NormalizeItems();
+        StateHasChanged();
+    }
+
+    private async Task ResetMapping(string rawStatus)
+    {
+        var projectId = ProjectService.SelectedProject?.Id;
+        if (string.IsNullOrEmpty(projectId)) return;
+
+        await StatusMapper.RemoveCustomMappingAsync(projectId, rawStatus);
+        NormalizeItems();
+        StateHasChanged();
+    }
+
+    private async Task OpenItem(GitHubProjectItem item)
+    {
+        if (!string.IsNullOrEmpty(item.Url))
+        {
+            await JS.InvokeVoidAsync("open", item.Url, "_blank");
+        }
+    }
+
+    private string GetStateClass(string? state)
+    {
+        return state?.ToUpper() switch
+        {
+            "OPEN" => "state-open",
+            "CLOSED" => "state-closed",
+            _ => ""
+        };
+    }
+
+    public void Dispose()
+    {
+        AuthService.OnAuthStateChanged -= OnAuthChanged;
+        ProjectService.OnProjectsChanged -= OnProjectChanged;
+        BoardState.OnBoardStateChanged -= OnBoardStateChanged;
+    }
+
+    private class UnifiedItem
+    {
+        public GitHubProjectItem Item { get; set; } = new();
+        public string NormalizedStatus { get; set; } = "";
+        public bool IsExactMatch { get; set; }
+        public bool IsCustom { get; set; }
+        public bool IsInferred { get; set; }
+    }
+}
