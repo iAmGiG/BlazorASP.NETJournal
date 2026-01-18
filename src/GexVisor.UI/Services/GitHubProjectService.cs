@@ -49,7 +49,8 @@ public class GitHubProjectService
     /// </summary>
     public async Task<List<GitHubProject>> FetchProjectsAsync()
     {
-        if (!_auth.IsAuthenticated) return new();
+        if (!_auth.IsAuthenticated)
+            return new();
 
         var query = """
             query {
@@ -147,7 +148,8 @@ public class GitHubProjectService
     /// </summary>
     public async Task<List<GitHubProjectItem>> FetchProjectItemsAsync()
     {
-        if (!_auth.IsAuthenticated || _selectedProject == null) return new();
+        if (!_auth.IsAuthenticated || _selectedProject == null)
+            return new();
 
         var query = """
             query($projectId: ID!) {
@@ -198,7 +200,8 @@ public class GitHubProjectService
         var variables = new { projectId = _selectedProject.Id };
         var response = await ExecuteGraphQLAsync<ProjectItemsResponse>(query, variables);
 
-        if (response?.Data?.Node?.Items?.Nodes == null) return new();
+        if (response?.Data?.Node?.Items?.Nodes == null)
+            return new();
 
         return response.Data.Node.Items.Nodes
             .Where(n => n.Content != null)
@@ -236,7 +239,8 @@ public class GitHubProjectService
             );
 
             var response = await _http.SendAsync(request);
-            if (!response.IsSuccessStatusCode) return null;
+            if (!response.IsSuccessStatusCode)
+                return null;
 
             return await response.Content.ReadFromJsonAsync<T>();
         }

@@ -19,7 +19,8 @@ public class ResearchTaskService : BaseEntryService<ResearchTask>
     /// </summary>
     public override IEnumerable<ResearchTask> Search(string query)
     {
-        if (string.IsNullOrWhiteSpace(query)) return Entries;
+        if (string.IsNullOrWhiteSpace(query))
+            return Entries;
 
         return Entries.Where(t =>
             t.Title.Contains(query, StringComparison.OrdinalIgnoreCase) ||
@@ -56,7 +57,8 @@ public class ResearchTaskService : BaseEntryService<ResearchTask>
     public async Task MoveToStatusAsync(Guid id, string newStatus)
     {
         var task = GetById(id);
-        if (task == null) return;
+        if (task == null)
+            return;
 
         var nextPosition = GetNextPosition(newStatus);
         var updated = task with
@@ -94,7 +96,8 @@ public class ResearchTaskService : BaseEntryService<ResearchTask>
     public async Task ArchiveAsync(Guid id)
     {
         var task = GetById(id);
-        if (task == null) return;
+        if (task == null)
+            return;
 
         var updated = task with { IsArchived = true, UpdatedAt = DateTime.UtcNow };
         await UpdateAsync(updated);
@@ -106,7 +109,8 @@ public class ResearchTaskService : BaseEntryService<ResearchTask>
     public async Task UnarchiveAsync(Guid id)
     {
         var task = GetById(id);
-        if (task == null) return;
+        if (task == null)
+            return;
 
         var updated = task with { IsArchived = false, UpdatedAt = DateTime.UtcNow };
         await UpdateAsync(updated);
@@ -169,7 +173,8 @@ public class ResearchTaskService : BaseEntryService<ResearchTask>
     public async Task SetPriorityAsync(Guid id, string priority)
     {
         var task = GetById(id);
-        if (task == null) return;
+        if (task == null)
+            return;
 
         var updated = task with { Priority = priority, UpdatedAt = DateTime.UtcNow };
         await UpdateAsync(updated);

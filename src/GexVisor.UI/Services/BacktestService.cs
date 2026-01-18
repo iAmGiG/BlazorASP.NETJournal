@@ -19,7 +19,8 @@ public class BacktestService : BaseEntryService<BacktestResult>
     /// </summary>
     public override IEnumerable<BacktestResult> Search(string query)
     {
-        if (string.IsNullOrWhiteSpace(query)) return Entries;
+        if (string.IsNullOrWhiteSpace(query))
+            return Entries;
 
         return Entries.Where(r =>
             r.StrategyName.Contains(query, StringComparison.OrdinalIgnoreCase) ||
@@ -62,7 +63,8 @@ public class BacktestService : BaseEntryService<BacktestResult>
     public async Task ToggleSelectionAsync(Guid id)
     {
         var result = GetById(id);
-        if (result == null) return;
+        if (result == null)
+            return;
 
         var updated = result with { IsSelected = !result.IsSelected };
         await UpdateAsync(updated);
@@ -86,7 +88,8 @@ public class BacktestService : BaseEntryService<BacktestResult>
         {
             var updated = result with { IsSelected = false };
             var index = Entries.FindIndex(e => e.Id == result.Id);
-            if (index >= 0) Entries[index] = updated;
+            if (index >= 0)
+                Entries[index] = updated;
         }
         await SaveAsync();
     }

@@ -19,7 +19,8 @@ public class PaperTradeService : BaseEntryService<PaperTrade>
     /// </summary>
     public override IEnumerable<PaperTrade> Search(string query)
     {
-        if (string.IsNullOrWhiteSpace(query)) return Entries;
+        if (string.IsNullOrWhiteSpace(query))
+            return Entries;
 
         var lower = query.ToLowerInvariant();
         return Entries.Where(t =>
@@ -45,7 +46,8 @@ public class PaperTradeService : BaseEntryService<PaperTrade>
     public async Task CloseTradeAsync(Guid id, decimal exitPrice, string exitReason)
     {
         var trade = GetById(id);
-        if (trade == null || !trade.IsOpen) return;
+        if (trade == null || !trade.IsOpen)
+            return;
 
         var closedTrade = trade with
         {

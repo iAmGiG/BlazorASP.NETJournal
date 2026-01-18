@@ -340,7 +340,8 @@ public class GexStateService : IDisposable
 
     private void UpdateTimerInterval()
     {
-        if (_simulationTimer == null) return;
+        if (_simulationTimer == null)
+            return;
 
         // Base interval of 1000ms at 1x speed
         // Speed 1 = 0.5x (2000ms), Speed 2 = 1x (1000ms), Speed 4 = 2x (500ms)
@@ -350,7 +351,8 @@ public class GexStateService : IDisposable
 
     private void OnSimulationTick(object? sender, ElapsedEventArgs e)
     {
-        if (!_state.IsSimulating) return;
+        if (!_state.IsSimulating)
+            return;
 
         if (_state.CurrentIndex < _timeline.Count - 1)
         {

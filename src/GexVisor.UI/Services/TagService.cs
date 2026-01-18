@@ -68,7 +68,8 @@ public class TagService
     public async Task AddCustomTagAsync(string tag)
     {
         var normalized = NormalizeTag(tag);
-        if (string.IsNullOrEmpty(normalized)) return;
+        if (string.IsNullOrEmpty(normalized))
+            return;
 
         if (_customTags.Add(normalized))
         {

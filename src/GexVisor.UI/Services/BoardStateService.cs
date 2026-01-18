@@ -34,7 +34,8 @@ public class BoardStateService
     public async Task<List<GitHubProjectItem>> GetItemsAsync(bool forceRefresh = false)
     {
         var project = _projectService.SelectedProject;
-        if (project == null) return new();
+        if (project == null)
+            return new();
 
         var projectId = project.Id;
 
@@ -58,7 +59,8 @@ public class BoardStateService
     public async Task<List<GitHubProjectItem>> RefreshItemsAsync()
     {
         var project = _projectService.SelectedProject;
-        if (project == null) return new();
+        if (project == null)
+            return new();
 
         _isLoading = true;
         _lastError = null;
@@ -92,7 +94,8 @@ public class BoardStateService
     public Dictionary<string, List<GitHubProjectItem>> GetItemsByStatus(List<GitHubProjectItem> items)
     {
         var project = _projectService.SelectedProject;
-        if (project?.StatusField == null) return new();
+        if (project?.StatusField == null)
+            return new();
 
         var result = new Dictionary<string, List<GitHubProjectItem>>();
 
@@ -142,7 +145,8 @@ public class BoardStateService
     public bool HasCachedData()
     {
         var project = _projectService.SelectedProject;
-        if (project == null) return false;
+        if (project == null)
+            return false;
         return _itemsCache.ContainsKey(project.Id);
     }
 
