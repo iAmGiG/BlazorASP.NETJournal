@@ -1,12 +1,14 @@
 ﻿@page "/tradelogging"
+@using GexVisor.Core
 
 <h3>TradeLogging</h3>
 
 @*
 <form>
 	<label for="ticker">Ticker:</label>
-	<input id="ticker" @bind="myTradingLog.ticker"/>
+	<input id="ticker" @bind="myTradingLog.Ticker"/>
 </form>
 *@
 @code {
+	private TradeLog myTradingLog = new();
 }

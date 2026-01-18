@@ -1,6 +1,8 @@
 ﻿@page "/todo"
 @using System.Text.Json
 @using GexVisor.Core
+@using GexVisor.UI.Services
+@inject TaskPersistenceService TaskPersistence
 
 <h3>ToDoForm</h3>
 <ul>
@@ -52,7 +54,6 @@
 
 	private void SaveTasks()
 	{
-		var framework = new JournalFramework();
-		framework.SaveTasks(MyTasks);
+		TaskPersistence.SaveTasks(MyTasks);
 	}
 }

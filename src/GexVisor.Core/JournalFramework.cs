@@ -1,5 +1,4 @@
 using System.Text.Json;
-using static GexVisor.Core.JournalFramework;
 
 namespace GexVisor.Core
 {
@@ -30,27 +29,13 @@ namespace GexVisor.Core
             Critical,
             Epic
         }
-        public static Guid Id { get; set; } = Guid.NewGuid();
+        public Guid Id { get; set; } = Guid.NewGuid();
         public bool IsCompleted { get; set; }
         //Desc was a hard choice to leave here, but having it nullable will help for the other logs.
         public string? Description { get; set; }
         public DateTime? TargetCompletionDate { get; set; }
         public DateTime? CreatedDate { get; set; }
         public PriorityLevel? TaskPriority { get; set; }
-
-        //private DateTime GetTargetDate(Guid id)
-        //{ null; }
-
-        public void SaveTasks(List<ToDoTask> tasks)
-        {
-            string directoryPath = "./Data/";
-            if (!System.IO.Directory.Exists(directoryPath))
-            {
-                System.IO.Directory.CreateDirectory(directoryPath);
-            }
-            string jsonString = JsonSerializer.Serialize(tasks);
-            System.IO.File.WriteAllText(directoryPath + "MyTasks.json", jsonString);
-        }
     }
     /// <summary>
     /// Represents a task with a unique identifier, description, completion status, target completion date, creation date, and priority level.
@@ -88,8 +73,11 @@ namespace GexVisor.Core
     public class TradeLog : JournalFramework
     {
         public enum Type { Long, Short };
-        public float price;
-        public string? ticker, analysis, notes;
+
+        public decimal Price { get; set; }
+        public string? Ticker { get; set; }
+        public string? Analysis { get; set; }
+        public string? Notes { get; set; }
 
         //might end up making a second quantity, fraction quantity,
         //to represent fraction shares, should even make a options only trade log to simply this class.
@@ -113,7 +101,7 @@ namespace GexVisor.Core
     public class OptionsLog : TradeLog
     {
         public enum TradeType { BTO, BTC, STO, STC };
-        public int contractCount;
+        public int ContractCount { get; set; }
 
         public OptionsLog() { }
     }

@@ -17,6 +17,7 @@ builder.Services.AddScoped<AnnotationService>();
 builder.Services.AddScoped<SqliteService>();
 
 // Journal Services
+builder.Services.AddScoped<TaskPersistenceService>();
 builder.Services.AddScoped<TagService>();
 builder.Services.AddScoped<NotebookService>();
 builder.Services.AddScoped<PaperTradeService>();
