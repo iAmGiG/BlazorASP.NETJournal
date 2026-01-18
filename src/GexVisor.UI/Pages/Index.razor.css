@@ -148,24 +148,11 @@
 
 .landing-footer {
     margin-top: 3rem;
+    text-align: center;
 }
 
-.shortcuts-hint {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    font-size: 0.75rem;
+.footer-text {
+    font-size: 0.9rem;
     color: var(--text-muted);
-}
-
-.shortcuts-hint .key {
-    display: inline-block;
-    padding: 0.2rem 0.5rem;
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--text-primary);
-    margin-right: 0.25rem;
+    margin: 0;
 }
