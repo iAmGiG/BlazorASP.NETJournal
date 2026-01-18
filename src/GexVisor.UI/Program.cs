@@ -23,4 +23,7 @@ builder.Services.AddScoped<PaperTradeService>();
 builder.Services.AddScoped<BacktestService>();
 builder.Services.AddScoped<ResearchTaskService>();
 
+// GitHub Integration Services
+builder.Services.AddScoped<GitHubAuthService>();
+
 await builder.Build().RunAsync();

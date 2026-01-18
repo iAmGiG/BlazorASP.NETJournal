@@ -116,4 +116,8 @@ public static class StorageKeys
     public const string BacktestResults = "gexvisor.backtests";
     public const string TaskBoard = "gexvisor.tasks";
     public const string CustomTags = "gexvisor.customTags";
+
+    // GitHub integration
+    public const string GitHubAuth = "gexvisor.github.auth";
+    public const string GitHubProjects = "gexvisor.github.projects";
 }

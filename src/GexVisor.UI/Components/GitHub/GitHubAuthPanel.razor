@@ -1,0 +1,144 @@
+@namespace GexVisor.UI.Components.GitHub
+@using GexVisor.UI.Models
+@using GexVisor.UI.Services
+@inject GitHubAuthService AuthService
+@inject IJSRuntime JS
+@implements IDisposable
+
+<div class="github-auth-panel">
+    @if (AuthService.IsAuthenticated)
+    {
+        <div class="auth-connected">
+            @if (!string.IsNullOrEmpty(AuthService.State.AvatarUrl))
+            {
+                <img src="@AuthService.State.AvatarUrl" alt="@AuthService.Username" class="avatar" />
+            }
+            <div class="user-info">
+                <span class="username">@AuthService.Username</span>
+                <span class="status connected">Connected</span>
+            </div>
+            <button class="btn-disconnect" @onclick="Disconnect" title="Disconnect from GitHub">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
+    }
+    else if (_deviceCode != null)
+    {
+        <div class="auth-pending">
+            <div class="code-display">
+                <span class="label">Enter this code at GitHub:</span>
+                <div class="code-box">
+                    <code class="user-code">@_deviceCode.UserCode</code>
+                    <button class="btn-copy" @onclick="CopyCode" title="Copy code">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+            <a href="@_deviceCode.VerificationUri" target="_blank" class="btn-verify">
+                <i class="fab fa-github"></i> Open GitHub
+            </a>
+            <div class="auth-status">
+                <span class="spinner"></span>
+                <span>Waiting for authorization...</span>
+            </div>
+            <button class="btn-cancel" @onclick="Cancel">Cancel</button>
+        </div>
+    }
+    else
+    {
+        <div class="auth-disconnected">
+            <button class="btn-connect" @onclick="Connect" disabled="@_isConnecting">
+                @if (_isConnecting)
+                {
+                    <span class="spinner"></span>
+                    <span>Connecting...</span>
+                }
+                else
+                {
+                    <i class="fab fa-github"></i>
+                    <span>Connect to GitHub</span>
+                }
+            </button>
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <div class="auth-error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>@_error</span>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private DeviceCodeResponse? _deviceCode;
+    private bool _isConnecting;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthService.OnAuthStateChanged += OnAuthChanged;
+        AuthService.OnAuthError += OnAuthError;
+        AuthService.OnDeviceCodeReceived += OnDeviceCode;
+
+        await AuthService.LoadAsync();
+    }
+
+    private async Task Connect()
+    {
+        _isConnecting = true;
+        _error = null;
+        StateHasChanged();
+
+        await AuthService.StartDeviceFlowAsync();
+        _isConnecting = false;
+        StateHasChanged();
+    }
+
+    private void OnDeviceCode(DeviceCodeResponse code)
+    {
+        _deviceCode = code;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnAuthChanged()
+    {
+        _deviceCode = null;
+        _error = null;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnAuthError(string error)
+    {
+        _error = error;
+        _deviceCode = null;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task Disconnect()
+    {
+        await AuthService.SignOutAsync();
+    }
+
+    private void Cancel()
+    {
+        AuthService.CancelAuth();
+        _deviceCode = null;
+        StateHasChanged();
+    }
+
+    private async Task CopyCode()
+    {
+        if (_deviceCode != null)
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", _deviceCode.UserCode);
+        }
+    }
+
+    public void Dispose()
+    {
+        AuthService.OnAuthStateChanged -= OnAuthChanged;
+        AuthService.OnAuthError -= OnAuthError;
+        AuthService.OnDeviceCodeReceived -= OnDeviceCode;
+    }
+}

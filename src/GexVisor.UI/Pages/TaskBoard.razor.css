@@ -117,6 +117,32 @@
     color: var(--accent-red);
 }
 
+.stat.github-sync {
+    cursor: pointer;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    transition: background 0.2s ease;
+}
+
+.stat.github-sync:hover {
+    background: var(--bg-panel);
+}
+
+.stat.github-sync .stat-value {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* GitHub Panel */
+.github-panel-container {
+    padding: 1rem 2rem;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border-color);
+    max-width: 400px;
+    margin: 0 auto;
+}
+
 /* Kanban Board */
 .kanban-board {
     display: grid;

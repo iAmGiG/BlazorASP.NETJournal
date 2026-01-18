@@ -43,7 +43,21 @@
             <span class="stat-label">Done This Week</span>
             <span class="stat-value">@_summary.CompletedThisWeek</span>
         </div>
+        <div class="stat github-sync" @onclick="ToggleGitHubPanel">
+            <span class="stat-label">GitHub Sync</span>
+            <span class="stat-value">
+                <i class="fab fa-github"></i>
+                @if (_showGitHubPanel) { <i class="fas fa-chevron-up"></i> } else { <i class="fas fa-chevron-down"></i> }
+            </span>
+        </div>
     </div>
+
+    @if (_showGitHubPanel)
+    {
+        <div class="github-panel-container">
+            <GitHubAuthPanel />
+        </div>
+    }
 
     <div class="kanban-board">
         @foreach (var status in ResearchTaskStatus.All)
@@ -277,6 +291,11 @@
 @code {
     private TaskBoardSummary _summary = new();
     private Dictionary<string, int> _columnCounts = new();
+
+    // GitHub panel
+    private bool _showGitHubPanel;
+
+    private void ToggleGitHubPanel() => _showGitHubPanel = !_showGitHubPanel;
 
     // Quick add
     private bool _showQuickAdd;

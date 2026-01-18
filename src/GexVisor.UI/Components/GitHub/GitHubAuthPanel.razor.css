@@ -1,0 +1,212 @@
+.github-auth-panel {
+    padding: 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+/* Connected State */
+.auth-connected {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--accent-green);
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    flex: 1;
+}
+
+.username {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.status {
+    font-size: 0.75rem;
+}
+
+.status.connected {
+    color: var(--accent-green);
+}
+
+.btn-disconnect {
+    padding: 0.5rem;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-disconnect:hover {
+    background: rgba(255, 82, 82, 0.1);
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+}
+
+/* Pending State */
+.auth-pending {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+}
+
+.code-display {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.code-display .label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.code-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.user-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    padding: 0.75rem 1.25rem;
+    background: var(--bg-panel);
+    border: 2px solid var(--accent-cyan);
+    border-radius: 8px;
+    color: var(--accent-cyan);
+}
+
+.btn-copy {
+    padding: 0.5rem;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-copy:hover {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+}
+
+.btn-verify {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: #24292e;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: background 0.2s ease;
+}
+
+.btn-verify:hover {
+    background: #2f363d;
+}
+
+.auth-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.btn-cancel {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+}
+
+/* Disconnected State */
+.auth-disconnected {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.btn-connect {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: #24292e;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.btn-connect:hover:not(:disabled) {
+    background: #2f363d;
+}
+
+.btn-connect:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.auth-error {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: rgba(255, 82, 82, 0.1);
+    border: 1px solid var(--accent-red);
+    border-radius: 4px;
+    font-size: 0.875rem;
+    color: var(--accent-red);
+}
+
+/* Spinner */
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
