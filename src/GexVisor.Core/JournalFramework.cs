@@ -74,34 +74,57 @@ namespace GexVisor.Core
     {
         public enum Type { Long, Short };
 
-        public decimal Price { get; set; }
+        public Type TradeDirection { get; set; }
+        public decimal EntryPrice { get; set; }
+        public decimal? ExitPrice { get; set; }
+        public decimal Quantity { get; set; }
         public string? Ticker { get; set; }
         public string? Analysis { get; set; }
         public string? Notes { get; set; }
 
-        //might end up making a second quantity, fraction quantity,
-        //to represent fraction shares, should even make a options only trade log to simply this class.
-
-        //I would consider fee, but they are hardly enough to consider, maybe use a look up table later?
-
-        //Trade result should be a method that is used to keep track of a trade outcome,
-        //so in the future context this trade result method would auto calculate when past the
-        //expiration and if on close,public
-        public static void TradeResult()
+        /// <summary>
+        /// Calculates profit/loss for this trade.
+        /// Returns null if trade is not yet closed (ExitPrice is null).
+        /// </summary>
+        public decimal? CalculatePnL()
         {
+            if (!ExitPrice.HasValue)
+                return null;
 
+            var priceDelta = ExitPrice.Value - EntryPrice;
+            var multiplier = TradeDirection == Type.Long ? 1 : -1;
+            return priceDelta * Quantity * multiplier;
         }
 
         public TradeLog() { }
-        //so might need a few overloads of these.
-        //market conditions will be a bit harder, this could just be some notes,
-        //but would be cool to have 1-2 major catalyst
-        //Mental and emotional state, could just add this to notes.
     }
     public class OptionsLog : TradeLog
     {
         public enum TradeType { BTO, BTC, STO, STC };
+
+        public TradeType OptionTradeType { get; set; }
         public int ContractCount { get; set; }
+        public decimal StrikePrice { get; set; }
+        public DateTime? ExpirationDate { get; set; }
+
+        /// <summary>
+        /// Calculates profit/loss for options trade.
+        /// Returns null if trade is not yet closed (ExitPrice is null).
+        /// For options: P&L = (ExitPrice - EntryPrice) * ContractCount * 100
+        /// </summary>
+        public new decimal? CalculatePnL()
+        {
+            if (!ExitPrice.HasValue)
+                return null;
+
+            var priceDelta = ExitPrice.Value - EntryPrice;
+            // Options contracts represent 100 shares each
+            var contractMultiplier = 100;
+            // BTO/STO determine if we're buying (positive delta) or selling (negative delta)
+            var directionMultiplier = (OptionTradeType == TradeType.BTO || OptionTradeType == TradeType.BTC) ? 1 : -1;
+
+            return priceDelta * ContractCount * contractMultiplier * directionMultiplier;
+        }
 
         public OptionsLog() { }
     }

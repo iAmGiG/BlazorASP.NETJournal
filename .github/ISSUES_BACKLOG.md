@@ -9,41 +9,37 @@ with priority levels.
 
 ## Core Models & Logic
 
-### 🔴 CRITICAL: Fix `JournalFramework.Id` property (static to instance)
+### ✅ RESOLVED: Fix `JournalFramework.Id` property (static to instance)
 
 **Labels:** `bug`, `core`, `blocking`
 
-**File:** `MyJournal.core/JournalFramework.cs:33`
+**File:** `src/GexVisor.Core/JournalFramework.cs:33`
 
-The `Id` property is static, causing all instances to share the same ID.
-This breaks unique identification for logs.
+~~The `Id` property is static, causing all instances to share the same ID.~~
+**FIXED:** Changed to instance property in commit `dfbec18`.
 
 **Acceptance Criteria:**
 
-- [ ] Change `public static Guid Id` to `public Guid Id`
-- [ ] Verify each `JournalFramework` instance has unique ID
-- [ ] Update any code that assumes static ID access
+- [x] Change `public static Guid Id` to `public Guid Id`
+- [x] Verify each `JournalFramework` instance has unique ID
+- [x] Update any code that assumes static ID access
 
 ---
 
-### 🔴 CRITICAL: Fix `SaveTasks()` undefined `MyTasks` reference
+### ✅ RESOLVED: Fix `SaveTasks()` undefined `MyTasks` reference
 
 **Labels:** `bug`, `core`, `blocking`
 
-**File:** `MyJournal.core/JournalFramework.cs:54`
+**File:** `src/GexVisor.Core/JournalFramework.cs` (removed), `src/GexVisor.UI/Services/TaskPersistenceService.cs` (new)
 
-The `SaveTasks()` method references undefined `MyTasks` variable,
-causing compile error.
-
-```csharp
-string jsonString = JsonSerializer.Serialize(MyTasks); // MyTasks is undefined
-```
+~~The `SaveTasks()` method references undefined `MyTasks` variable.~~
+**FIXED:** Refactored to `TaskPersistenceService` with dependency injection in commit `dfbec18`.
 
 **Acceptance Criteria:**
 
-- [ ] Resolve undefined `MyTasks` reference
-- [ ] Implement proper serialization (pass parameter or refactor to instance method)
-- [ ] Code compiles without errors
+- [x] Resolve undefined `MyTasks` reference
+- [x] Implement proper serialization (pass parameter or refactor to instance method)
+- [x] Code compiles without errors
 
 ---
 
@@ -64,18 +60,19 @@ instead of extending it.
 
 ---
 
-### 🟡 MEDIUM: Implement `TradeResult()` calculation method
+### ✅ RESOLVED: Implement `TradeResult()` calculation method
 
 **Labels:** `enhancement`, `core`
 
-**File:** `MyJournal.core/JournalFramework.cs:105-108`
+**File:** `src/GexVisor.Core/JournalFramework.cs:89-97` (TradeLog), `:115-127` (OptionsLog)
 
-The `TradeResult()` method is stubbed. Should calculate P/L outcomes.
+~~The `TradeResult()` method is stubbed.~~
+**FIXED:** Replaced with instance methods `CalculatePnL()` for both `TradeLog` and `OptionsLog`.
 
 **Acceptance Criteria:**
 
-- [ ] Implement trade P/L calculation logic
-- [ ] Handle gains and losses correctly
+- [x] Implement trade P/L calculation logic
+- [x] Handle gains and losses correctly (Long/Short for stocks, BTO/STO for options)
 - [ ] Add unit tests for calculation accuracy
 
 ---
@@ -95,7 +92,7 @@ Multiple critical issues preventing ToDoForm from working:
 
 **Acceptance Criteria:**
 
-- [ ] Import and use correct `ToDoTask` type from `MyJournal.core`
+- [ ] Import and use correct `ToDoTask` type from `GexVisor.Core`
 - [ ] Implement `SaveTasks()` method in `@code` block
 - [ ] Page renders without errors
 - [ ] Save functionality works end-to-end

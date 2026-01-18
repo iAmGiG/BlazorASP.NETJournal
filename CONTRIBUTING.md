@@ -7,7 +7,7 @@ up your development environment and follow our code standards.
 
 ### Prerequisites
 
-- .NET 9.0 SDK or later
+- .NET 10.0 SDK or later
 - Visual Studio 2022, Visual Studio Code, or JetBrains Rider
 - Git
 
@@ -118,7 +118,7 @@ git commit --no-verify
 Pull requests are automatically validated by GitHub Actions:
 
 1. **Markdown Linting** - Ensures documentation quality
-2. **Build Verification** - Confirms code compiles with .NET 8
+2. **Build Verification** - Confirms code compiles with .NET 10.0
 3. **Code Formatting** - Verifies consistent C# style
 4. **Code Quality** - Static analysis with StyleCop
 
@@ -159,7 +159,7 @@ Example:
 ```
 Fix ToDoForm undefined Tasks reference
 
-- Import ToDoTask from MyJournal.core
+- Import ToDoTask from GexVisor.Core
 - Implement SaveTasks() method
 - Ensure page renders without errors
 ```
@@ -186,7 +186,7 @@ Fix ToDoForm undefined Tasks reference
 ### Structure Example
 
 ```csharp
-namespace MyJournal.Core;
+namespace GexVisor.Core;
 
 public class JournalFramework
 {
