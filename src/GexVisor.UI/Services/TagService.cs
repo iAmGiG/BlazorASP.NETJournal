@@ -8,6 +8,7 @@ public class TagService
 {
     private readonly LocalStorageService _storage;
     private HashSet<string> _customTags = [];
+    private List<string>? _allTagsCache;
 
     /// <summary>
     /// Predefined pattern tags from GEX research.
@@ -41,12 +42,24 @@ public class TagService
 
     /// <summary>
     /// All available tags (predefined + custom).
+    /// Cached to avoid repeated concatenation, distinct, and sorting operations.
     /// </summary>
-    public IEnumerable<string> AllTags => PatternTags
-        .Concat(CategoryTags)
-        .Concat(_customTags)
-        .Distinct(StringComparer.OrdinalIgnoreCase)
-        .OrderBy(t => t);
+    public IEnumerable<string> AllTags
+    {
+        get
+        {
+            if (_allTagsCache == null)
+            {
+                _allTagsCache = PatternTags
+                    .Concat(CategoryTags)
+                    .Concat(_customTags)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .OrderBy(t => t)
+                    .ToList();
+            }
+            return _allTagsCache;
+        }
+    }
 
     public TagService(LocalStorageService storage)
     {
@@ -60,6 +73,7 @@ public class TagService
     {
         var stored = await _storage.GetAsync<List<string>>(StorageKeys.CustomTags);
         _customTags = stored?.ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
+        _allTagsCache = null; // Invalidate cache when custom tags change
     }
 
     /// <summary>
@@ -75,6 +89,7 @@ public class TagService
 
         if (_customTags.Add(normalized))
         {
+            _allTagsCache = null; // Invalidate cache when tags change
             await SaveAsync();
         }
     }
@@ -86,6 +101,7 @@ public class TagService
     {
         if (_customTags.Remove(tag))
         {
+            _allTagsCache = null; // Invalidate cache when tags change
             await SaveAsync();
         }
     }

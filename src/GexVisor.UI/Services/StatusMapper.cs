@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace GexVisor.UI.Services;
 
@@ -11,6 +12,9 @@ public class StatusMapper
     private readonly LocalStorageService _storage;
 
     private const string StorageKey = "gexvisor.statusMappings";
+
+    // Compiled regex for performance - used in hot path (status inference)
+    private static readonly Regex HyphenUnderscoreNormalizer = new(@"[-_]+", RegexOptions.Compiled);
 
     /// <summary>
     /// Standard normalized status columns.
@@ -134,16 +138,28 @@ public class StatusMapper
     /// - "not started" contains "started" but MatchesWithWordBoundary returns false
     /// - "in progress" contains "progress" but MatchesWithWordBoundary returns false
     /// - "in-progress" matches "in progress" by normalizing hyphens/spaces
+    /// Optimized to use compiled regex and avoid allocations in hot path.
     /// </summary>
     private bool MatchesWithWordBoundary(string text, string pattern)
     {
         // Normalize hyphens and underscores to spaces for flexible matching
-        var normalizedText = System.Text.RegularExpressions.Regex.Replace(text, @"[-_]+", " ");
-        var normalizedPattern = System.Text.RegularExpressions.Regex.Replace(pattern, @"[-_]+", " ");
+        var normalizedText = HyphenUnderscoreNormalizer.Replace(text, " ");
+        var normalizedPattern = HyphenUnderscoreNormalizer.Replace(pattern, " ");
 
-        // Check if pattern appears as complete words
-        var wordBoundaryPattern = @"\b" + System.Text.RegularExpressions.Regex.Escape(normalizedPattern) + @"\b";
-        return System.Text.RegularExpressions.Regex.IsMatch(normalizedText, wordBoundaryPattern);
+        // Simple word boundary check: pattern must be surrounded by word boundaries
+        // More efficient than Regex for most cases
+        var patternIndex = normalizedText.IndexOf(normalizedPattern, StringComparison.Ordinal);
+        if (patternIndex == -1)
+            return false;
+
+        // Check start boundary (pattern is at start OR preceded by space)
+        var isStartBoundary = patternIndex == 0 || char.IsWhiteSpace(normalizedText[patternIndex - 1]);
+
+        // Check end boundary (pattern is at end OR followed by space)
+        var patternEnd = patternIndex + normalizedPattern.Length;
+        var isEndBoundary = patternEnd == normalizedText.Length || char.IsWhiteSpace(normalizedText[patternEnd]);
+
+        return isStartBoundary && isEndBoundary;
     }
 
     /// <summary>

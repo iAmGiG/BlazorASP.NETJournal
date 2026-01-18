@@ -103,14 +103,14 @@ namespace GexVisor.Core
         public enum TradeType { BTO, BTC, STO, STC };
 
         public TradeType OptionTradeType { get; set; }
-        public int ContractCount { get; set; }
         public decimal StrikePrice { get; set; }
         public DateTime? ExpirationDate { get; set; }
 
         /// <summary>
         /// Calculates profit/loss for options trade.
         /// Returns null if trade is not yet closed (ExitPrice is null).
-        /// For options: P&L = (ExitPrice - EntryPrice) * ContractCount * 100
+        /// For options: P&L = (ExitPrice - EntryPrice) * Quantity * 100
+        /// Note: Quantity (inherited) represents the number of contracts.
         /// </summary>
         public new decimal? CalculatePnL()
         {
@@ -123,7 +123,7 @@ namespace GexVisor.Core
             // BTO/STO determine if we're buying (positive delta) or selling (negative delta)
             var directionMultiplier = (OptionTradeType == TradeType.BTO || OptionTradeType == TradeType.BTC) ? 1 : -1;
 
-            return priceDelta * ContractCount * contractMultiplier * directionMultiplier;
+            return priceDelta * Quantity * contractMultiplier * directionMultiplier;
         }
 
         public OptionsLog() { }
