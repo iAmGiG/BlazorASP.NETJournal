@@ -830,3 +830,82 @@
     padding: 1.5rem;
     min-height: calc(100vh - 280px);
 }
+
+/* Unified Tab Button */
+.tab-btn.unified {
+    border-color: var(--accent-purple);
+}
+
+.tab-btn.unified.active {
+    color: var(--accent-purple);
+    border-color: var(--accent-purple);
+}
+
+.tab-btn.unified i {
+    color: var(--accent-purple);
+}
+
+/* Unified Board Container */
+.unified-board-container {
+    padding: 1.5rem;
+    min-height: calc(100vh - 280px);
+}
+
+/* Mobile Responsive - TaskBoard */
+@media (max-width: 900px) {
+    .kanban-board {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+    }
+
+    .kanban-column {
+        max-height: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .taskboard-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .header-left {
+        justify-content: space-between;
+    }
+
+    .taskboard-header h1 {
+        font-size: 1.1rem;
+    }
+
+    .header-actions {
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .board-tabs {
+        padding: 0 1rem;
+        overflow-x: auto;
+    }
+
+    .tab-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+        white-space: nowrap;
+    }
+
+    .github-board-container,
+    .unified-board-container {
+        padding: 1rem;
+    }
+
+    .modal-content {
+        margin: 1rem;
+        max-height: calc(100vh - 2rem);
+    }
+
+    .form-row.two-col {
+        grid-template-columns: 1fr;
+    }
+}

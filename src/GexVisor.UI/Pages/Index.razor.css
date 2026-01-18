@@ -156,3 +156,49 @@
     color: var(--text-muted);
     margin: 0;
 }
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .landing-page {
+        padding: 1.5rem 1rem;
+    }
+
+    .landing-header {
+        margin-bottom: 2rem;
+    }
+
+    .landing-header h1 {
+        font-size: 2rem;
+    }
+
+    .tagline {
+        font-size: 0.95rem;
+    }
+
+    .app-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .app-card {
+        padding: 1.25rem;
+    }
+
+    .app-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
+    }
+
+    .app-info h2 {
+        font-size: 1.1rem;
+    }
+
+    .app-info p {
+        font-size: 0.85rem;
+    }
+
+    .landing-footer {
+        margin-top: 2rem;
+    }
+}
