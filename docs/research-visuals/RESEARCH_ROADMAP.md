@@ -143,7 +143,7 @@ GameStop (2021) demonstrated intentional exploitation of dealer mechanics:
 
 ---
 
-## Phase 3: Intraday Dynamics — The Scar Tissue Hypothesis
+## Phase 2 (Extended): Intraday Dynamics — The Scar Tissue Hypothesis
 
 ### The Paradox
 
@@ -226,7 +226,7 @@ Key experiment: Run simulation WITH and WITHOUT "Market Maker Inventory Constrai
 
 ---
 
-## Phase 4: Network Effects — GNN Contagion
+## Phase 5: Network Effects — GNN Contagion
 
 ### The Network Problem
 

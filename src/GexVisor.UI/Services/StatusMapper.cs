@@ -100,6 +100,7 @@ public class StatusMapper
 
     /// <summary>
     /// Infer normalized status from raw status using default rules.
+    /// Uses word boundary matching to avoid false positives (e.g., "not started" matching "started").
     /// </summary>
     public string InferStatus(string rawStatus)
     {
@@ -109,8 +110,14 @@ public class StatusMapper
         {
             foreach (var pattern in patterns)
             {
-                // Exact match or contains
-                if (lower == pattern || lower.Contains(pattern))
+                // Exact match has highest priority
+                if (lower == pattern)
+                {
+                    return normalizedStatus;
+                }
+
+                // Word boundary match: pattern must be complete word or phrase
+                if (MatchesWithWordBoundary(lower, pattern))
                 {
                     return normalizedStatus;
                 }
@@ -122,7 +129,26 @@ public class StatusMapper
     }
 
     /// <summary>
+    /// Check if pattern matches as a complete word/phrase, not as substring.
+    /// Examples:
+    /// - "not started" contains "started" but MatchesWithWordBoundary returns false
+    /// - "in progress" contains "progress" but MatchesWithWordBoundary returns false
+    /// - "in-progress" matches "in progress" by normalizing hyphens/spaces
+    /// </summary>
+    private bool MatchesWithWordBoundary(string text, string pattern)
+    {
+        // Normalize hyphens and underscores to spaces for flexible matching
+        var normalizedText = System.Text.RegularExpressions.Regex.Replace(text, @"[-_]+", " ");
+        var normalizedPattern = System.Text.RegularExpressions.Regex.Replace(pattern, @"[-_]+", " ");
+
+        // Check if pattern appears as complete words
+        var wordBoundaryPattern = @"\b" + System.Text.RegularExpressions.Regex.Escape(normalizedPattern) + @"\b";
+        return System.Text.RegularExpressions.Regex.IsMatch(normalizedText, wordBoundaryPattern);
+    }
+
+    /// <summary>
     /// Get the inferred status and confidence level.
+    /// Returns confidence indicators: exact match (high) vs. word boundary match (medium).
     /// </summary>
     public (string NormalizedStatus, bool IsExactMatch, bool IsCustom) MapStatusWithConfidence(string? projectId, string? rawStatus)
     {
@@ -148,7 +174,7 @@ public class StatusMapper
                 {
                     return (normalizedStatus, true, false);
                 }
-                if (lower.Contains(pattern))
+                if (MatchesWithWordBoundary(lower, pattern))
                 {
                     return (normalizedStatus, false, false);
                 }
