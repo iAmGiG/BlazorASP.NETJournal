@@ -85,8 +85,9 @@ namespace GexVisor.Core
         /// <summary>
         /// Calculates profit/loss for this trade.
         /// Returns null if trade is not yet closed (ExitPrice is null).
+        /// Virtual to allow derived classes (e.g., OptionsLog) to override with specialized logic.
         /// </summary>
-        public decimal? CalculatePnL()
+        public virtual decimal? CalculatePnL()
         {
             if (!ExitPrice.HasValue)
                 return null;
@@ -112,7 +113,7 @@ namespace GexVisor.Core
         /// For options: P&L = (ExitPrice - EntryPrice) * Quantity * 100
         /// Note: Quantity (inherited) represents the number of contracts.
         /// </summary>
-        public new decimal? CalculatePnL()
+        public override decimal? CalculatePnL()
         {
             if (!ExitPrice.HasValue)
                 return null;
