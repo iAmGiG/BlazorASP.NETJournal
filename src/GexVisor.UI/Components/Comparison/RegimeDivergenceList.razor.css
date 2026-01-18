@@ -5,20 +5,7 @@
     padding: 1.5rem;
 }
 
-.list-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-.list-header h3 {
-    margin: 0;
-    font-size: 1.2rem;
-    color: var(--text-primary);
-}
+/* .list-header pattern moved to app.css */
 
 .list-controls {
     display: flex;
@@ -47,11 +34,7 @@
     border-color: var(--accent-cyan);
 }
 
-.list-content {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
+/* .list-content pattern moved to app.css */
 
 .divergence-event {
     background: var(--bg-card);
@@ -196,15 +179,7 @@
     flex-shrink: 0;
 }
 
-.list-footer {
-    margin-top: 1rem;
-    text-align: center;
-}
-
-.list-footer button {
-    width: auto;
-    min-width: 200px;
-}
+/* .list-footer pattern moved to app.css */
 
 .empty-state {
     display: flex;

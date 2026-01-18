@@ -108,17 +108,28 @@
     public List<CorrelationMetrics>? Correlations { get; set; }
 
     private List<string> _symbols = new();
+    private List<CorrelationMetrics>? _lastCorrelations;
 
     protected override void OnParametersSet()
     {
-        if (Correlations != null && Correlations.Any())
+        // Only extract symbols when Correlations reference changes
+        if (Correlations != _lastCorrelations)
         {
-            // Extract unique symbols
-            _symbols = Correlations
-                .SelectMany(c => new[] { c.Symbol1, c.Symbol2 })
-                .Distinct()
-                .OrderBy(s => s)
-                .ToList();
+            if (Correlations != null && Correlations.Any())
+            {
+                // Extract unique symbols
+                _symbols = Correlations
+                    .SelectMany(c => new[] { c.Symbol1, c.Symbol2 })
+                    .Distinct()
+                    .OrderBy(s => s)
+                    .ToList();
+            }
+            else
+            {
+                _symbols = new();
+            }
+
+            _lastCorrelations = Correlations;
         }
     }
 

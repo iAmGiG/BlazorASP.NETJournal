@@ -183,8 +183,13 @@ public class ComparisonAnalysisService
         RegimeAnalysisSummary regime1,
         RegimeAnalysisSummary regime2)
     {
-        var transitions1 = regime1.Transitions.Select(t => DateTime.Parse(t.Date)).ToList();
-        var transitions2 = regime2.Transitions.Select(t => DateTime.Parse(t.Date)).ToList();
+        // Parse dates once upfront
+        var transitions1 = regime1.Transitions
+            .Select(t => DateTime.Parse(t.Date))
+            .ToList();
+        var transitions2 = regime2.Transitions
+            .Select(t => DateTime.Parse(t.Date))
+            .ToList();
 
         if (transitions1.Count == 0 && transitions2.Count == 0)
         {
@@ -198,12 +203,17 @@ public class ComparisonAnalysisService
         }
 
         // Count how many flips occur within 5 days of each other
+        // Use optimized iteration instead of nested Any() calls
         var correlatedFlips = 0;
         foreach (var t1 in transitions1)
         {
-            if (transitions2.Any(t2 => Math.Abs((t2 - t1).TotalDays) <= 5))
+            foreach (var t2 in transitions2)
             {
-                correlatedFlips++;
+                if (Math.Abs((t2 - t1).TotalDays) <= 5)
+                {
+                    correlatedFlips++;
+                    break; // Count each t1 only once
+                }
             }
         }
 

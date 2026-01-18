@@ -276,20 +276,17 @@
     overflow: hidden;
 }
 
-.list-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+/* Override general .list-header for transition list */
+.transition-list .list-header {
     padding: 0.5rem 0.75rem;
+    margin-bottom: 0;
     background: var(--bg-dark);
     border-bottom: 1px solid var(--border-color);
 }
 
-.list-header h4 {
-    margin: 0;
+.transition-list .list-header h4 {
     font-size: 0.8rem;
     font-weight: 600;
-    color: var(--text-primary);
 }
 
 .toggle-btn {
@@ -307,7 +304,8 @@
     color: var(--accent-cyan);
 }
 
-.list-content {
+/* Override general .list-content for transition list */
+.transition-list .list-content {
     max-height: 200px;
     overflow-y: auto;
 }
@@ -350,11 +348,12 @@
     margin-left: auto;
 }
 
-.list-footer {
+/* Override general .list-footer for transition list */
+.transition-list .list-footer {
     padding: 0.4rem 0.75rem;
+    margin-top: 0;
     font-size: 0.65rem;
     color: var(--text-muted);
-    text-align: center;
     background: var(--bg-dark);
     border-top: 1px solid var(--border-color);
 }

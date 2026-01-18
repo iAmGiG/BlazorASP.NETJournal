@@ -49,7 +49,7 @@
         @if (Events.Count > 10 && !_showAll)
         {
             <div class="list-footer">
-                <button class="btn-secondary" @onclick="() => _showAll = true">
+                <button class="btn-secondary" @onclick="ShowAllEvents">
                     <i class="fas fa-chevron-down"></i> Show All @Events.Count Events
                 </button>
             </div>
@@ -57,7 +57,7 @@
         else if (Events.Count > 10 && _showAll)
         {
             <div class="list-footer">
-                <button class="btn-secondary" @onclick="() => _showAll = false">
+                <button class="btn-secondary" @onclick="ShowLessEvents">
                     <i class="fas fa-chevron-up"></i> Show Less
                 </button>
             </div>
@@ -80,9 +80,38 @@
     private string _sortBy = "date";
     private bool _showAll = false;
 
+    // Cache for sorted events to avoid re-sorting on every render
+    private IEnumerable<RegimeDivergenceEvent>? _cachedEvents;
+    private string _lastSortBy = "";
+    private bool _lastShowAll = false;
+    private List<RegimeDivergenceEvent>? _lastEvents;
+
+    protected override void OnParametersSet()
+    {
+        // Invalidate cache when Events parameter changes
+        if (Events != _lastEvents)
+        {
+            _cachedEvents = null;
+            _lastEvents = Events;
+        }
+    }
+
     private void OnSortChanged(ChangeEventArgs e)
     {
         _sortBy = e.Value?.ToString() ?? "date";
+        _cachedEvents = null; // Invalidate cache on sort change
+    }
+
+    private void ShowAllEvents()
+    {
+        _showAll = true;
+        _cachedEvents = null; // Invalidate cache
+    }
+
+    private void ShowLessEvents()
+    {
+        _showAll = false;
+        _cachedEvents = null; // Invalidate cache
     }
 
     private IEnumerable<RegimeDivergenceEvent> GetSortedEvents()
@@ -92,13 +121,26 @@
             return Enumerable.Empty<RegimeDivergenceEvent>();
         }
 
+        // Return cached results if sort parameters haven't changed
+        if (_cachedEvents != null &&
+            _lastSortBy == _sortBy &&
+            _lastShowAll == _showAll)
+        {
+            return _cachedEvents;
+        }
+
+        // Perform sort and cache results
         var sorted = _sortBy switch
         {
             "magnitude" => Events.OrderByDescending(e => e.DivergenceMagnitude),
             _ => Events.OrderByDescending(e => e.Date)
         };
 
-        return _showAll ? sorted : sorted.Take(10);
+        _cachedEvents = _showAll ? sorted.ToList() : sorted.Take(10).ToList();
+        _lastSortBy = _sortBy;
+        _lastShowAll = _showAll;
+
+        return _cachedEvents;
     }
 
     private string GetMagnitudeClass(decimal magnitude)
