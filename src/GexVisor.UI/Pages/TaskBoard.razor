@@ -5,6 +5,7 @@
 @inject ResearchTaskService TaskService
 @inject GitHubProjectService GitHubProjectService
 @inject GitHubAuthService GitHubAuthService
+@inject BoardStateService BoardStateService
 
 <PageTitle>Research Tasks - GexVisor</PageTitle>
 
@@ -86,6 +87,20 @@
         </div>
     }
 
+    <div class="board-tabs">
+        <button class="tab-btn @(_activeTab == "local" ? "active" : "")" @onclick="@(() => SetActiveTab("local"))">
+            <i class="fas fa-tasks"></i> Local Tasks
+        </button>
+        @if (GitHubProjectService.SelectedProject != null)
+        {
+            <button class="tab-btn @(_activeTab == "github" ? "active" : "")" @onclick="@(() => SetActiveTab("github"))">
+                <i class="fab fa-github"></i> @GitHubProjectService.SelectedProject.Title
+            </button>
+        }
+    </div>
+
+    @if (_activeTab == "local")
+    {
     <div class="kanban-board">
         @foreach (var status in ResearchTaskStatus.All)
         {
@@ -165,6 +180,13 @@
                     </div>
                 }
             </div>
+        </div>
+    }
+    }
+    else if (_activeTab == "github")
+    {
+        <div class="github-board-container">
+            <GitHubKanbanBoard />
         </div>
     }
 </div>
@@ -325,7 +347,15 @@
     private string _syncMessage = "";
     private bool _syncError;
 
+    // Tab state
+    private string _activeTab = "local";
+
     private void ToggleGitHubPanel() => _showGitHubPanel = !_showGitHubPanel;
+
+    private void SetActiveTab(string tab)
+    {
+        _activeTab = tab;
+    }
 
     private async Task SyncFromGitHub()
     {

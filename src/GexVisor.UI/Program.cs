@@ -26,5 +26,7 @@ builder.Services.AddScoped<ResearchTaskService>();
 // GitHub Integration Services
 builder.Services.AddScoped<GitHubAuthService>();
 builder.Services.AddScoped<GitHubProjectService>();
+builder.Services.AddScoped<BoardStateService>();
+builder.Services.AddScoped<StatusMapper>();
 
 await builder.Build().RunAsync();

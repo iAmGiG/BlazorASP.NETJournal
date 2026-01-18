@@ -1,0 +1,217 @@
+@using GexVisor.UI.Models
+@using GexVisor.UI.Services
+@inject GitHubProjectService ProjectService
+@inject GitHubAuthService AuthService
+@inject BoardStateService BoardState
+@inject IJSRuntime JS
+@implements IDisposable
+
+<div class="github-kanban-board">
+    @if (!AuthService.IsAuthenticated)
+    {
+        <div class="board-message">
+            <i class="fab fa-github"></i>
+            <p>Connect to GitHub to view your project board</p>
+        </div>
+    }
+    else if (ProjectService.SelectedProject == null)
+    {
+        <div class="board-message">
+            <i class="fas fa-project-diagram"></i>
+            <p>Select a GitHub project to view its board</p>
+        </div>
+    }
+    else
+    {
+        <div class="board-header">
+            <div class="board-info">
+                <h3>@ProjectService.SelectedProject.Title</h3>
+                <span class="item-count">@_stats.TotalItems items</span>
+                @if (_stats.LastRefresh.HasValue)
+                {
+                    <span class="last-refresh" title="Last refreshed">
+                        <i class="fas fa-clock"></i> @FormatLastRefresh(_stats.LastRefresh.Value)
+                    </span>
+                }
+            </div>
+            <div class="board-actions">
+                <button class="btn-refresh" @onclick="RefreshBoard" disabled="@BoardState.IsLoading">
+                    @if (BoardState.IsLoading)
+                    {
+                        <span class="spinner-small"></span>
+                    }
+                    else
+                    {
+                        <i class="fas fa-sync-alt"></i>
+                    }
+                    Refresh
+                </button>
+                <a href="@ProjectService.SelectedProject.Url" target="_blank" class="btn-github-link">
+                    <i class="fab fa-github"></i> Open in GitHub
+                </a>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(BoardState.LastError))
+        {
+            <div class="board-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>@BoardState.LastError</span>
+                <button @onclick="RefreshBoard">Retry</button>
+            </div>
+        }
+
+        @if (BoardState.IsLoading && _items.Count == 0)
+        {
+            <div class="board-loading">
+                <div class="spinner"></div>
+                <p>Loading board...</p>
+            </div>
+        }
+        else
+        {
+            <div class="kanban-columns" style="--column-count: @_columnData.Count">
+                @foreach (var column in _columnData)
+                {
+                    <div class="kanban-column">
+                        <div class="column-header">
+                            <span class="column-title">@column.Key</span>
+                            <span class="column-count">@column.Value.Count</span>
+                        </div>
+                        <div class="column-content">
+                            @foreach (var item in column.Value)
+                            {
+                                <div class="github-card @GetStateClass(item.State)" @onclick="@(() => OpenItem(item))">
+                                    <div class="card-header">
+                                        <span class="state-indicator" title="@item.State"></span>
+                                        <span class="card-title">@item.Title</span>
+                                    </div>
+                                    @if (item.Labels.Count > 0)
+                                    {
+                                        <div class="card-labels">
+                                            @foreach (var label in item.Labels.Take(4))
+                                            {
+                                                <span class="label">@label</span>
+                                            }
+                                            @if (item.Labels.Count > 4)
+                                            {
+                                                <span class="label more">+@(item.Labels.Count - 4)</span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            @if (column.Value.Count == 0)
+                            {
+                                <div class="empty-column">
+                                    <i class="fas fa-inbox"></i>
+                                    <span>No items</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private List<GitHubProjectItem> _items = new();
+    private Dictionary<string, List<GitHubProjectItem>> _columnData = new();
+    private BoardStats _stats = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthService.OnAuthStateChanged += OnAuthChanged;
+        ProjectService.OnProjectsChanged += OnProjectChanged;
+        BoardState.OnBoardStateChanged += OnBoardStateChanged;
+
+        if (AuthService.IsAuthenticated && ProjectService.SelectedProject != null)
+        {
+            await LoadBoard();
+        }
+    }
+
+    private async void OnAuthChanged()
+    {
+        await InvokeAsync(async () =>
+        {
+            if (AuthService.IsAuthenticated && ProjectService.SelectedProject != null)
+            {
+                await LoadBoard();
+            }
+            StateHasChanged();
+        });
+    }
+
+    private async void OnProjectChanged()
+    {
+        await InvokeAsync(async () =>
+        {
+            if (ProjectService.SelectedProject != null)
+            {
+                await LoadBoard();
+            }
+            else
+            {
+                _items.Clear();
+                _columnData.Clear();
+                _stats = new();
+            }
+            StateHasChanged();
+        });
+    }
+
+    private void OnBoardStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadBoard()
+    {
+        _items = await BoardState.GetItemsAsync();
+        _columnData = BoardState.GetItemsByStatus(_items);
+        _stats = BoardState.GetStats(_items);
+    }
+
+    private async Task RefreshBoard()
+    {
+        _items = await BoardState.RefreshItemsAsync();
+        _columnData = BoardState.GetItemsByStatus(_items);
+        _stats = BoardState.GetStats(_items);
+    }
+
+    private async Task OpenItem(GitHubProjectItem item)
+    {
+        if (!string.IsNullOrEmpty(item.Url))
+        {
+            await JS.InvokeVoidAsync("open", item.Url, "_blank");
+        }
+    }
+
+    private string GetStateClass(string? state)
+    {
+        return state?.ToUpper() switch
+        {
+            "OPEN" => "state-open",
+            "CLOSED" => "state-closed",
+            _ => ""
+        };
+    }
+
+    private string FormatLastRefresh(DateTime timestamp)
+    {
+        var ago = DateTime.UtcNow - timestamp;
+        if (ago.TotalSeconds < 60) return "just now";
+        if (ago.TotalMinutes < 60) return $"{(int)ago.TotalMinutes}m ago";
+        return timestamp.ToLocalTime().ToString("h:mm tt");
+    }
+
+    public void Dispose()
+    {
+        AuthService.OnAuthStateChanged -= OnAuthChanged;
+        ProjectService.OnProjectsChanged -= OnProjectChanged;
+        BoardState.OnBoardStateChanged -= OnBoardStateChanged;
+    }
+}

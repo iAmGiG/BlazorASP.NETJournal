@@ -786,3 +786,47 @@
     color: var(--accent-red);
     background: rgba(239, 83, 80, 0.1);
 }
+
+/* Board Tabs */
+.board-tabs {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0 1.5rem;
+    margin-top: 1rem;
+}
+
+.tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.25rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-bottom: none;
+    color: var(--text-muted);
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    bottom: -1px;
+}
+
+.tab-btn:hover {
+    color: var(--text-primary);
+    background: var(--bg-card);
+}
+
+.tab-btn.active {
+    background: var(--bg-dark);
+    color: var(--accent-cyan);
+    border-color: var(--accent-cyan);
+    border-bottom: 1px solid var(--bg-dark);
+}
+
+/* GitHub Board Container */
+.github-board-container {
+    padding: 1.5rem;
+    min-height: calc(100vh - 280px);
+}
