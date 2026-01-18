@@ -343,3 +343,11 @@ FodyWeavers.xsd
 *.scss.map
 .claude/
 claude.md
+
+# Config folder - sensitive/local files (keys, tokens, local settings)
+config/*
+!config/README.md
+
+# Private keys (extra safety - catch any that escape config/)
+*.pem
+*.key
