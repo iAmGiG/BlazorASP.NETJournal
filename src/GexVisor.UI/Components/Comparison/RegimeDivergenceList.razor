@@ -1,0 +1,133 @@
+@using GexVisor.UI.Models
+
+<div class="divergence-list">
+    <div class="list-header">
+        <h3>Regime Divergence Events</h3>
+        <div class="list-controls">
+            @if (Events != null && Events.Any())
+            {
+                <span class="event-count">@Events.Count events</span>
+                <select class="sort-select" @onchange="OnSortChanged">
+                    <option value="date">Sort by Date</option>
+                    <option value="magnitude">Sort by Magnitude</option>
+                </select>
+            }
+        </div>
+    </div>
+
+    @if (Events != null && Events.Any())
+    {
+        <div class="list-content">
+            @foreach (var evt in GetSortedEvents())
+            {
+                <div class="divergence-event">
+                    <div class="event-header">
+                        <span class="event-date">
+                            <i class="fas fa-calendar-alt"></i>
+                            @evt.Date
+                        </span>
+                        <span class="event-magnitude @GetMagnitudeClass(evt.DivergenceMagnitude)">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            @evt.DivergenceMagnitude.ToString("F1")%
+                        </span>
+                    </div>
+                    <div class="event-regimes">
+                        @foreach (var regime in evt.AssetRegimes)
+                        {
+                            <div class="regime-item">
+                                <span class="regime-symbol">@regime.Key</span>
+                                <span class="regime-badge @GetRegimeClass(regime.Value)">
+                                    @GetRegimeLabel(regime.Value)
+                                </span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (Events.Count > 10 && !_showAll)
+        {
+            <div class="list-footer">
+                <button class="btn-secondary" @onclick="() => _showAll = true">
+                    <i class="fas fa-chevron-down"></i> Show All @Events.Count Events
+                </button>
+            </div>
+        }
+        else if (Events.Count > 10 && _showAll)
+        {
+            <div class="list-footer">
+                <button class="btn-secondary" @onclick="() => _showAll = false">
+                    <i class="fas fa-chevron-up"></i> Show Less
+                </button>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="fas fa-check-circle"></i>
+            <p>No regime divergence events detected</p>
+            <span class="empty-hint">All assets maintained the same regime throughout the comparison period</span>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public List<RegimeDivergenceEvent>? Events { get; set; }
+
+    private string _sortBy = "date";
+    private bool _showAll = false;
+
+    private void OnSortChanged(ChangeEventArgs e)
+    {
+        _sortBy = e.Value?.ToString() ?? "date";
+    }
+
+    private IEnumerable<RegimeDivergenceEvent> GetSortedEvents()
+    {
+        if (Events == null)
+        {
+            return Enumerable.Empty<RegimeDivergenceEvent>();
+        }
+
+        var sorted = _sortBy switch
+        {
+            "magnitude" => Events.OrderByDescending(e => e.DivergenceMagnitude),
+            _ => Events.OrderByDescending(e => e.Date)
+        };
+
+        return _showAll ? sorted : sorted.Take(10);
+    }
+
+    private string GetMagnitudeClass(decimal magnitude)
+    {
+        return magnitude switch
+        {
+            >= 75 => "high",
+            >= 50 => "medium",
+            _ => "low"
+        };
+    }
+
+    private string GetRegimeClass(GammaRegime regime)
+    {
+        return regime switch
+        {
+            GammaRegime.Positive => "regime-positive",
+            GammaRegime.Negative => "regime-negative",
+            _ => "regime-unknown"
+        };
+    }
+
+    private string GetRegimeLabel(GammaRegime regime)
+    {
+        return regime switch
+        {
+            GammaRegime.Positive => "+γ",
+            GammaRegime.Negative => "-γ",
+            _ => regime.ToString()
+        };
+    }
+}

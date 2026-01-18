@@ -5,6 +5,28 @@
     padding: 1rem;
 }
 
+/* Compact Mode - for side-by-side comparisons */
+.regime-timeline.compact {
+    padding: 0.75rem;
+}
+
+.regime-timeline.compact .timeline-header h3 {
+    font-size: 0.85rem;
+}
+
+.regime-timeline.compact .header-stats .stat {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+}
+
+.regime-timeline.compact .timeline-bar {
+    height: 20px;
+}
+
+.regime-timeline.compact .timeline-labels .label {
+    font-size: 0.6rem;
+}
+
 .timeline-header {
     display: flex;
     justify-content: space-between;

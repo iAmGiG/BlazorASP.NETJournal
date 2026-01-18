@@ -1,9 +1,9 @@
 @namespace GexVisor.UI.Components.Gex
 @using GexVisor.UI.Models
 
-<div class="regime-timeline">
+<div class="regime-timeline @(CompactMode ? "compact" : "")">
     <div class="timeline-header">
-        <h3>Regime Transition Timeline</h3>
+        <h3>@(Symbol != null ? $"{Symbol} Regime Timeline" : "Regime Transition Timeline")</h3>
         <div class="header-stats">
             <span class="stat positive">+γ @Analysis.PositiveGammaPercent%</span>
             <span class="stat negative">-γ @Analysis.NegativeGammaPercent%</span>
@@ -35,26 +35,29 @@
         </div>
     </div>
 
-    <div class="timeline-metrics">
-        <div class="metric-card">
-            <span class="metric-value">@Analysis.TotalDays</span>
-            <span class="metric-label">Total Days</span>
+    @if (!CompactMode)
+    {
+        <div class="timeline-metrics">
+            <div class="metric-card">
+                <span class="metric-value">@Analysis.TotalDays</span>
+                <span class="metric-label">Total Days</span>
+            </div>
+            <div class="metric-card">
+                <span class="metric-value">@Analysis.AverageRegimeDuration</span>
+                <span class="metric-label">Avg Regime Duration</span>
+            </div>
+            <div class="metric-card positive">
+                <span class="metric-value">@Analysis.LongestPositiveStreak</span>
+                <span class="metric-label">Longest +γ Streak</span>
+            </div>
+            <div class="metric-card negative">
+                <span class="metric-value">@Analysis.LongestNegativeStreak</span>
+                <span class="metric-label">Longest -γ Streak</span>
+            </div>
         </div>
-        <div class="metric-card">
-            <span class="metric-value">@Analysis.AverageRegimeDuration</span>
-            <span class="metric-label">Avg Regime Duration</span>
-        </div>
-        <div class="metric-card positive">
-            <span class="metric-value">@Analysis.LongestPositiveStreak</span>
-            <span class="metric-label">Longest +γ Streak</span>
-        </div>
-        <div class="metric-card negative">
-            <span class="metric-value">@Analysis.LongestNegativeStreak</span>
-            <span class="metric-label">Longest -γ Streak</span>
-        </div>
-    </div>
+    }
 
-    @if (SelectedSegment != null)
+    @if (!CompactMode && SelectedSegment != null)
     {
         <div class="segment-detail">
             <div class="detail-header">
@@ -85,46 +88,55 @@
         </div>
     }
 
-    @if (ShowTransitionList)
+    @if (!CompactMode)
     {
-        <div class="transition-list">
-            <div class="list-header">
-                <h4>Regime Transitions (@Analysis.TotalTransitions)</h4>
-                <button class="toggle-btn" @onclick="() => ShowTransitionList = false">Hide</button>
-            </div>
-            <div class="list-content">
-                @foreach (var transition in Analysis.Transitions.TakeLast(10).Reverse())
+        @if (ShowTransitionList)
+        {
+            <div class="transition-list">
+                <div class="list-header">
+                    <h4>Regime Transitions (@Analysis.TotalTransitions)</h4>
+                    <button class="toggle-btn" @onclick="() => ShowTransitionList = false">Hide</button>
+                </div>
+                <div class="list-content">
+                    @foreach (var transition in Analysis.Transitions.TakeLast(10).Reverse())
+                    {
+                        <div class="transition-item">
+                            <span class="transition-date">@transition.Date</span>
+                            <span class="transition-flow">
+                                <span class="@transition.FromRegime.ToCssClass()">@transition.FromRegime.ToShortLabel()</span>
+                                →
+                                <span class="@transition.ToRegime.ToCssClass()">@transition.ToRegime.ToShortLabel()</span>
+                            </span>
+                            <span class="transition-duration">after @transition.DaysInPreviousRegime days</span>
+                        </div>
+                    }
+                </div>
+                @if (Analysis.TotalTransitions > 10)
                 {
-                    <div class="transition-item">
-                        <span class="transition-date">@transition.Date</span>
-                        <span class="transition-flow">
-                            <span class="@transition.FromRegime.ToCssClass()">@transition.FromRegime.ToShortLabel()</span>
-                            →
-                            <span class="@transition.ToRegime.ToCssClass()">@transition.ToRegime.ToShortLabel()</span>
-                        </span>
-                        <span class="transition-duration">after @transition.DaysInPreviousRegime days</span>
+                    <div class="list-footer">
+                        <span>Showing last 10 of @Analysis.TotalTransitions transitions</span>
                     </div>
                 }
             </div>
-            @if (Analysis.TotalTransitions > 10)
-            {
-                <div class="list-footer">
-                    <span>Showing last 10 of @Analysis.TotalTransitions transitions</span>
-                </div>
-            }
-        </div>
-    }
-    else if (Analysis.TotalTransitions > 0)
-    {
-        <button class="show-transitions-btn" @onclick="() => ShowTransitionList = true">
-            Show @Analysis.TotalTransitions Transitions
-        </button>
+        }
+        else if (Analysis.TotalTransitions > 0)
+        {
+            <button class="show-transitions-btn" @onclick="() => ShowTransitionList = true">
+                Show @Analysis.TotalTransitions Transitions
+            </button>
+        }
     }
 </div>
 
 @code {
     [Parameter]
     public required RegimeAnalysisSummary Analysis { get; set; }
+
+    [Parameter]
+    public bool CompactMode { get; set; }
+
+    [Parameter]
+    public string? Symbol { get; set; }
 
     private RegimeSegment? SelectedSegment { get; set; }
     private bool ShowTransitionList { get; set; }

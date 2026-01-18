@@ -29,4 +29,8 @@ builder.Services.AddScoped<GitHubProjectService>();
 builder.Services.AddScoped<BoardStateService>();
 builder.Services.AddScoped<StatusMapper>();
 
+// Cross-Asset Comparison Services
+builder.Services.AddScoped<ComparisonService>();
+builder.Services.AddScoped<ComparisonAnalysisService>();
+
 await builder.Build().RunAsync();

@@ -1,0 +1,156 @@
+@using GexVisor.UI.Models
+
+<div class="correlation-matrix">
+    <div class="matrix-header">
+        <h3>Correlation Matrix</h3>
+        <div class="legend">
+            <span class="legend-item">
+                <span class="legend-swatch strong"></span>
+                <text>Strong (≥0.7)</text>
+            </span>
+            <span class="legend-item">
+                <span class="legend-swatch moderate"></span>
+                <text>Moderate (0.4-0.7)</text>
+            </span>
+            <span class="legend-item">
+                <span class="legend-swatch weak"></span>
+                <text>Weak (&lt;0.4)</text>
+            </span>
+        </div>
+    </div>
+
+    @if (Correlations != null && Correlations.Any())
+    {
+        <!-- Heatmap Grid -->
+        <div class="heatmap-container">
+            <div class="heatmap" style="--matrix-size: @(_symbols.Count);">
+                <!-- Header row -->
+                <div class="matrix-cell header corner"></div>
+                @foreach (var symbol in _symbols)
+                {
+                    <div class="matrix-cell header">@symbol</div>
+                }
+
+                <!-- Data rows -->
+                @foreach (var row in _symbols)
+                {
+                    <div class="matrix-cell header">@row</div>
+                    @foreach (var col in _symbols)
+                    {
+                        var corr = GetCorrelation(row, col);
+                        if (corr != null)
+                        {
+                            <div class="matrix-cell data @GetCorrelationClass(corr.PriceCorrelation)"
+                                 title="@GetTooltipText(corr)">
+                                <span class="corr-value">@corr.PriceCorrelation.ToString("F2")</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="matrix-cell data diagonal">
+                                <span class="corr-value">1.00</span>
+                            </div>
+                        }
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- Detailed Pairwise Table -->
+        <div class="pairwise-table-container">
+            <h4>Detailed Metrics</h4>
+            <table class="pairwise-table">
+                <thead>
+                    <tr>
+                        <th>Pair</th>
+                        <th>Price Corr.</th>
+                        <th>GEX Corr.</th>
+                        <th>Regime Align.</th>
+                        <th>Flip Sync.</th>
+                        <th>Dispersion</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var corr in Correlations)
+                    {
+                        <tr>
+                            <td class="pair-cell">
+                                <span class="pair-name">@corr.Symbol1</span>
+                                <span class="pair-separator">↔</span>
+                                <span class="pair-name">@corr.Symbol2</span>
+                            </td>
+                            <td class="@GetCorrelationClass(corr.PriceCorrelation)">
+                                @corr.PriceCorrelation.ToString("F3")
+                            </td>
+                            <td class="@GetCorrelationClass(corr.GexCorrelation)">
+                                @corr.GexCorrelation.ToString("F3")
+                            </td>
+                            <td>@corr.RegimeAlignment.ToString("F1")%</td>
+                            <td>@corr.RegimeFlipCorrelation.ToString("F1")%</td>
+                            <td>@corr.PerformanceDispersion.ToString("F2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="fas fa-table"></i>
+            <p>No correlation data available</p>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public List<CorrelationMetrics>? Correlations { get; set; }
+
+    private List<string> _symbols = new();
+
+    protected override void OnParametersSet()
+    {
+        if (Correlations != null && Correlations.Any())
+        {
+            // Extract unique symbols
+            _symbols = Correlations
+                .SelectMany(c => new[] { c.Symbol1, c.Symbol2 })
+                .Distinct()
+                .OrderBy(s => s)
+                .ToList();
+        }
+    }
+
+    private CorrelationMetrics? GetCorrelation(string symbol1, string symbol2)
+    {
+        if (symbol1 == symbol2)
+        {
+            return null; // Diagonal
+        }
+
+        return Correlations?.FirstOrDefault(c =>
+            (c.Symbol1 == symbol1 && c.Symbol2 == symbol2) ||
+            (c.Symbol1 == symbol2 && c.Symbol2 == symbol1));
+    }
+
+    private string GetCorrelationClass(decimal correlation)
+    {
+        return Math.Abs(correlation) switch
+        {
+            >= 0.7m => "strong",
+            >= 0.4m => "moderate",
+            _ => "weak"
+        };
+    }
+
+    private string GetTooltipText(CorrelationMetrics corr)
+    {
+        return $"{corr.Symbol1} vs {corr.Symbol2}\n" +
+               $"Price: {corr.PriceCorrelation:F3}\n" +
+               $"GEX: {corr.GexCorrelation:F3}\n" +
+               $"Regime Alignment: {corr.RegimeAlignment:F1}%\n" +
+               $"Flip Sync: {corr.RegimeFlipCorrelation:F1}%\n" +
+               $"Dispersion: {corr.PerformanceDispersion:F2}";
+    }
+}

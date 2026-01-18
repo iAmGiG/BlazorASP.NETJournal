@@ -109,6 +109,11 @@
     color: white;
 }
 
+.app-icon.comparison {
+    background: linear-gradient(135deg, var(--accent-cyan), #00897b);
+    color: white;
+}
+
 .app-info {
     flex: 1;
 }
