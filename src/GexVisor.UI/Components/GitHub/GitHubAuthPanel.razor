@@ -81,7 +81,14 @@
         AuthService.OnAuthError += OnAuthError;
         AuthService.OnDeviceCodeReceived += OnDeviceCode;
 
-        await AuthService.LoadAsync();
+        try
+        {
+            await AuthService.LoadAsync();
+        }
+        catch
+        {
+            // Ignore initialization errors
+        }
     }
 
     private async Task Connect()
@@ -98,21 +105,21 @@
     private void OnDeviceCode(DeviceCodeResponse code)
     {
         _deviceCode = code;
-        InvokeAsync(StateHasChanged);
+        _ = InvokeAsync(StateHasChanged);
     }
 
     private void OnAuthChanged()
     {
         _deviceCode = null;
         _error = null;
-        InvokeAsync(StateHasChanged);
+        _ = InvokeAsync(StateHasChanged);
     }
 
     private void OnAuthError(string error)
     {
         _error = error;
         _deviceCode = null;
-        InvokeAsync(StateHasChanged);
+        _ = InvokeAsync(StateHasChanged);
     }
 
     private async Task Disconnect()

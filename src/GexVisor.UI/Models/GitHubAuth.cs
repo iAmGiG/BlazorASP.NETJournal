@@ -98,15 +98,17 @@ public class GitHubUser
 
 /// <summary>
 /// Configuration for GitHub App OAuth.
+/// Uses local API proxy to avoid CORS issues with GitHub's OAuth endpoints.
 /// </summary>
 public class GitHubAppConfig
 {
     public string ClientId { get; set; } = "";
     public string AppId { get; set; } = "";
 
-    // URLs
-    public const string DeviceCodeUrl = "https://github.com/login/device/code";
-    public const string TokenUrl = "https://github.com/login/oauth/access_token";
-    public const string ApiBaseUrl = "https://api.github.com";
-    public const string GraphQLUrl = "https://api.github.com/graphql";
+    // Proxy URLs (relative to app origin)
+    public const string DeviceCodeUrl = "/api/github/device/code";
+    public const string TokenUrl = "/api/github/device/token";
+    public const string RefreshTokenUrl = "/api/github/token/refresh";
+    public const string UserUrl = "/api/github/user";
+    public const string GraphQLUrl = "/api/github/graphql";
 }

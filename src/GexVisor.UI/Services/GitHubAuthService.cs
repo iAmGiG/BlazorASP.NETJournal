@@ -69,17 +69,8 @@ public class GitHubAuthService
             // Cancel any existing poll
             _pollCts?.Cancel();
 
-            var request = new HttpRequestMessage(HttpMethod.Post, GitHubAppConfig.DeviceCodeUrl);
-            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-            var content = new FormUrlEncodedContent(new Dictionary<string, string>
-            {
-                ["client_id"] = _config.ClientId,
-                ["scope"] = "read:project project repo"
-            });
-            request.Content = content;
-
-            var response = await _http.SendAsync(request);
+            // Use proxy endpoint (handles CORS)
+            var response = await _http.PostAsync(GitHubAppConfig.DeviceCodeUrl, null);
             response.EnsureSuccessStatusCode();
 
             var deviceCode = await response.Content.ReadFromJsonAsync<DeviceCodeResponse>();
@@ -164,22 +155,16 @@ public class GitHubAuthService
     }
 
     /// <summary>
-    /// Request access token from GitHub.
+    /// Request access token from GitHub via proxy.
     /// </summary>
     private async Task<TokenResponse> RequestTokenAsync(string deviceCode)
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, GitHubAppConfig.TokenUrl);
-        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
         var content = new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            ["client_id"] = _config.ClientId,
-            ["device_code"] = deviceCode,
-            ["grant_type"] = "urn:ietf:params:oauth:grant-type:device_code"
+            ["device_code"] = deviceCode
         });
-        request.Content = content;
 
-        var response = await _http.SendAsync(request);
+        var response = await _http.PostAsync(GitHubAppConfig.TokenUrl, content);
         var json = await response.Content.ReadAsStringAsync();
 
         return JsonSerializer.Deserialize<TokenResponse>(json) ?? new TokenResponse { Error = "parse_error" };
@@ -214,7 +199,7 @@ public class GitHubAuthService
     }
 
     /// <summary>
-    /// Fetch authenticated user's info from GitHub API.
+    /// Fetch authenticated user's info from GitHub API via proxy.
     /// </summary>
     private async Task FetchUserInfoAsync()
     {
@@ -222,9 +207,8 @@ public class GitHubAuthService
 
         try
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, $"{GitHubAppConfig.ApiBaseUrl}/user");
+            var request = new HttpRequestMessage(HttpMethod.Get, GitHubAppConfig.UserUrl);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _state.AccessToken);
-            request.Headers.UserAgent.ParseAdd("GexVisor/1.0");
 
             var response = await _http.SendAsync(request);
             if (response.IsSuccessStatusCode)
@@ -244,7 +228,7 @@ public class GitHubAuthService
     }
 
     /// <summary>
-    /// Refresh the access token using the refresh token.
+    /// Refresh the access token using the refresh token via proxy.
     /// </summary>
     public async Task<bool> RefreshTokenAsync()
     {
@@ -252,18 +236,12 @@ public class GitHubAuthService
 
         try
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, GitHubAppConfig.TokenUrl);
-            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
             var content = new FormUrlEncodedContent(new Dictionary<string, string>
             {
-                ["client_id"] = _config.ClientId,
-                ["grant_type"] = "refresh_token",
                 ["refresh_token"] = _state.RefreshToken
             });
-            request.Content = content;
 
-            var response = await _http.SendAsync(request);
+            var response = await _http.PostAsync(GitHubAppConfig.RefreshTokenUrl, content);
             var tokenResponse = await response.Content.ReadFromJsonAsync<TokenResponse>();
 
             if (tokenResponse?.IsSuccess == true)

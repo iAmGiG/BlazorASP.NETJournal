@@ -1,7 +1,10 @@
 @page "/tasks"
 @using GexVisor.UI.Models
 @using GexVisor.UI.Services
+@using GexVisor.UI.Components.GitHub
 @inject ResearchTaskService TaskService
+@inject GitHubProjectService GitHubProjectService
+@inject GitHubAuthService GitHubAuthService
 
 <PageTitle>Research Tasks - GexVisor</PageTitle>
 
@@ -55,7 +58,31 @@
     @if (_showGitHubPanel)
     {
         <div class="github-panel-container">
-            <GitHubAuthPanel />
+            <div class="github-panel-grid">
+                <GitHubAuthPanel />
+                <GitHubProjectSelector />
+            </div>
+            @if (GitHubProjectService.SelectedProject != null)
+            {
+                <div class="github-sync-actions">
+                    <button class="btn-sync" @onclick="SyncFromGitHub" disabled="@_isSyncing">
+                        @if (_isSyncing)
+                        {
+                            <span class="spinner-small"></span>
+                            <span>Syncing...</span>
+                        }
+                        else
+                        {
+                            <i class="fas fa-download"></i>
+                            <span>Import from GitHub</span>
+                        }
+                    </button>
+                    @if (!string.IsNullOrEmpty(_syncMessage))
+                    {
+                        <span class="sync-message @(_syncError ? "error" : "success")">@_syncMessage</span>
+                    }
+                </div>
+            }
         </div>
     }
 
@@ -294,8 +321,103 @@
 
     // GitHub panel
     private bool _showGitHubPanel;
+    private bool _isSyncing;
+    private string _syncMessage = "";
+    private bool _syncError;
 
     private void ToggleGitHubPanel() => _showGitHubPanel = !_showGitHubPanel;
+
+    private async Task SyncFromGitHub()
+    {
+        if (_isSyncing) return;
+
+        _isSyncing = true;
+        _syncMessage = "";
+        _syncError = false;
+        StateHasChanged();
+
+        try
+        {
+            var items = await GitHubProjectService.FetchProjectItemsAsync();
+            if (items.Count == 0)
+            {
+                _syncMessage = "No items found in project";
+                _isSyncing = false;
+                StateHasChanged();
+                return;
+            }
+
+            int imported = 0;
+            int skipped = 0;
+
+            foreach (var item in items)
+            {
+                // Check if task already exists by GitHub URL
+                var existingTask = TaskService.All
+                    .FirstOrDefault(t => t.GitHubIssueUrl == item.Url);
+
+                if (existingTask != null)
+                {
+                    skipped++;
+                    continue;
+                }
+
+                // Map GitHub status to local status
+                var status = MapGitHubStatus(item.Status);
+                var priority = DeterminePriority(item.Labels);
+
+                var task = new ResearchTask
+                {
+                    Title = item.Title,
+                    Description = item.Body,
+                    Status = status,
+                    Priority = priority,
+                    Tags = item.Labels.Take(5).ToList(),
+                    GitHubIssueUrl = item.Url
+                };
+
+                await TaskService.AddAsync(task);
+                imported++;
+            }
+
+            _syncMessage = $"Imported {imported} tasks" + (skipped > 0 ? $", {skipped} already exist" : "");
+        }
+        catch (Exception ex)
+        {
+            _syncMessage = $"Sync failed: {ex.Message}";
+            _syncError = true;
+        }
+
+        _isSyncing = false;
+        StateHasChanged();
+    }
+
+    private string MapGitHubStatus(string? status)
+    {
+        if (string.IsNullOrEmpty(status))
+            return ResearchTaskStatus.Backlog;
+
+        return status.ToLower() switch
+        {
+            "todo" or "backlog" or "to do" => ResearchTaskStatus.Backlog,
+            "in progress" or "in-progress" or "inprogress" or "doing" => ResearchTaskStatus.InProgress,
+            "done" or "completed" or "closed" => ResearchTaskStatus.Done,
+            _ => ResearchTaskStatus.Backlog
+        };
+    }
+
+    private string DeterminePriority(List<string> labels)
+    {
+        var labelLower = labels.Select(l => l.ToLower()).ToList();
+
+        if (labelLower.Any(l => l.Contains("high") || l.Contains("urgent") || l.Contains("critical") || l.Contains("priority:high")))
+            return TaskPriority.High;
+
+        if (labelLower.Any(l => l.Contains("low") || l.Contains("minor") || l.Contains("priority:low")))
+            return TaskPriority.Low;
+
+        return TaskPriority.Medium;
+    }
 
     // Quick add
     private bool _showQuickAdd;

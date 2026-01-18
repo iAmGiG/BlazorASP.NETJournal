@@ -139,8 +139,20 @@
     padding: 1rem 2rem;
     background: var(--bg-panel);
     border-bottom: 1px solid var(--border-color);
-    max-width: 400px;
+}
+
+.github-panel-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    max-width: 900px;
     margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+    .github-panel-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Kanban Board */
@@ -710,4 +722,67 @@
     font-size: 0.85rem;
     color: var(--text-primary);
     font-family: 'JetBrains Mono', monospace;
+}
+
+/* GitHub Sync Actions */
+.github-sync-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn-sync {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.25rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: var(--accent-cyan);
+    border: none;
+    color: var(--bg-dark);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-sync:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+.btn-sync:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.spinner-small {
+    width: 14px;
+    height: 14px;
+    border: 2px solid transparent;
+    border-top-color: var(--bg-dark);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.sync-message {
+    font-size: 0.85rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 4px;
+}
+
+.sync-message.success {
+    color: var(--accent-green);
+    background: rgba(0, 200, 83, 0.1);
+}
+
+.sync-message.error {
+    color: var(--accent-red);
+    background: rgba(239, 83, 80, 0.1);
 }

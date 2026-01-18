@@ -1,0 +1,163 @@
+@namespace GexVisor.UI.Components.GitHub
+@using GexVisor.UI.Models
+@using GexVisor.UI.Services
+@inject GitHubAuthService AuthService
+@inject GitHubProjectService ProjectService
+@implements IDisposable
+
+<div class="project-selector">
+    @if (!AuthService.IsAuthenticated)
+    {
+        <div class="not-authenticated">
+            <i class="fab fa-github"></i>
+            <span>Connect to GitHub to select a project</span>
+        </div>
+    }
+    else if (_isLoading)
+    {
+        <div class="loading">
+            <span class="spinner"></span>
+            <span>Loading projects...</span>
+        </div>
+    }
+    else if (ProjectService.SelectedProject != null)
+    {
+        <div class="selected-project">
+            <div class="project-info">
+                <span class="project-title">@ProjectService.SelectedProject.Title</span>
+                <span class="project-items">@ProjectService.SelectedProject.ItemCount items</span>
+            </div>
+            <div class="project-actions">
+                <button class="btn-refresh" @onclick="RefreshProjects" title="Refresh">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button class="btn-change" @onclick="ChangeProject" title="Change project">
+                    <i class="fas fa-exchange-alt"></i>
+                </button>
+            </div>
+        </div>
+    }
+    else if (ProjectService.Projects.Count > 0)
+    {
+        <div class="project-list">
+            <div class="list-header">
+                <span>Select a Project</span>
+                <button class="btn-refresh" @onclick="RefreshProjects" title="Refresh">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            @foreach (var project in ProjectService.Projects)
+            {
+                <div class="project-item" @onclick="() => SelectProject(project.Id)">
+                    <div class="project-name">@project.Title</div>
+                    @if (!string.IsNullOrEmpty(project.Description))
+                    {
+                        <div class="project-desc">@project.Description</div>
+                    }
+                    <div class="project-meta">
+                        <span>@project.ItemCount items</span>
+                        @if (project.StatusField != null)
+                        {
+                            <span class="has-status">
+                                <i class="fas fa-columns"></i>
+                                @project.StatusField.Options.Count columns
+                            </span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="no-projects">
+            <span>No projects found</span>
+            <button class="btn-fetch" @onclick="RefreshProjects">
+                <i class="fas fa-sync-alt"></i> Fetch Projects
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    private bool _isLoading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthService.OnAuthStateChanged += OnAuthChanged;
+        ProjectService.OnProjectsChanged += OnProjectsChanged;
+
+        try
+        {
+            await ProjectService.LoadAsync();
+
+            // Auto-fetch if authenticated but no projects
+            if (AuthService.IsAuthenticated && ProjectService.Projects.Count == 0)
+            {
+                await RefreshProjects();
+            }
+        }
+        catch
+        {
+            // Ignore initialization errors
+        }
+    }
+
+    private void OnAuthChanged()
+    {
+        _ = InvokeAsync(async () =>
+        {
+            try
+            {
+                if (AuthService.IsAuthenticated && ProjectService.Projects.Count == 0)
+                {
+                    await RefreshProjects();
+                }
+                StateHasChanged();
+            }
+            catch
+            {
+                // Ignore errors
+            }
+        });
+    }
+
+    private void OnProjectsChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RefreshProjects()
+    {
+        _isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            await ProjectService.FetchProjectsAsync();
+        }
+        catch
+        {
+            // Ignore fetch errors
+        }
+
+        _isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task SelectProject(string projectId)
+    {
+        await ProjectService.SelectProjectAsync(projectId);
+    }
+
+    private async Task ChangeProject()
+    {
+        await ProjectService.ClearSelectionAsync();
+    }
+
+    public void Dispose()
+    {
+        AuthService.OnAuthStateChanged -= OnAuthChanged;
+        ProjectService.OnProjectsChanged -= OnProjectsChanged;
+    }
+}
