@@ -69,7 +69,9 @@ public class TagService
     {
         var normalized = NormalizeTag(tag);
         if (string.IsNullOrEmpty(normalized))
+        {
             return;
+        }
 
         if (_customTags.Add(normalized))
         {
@@ -94,7 +96,9 @@ public class TagService
     public IEnumerable<string> GetSuggestions(string partial)
     {
         if (string.IsNullOrWhiteSpace(partial))
+        {
             return AllTags.Take(10);
+        }
 
         return AllTags
             .Where(t => t.Contains(partial, StringComparison.OrdinalIgnoreCase))

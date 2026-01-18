@@ -24,7 +24,9 @@ public class SqliteService : IAsyncDisposable
     public async Task InitAsync()
     {
         if (_initialized)
+        {
             return;
+        }
 
         await _js.InvokeVoidAsync("SqlJsInterop.init");
         _initialized = true;
@@ -148,7 +150,9 @@ public class SqliteService : IAsyncDisposable
     public async Task CloseAsync(string dbId)
     {
         if (!_initialized)
+        {
             return;
+        }
 
         await _js.InvokeVoidAsync("SqlJsInterop.close", dbId);
         _openDatabases.Remove(dbId);
@@ -165,11 +169,15 @@ public class SqliteService : IAsyncDisposable
     {
         var results = await QueryAsync(dbId, sql);
         if (results.Count == 0)
+        {
             return default;
+        }
 
         var firstRow = results[0];
         if (firstRow.Count == 0)
+        {
             return default;
+        }
 
         var value = firstRow.Values.First();
         if (value is JsonElement element)
@@ -193,7 +201,9 @@ public class SqliteService : IAsyncDisposable
         var results = new List<Dictionary<string, object?>>();
 
         if (json.ValueKind != JsonValueKind.Array)
+        {
             return results;
+        }
 
         foreach (var row in json.EnumerateArray())
         {
@@ -219,7 +229,9 @@ public class SqliteService : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         if (!_initialized)
+        {
             return;
+        }
 
         foreach (var dbId in _openDatabases.ToList())
         {
