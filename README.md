@@ -132,16 +132,22 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for commit message guidelines.
 - [x] Keyboard shortcuts help overlay (#34)
 - [x] Pattern annotations for LLM training data (#66)
 - [x] Research Arcade page with research visualizations
+- [x] Export Chart as PNG (#33)
+- [x] Research Notebook - document observations and findings (#64)
+- [x] Paper Trading Journal - track theoretical trades (#65)
+- [x] Backtest Results Tracker with comparison (#67)
+- [x] Research Task Board - Kanban-style task management (#68)
+- [x] Accessibility improvements - ARIA labels (#35)
+- [x] UI consistency - unified patterns across all pages
 
 ### In Progress
-- [ ] Research Lab Notebook (#64) - shared journal infrastructure
-- [ ] Paper Trade Simulator (#65)
+- [ ] SQLite WASM integration (#18) - research complete, awaiting database
 
 ### Planned
-- [ ] Export Chart as PNG (#33)
-- [ ] Backtest Results Tracker (#67)
-- [ ] Research Task Board (#68)
-- [ ] Wasm-compatible SQLite research (#18)
+- [ ] Mobile responsive layout (#32)
+- [ ] CSS migration to shared variables (#17)
+- [ ] Add SQLite database as static asset (#11)
+- [ ] Versioning strategy (#10)
 
 ## Research Visualizations
 
@@ -161,12 +167,17 @@ Contributions welcome! Please review [CONTRIBUTING.md](CONTRIBUTING.md) for:
 
 ## Project Status
 
-**Phase:** Active Development - Research Tools
+**Phase:** Active Development - Infrastructure
 
-The GEX Visualizer core is complete with chart rendering, timeline simulation,
-and pattern annotations. Currently building research journal infrastructure
-to support notebook entries, paper trading, and backtest tracking. Access the
-GEX Visualizer at `/gex` and Research Arcade at `/arcade`.
+The GEX Visualizer and all research journal features are complete:
+- **GEX Visualizer** (`/gex`) - Interactive gamma exposure visualization
+- **Research Arcade** (`/arcade`) - Research visualizations hub
+- **Research Notebook** (`/notebook`) - Document observations and hypotheses
+- **Paper Trading** (`/trading`) - Log theoretical trades with P&L tracking
+- **Backtest Results** (`/backtests`) - Compare strategy performance
+- **Research Tasks** (`/tasks`) - Kanban-style task board
+
+Currently working on SQLite WASM integration for persistent data storage.
 
 ## License
 

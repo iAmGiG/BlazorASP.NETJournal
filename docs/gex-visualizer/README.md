@@ -24,7 +24,16 @@ The Blazor port includes all original features plus:
 - **Pattern Annotations**: Mark patterns on the timeline for LLM training data (#66)
 - **Keyboard Shortcuts Overlay**: Press `?` to see all shortcuts (#34)
 - **Settings Persistence**: Playback speed and axis scales saved to localStorage (#44)
-- **Research Arcade**: Access research visualizations at `/arcade`
+- **Export as PNG**: Export charts via camera button in header (#33)
+- **Accessibility**: Full ARIA labels for screen readers (#35)
+
+### Research Tools (via Home Page)
+
+- **Research Arcade** (`/arcade`) - Research visualizations hub
+- **Research Notebook** (`/notebook`) - Document observations and hypotheses
+- **Paper Trading** (`/trading`) - Log theoretical trades with P&L tracking
+- **Backtest Results** (`/backtests`) - Compare strategy performance
+- **Research Tasks** (`/tasks`) - Kanban-style task board
 
 ## Features (Both Versions)
 
