@@ -351,3 +351,6 @@ config/*
 # Private keys (extra safety - catch any that escape config/)
 *.pem
 *.key
+
+# Claude Code temporary working directory files
+tmpclaude-*.cwd
