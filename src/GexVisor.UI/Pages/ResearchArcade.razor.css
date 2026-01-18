@@ -15,25 +15,9 @@
     margin-bottom: 2rem;
 }
 
+/* Override: center the back-link content */
 .back-link {
-    display: flex;
-    align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    color: var(--text-muted);
-    text-decoration: none;
-    font-size: 0.875rem;
-    transition: all 0.2s ease;
-}
-
-.back-link:hover {
-    color: var(--accent-cyan);
-    border-color: var(--accent-cyan);
-    text-decoration: none;
 }
 
 .header-content h1 {

@@ -15,31 +15,6 @@
     border-bottom: 1px solid var(--border-color);
 }
 
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-}
-
-.back-link {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    color: var(--text-muted);
-    text-decoration: none;
-    font-size: 0.875rem;
-    transition: all 0.2s ease;
-}
-
-.back-link:hover {
-    color: var(--accent-cyan);
-    border-color: var(--accent-cyan);
-}
-
 .taskboard-header h1 {
     font-size: 1.25rem;
     font-weight: 600;
@@ -47,11 +22,6 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-}
-
-.header-actions {
-    display: flex;
-    gap: 0.75rem;
 }
 
 .btn-primary,
@@ -297,15 +267,6 @@
     margin-bottom: 0.5rem;
 }
 
-.tag {
-    padding: 0.1rem 0.35rem;
-    font-size: 0.65rem;
-    background: var(--bg-panel);
-    border: 1px solid var(--border-color);
-    color: var(--accent-cyan);
-    border-radius: 3px;
-}
-
 .task-actions {
     display: flex;
     gap: 0.25rem;
@@ -401,117 +362,6 @@
     color: var(--accent-cyan);
 }
 
-/* Modal Styles */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background: var(--bg-panel);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    width: 90%;
-    max-width: 500px;
-    max-height: 85vh;
-    overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-}
-
-.modal-content.large {
-    max-width: 700px;
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid var(--border-color);
-    background: var(--bg-card);
-}
-
-.modal-header h2 {
-    font-size: 1rem;
-    font-weight: 600;
-    margin: 0;
-}
-
-.close-btn {
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg-dark);
-    border: 1px solid var(--border-color);
-    color: var(--text-muted);
-    border-radius: 6px;
-    font-size: 1.25rem;
-    cursor: pointer;
-}
-
-.close-btn:hover {
-    background: var(--accent-red);
-    color: var(--bg-dark);
-}
-
-.modal-body {
-    padding: 1.25rem;
-    overflow-y: auto;
-    max-height: calc(85vh - 130px);
-}
-
-.form-group {
-    margin-bottom: 1rem;
-}
-
-.form-group label {
-    display: block;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    margin-bottom: 0.5rem;
-}
-
-.form-group input[type="text"],
-.form-group textarea {
-    width: 100%;
-    padding: 0.6rem;
-    font-size: 0.85rem;
-    font-family: inherit;
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    border-radius: 6px;
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-    outline: none;
-    border-color: var(--accent-cyan);
-}
-
-.form-group textarea {
-    resize: vertical;
-    min-height: 80px;
-}
-
-.form-row.two-col {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-}
-
 /* Priority Buttons */
 .priority-buttons,
 .status-buttons {
@@ -567,48 +417,6 @@
     background: rgba(0, 200, 83, 0.2);
     border-color: var(--accent-green);
     color: var(--accent-green);
-}
-
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.5rem;
-    padding: 1rem 1.25rem;
-    border-top: 1px solid var(--border-color);
-    background: var(--bg-card);
-}
-
-.btn-cancel,
-.btn-save,
-.btn-delete {
-    padding: 0.5rem 1rem;
-    font-size: 0.8rem;
-    font-weight: 600;
-    border-radius: 6px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-}
-
-.btn-cancel {
-    background: var(--bg-dark);
-    border: 1px solid var(--border-color);
-    color: var(--text-muted);
-}
-
-.btn-cancel:hover {
-    border-color: var(--text-muted);
-}
-
-.btn-save {
-    background: var(--accent-cyan);
-    border: none;
-    color: var(--bg-dark);
-}
-
-.btn-save:hover {
-    opacity: 0.9;
 }
 
 .btn-save:disabled {
@@ -898,14 +706,5 @@
     .github-board-container,
     .unified-board-container {
         padding: 1rem;
-    }
-
-    .modal-content {
-        margin: 1rem;
-        max-height: calc(100vh - 2rem);
-    }
-
-    .form-row.two-col {
-        grid-template-columns: 1fr;
     }
 }
