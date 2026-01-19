@@ -1,5 +1,7 @@
 using FluentAssertions;
+using GexVisor.UI.Models;
 using GexVisor.UI.Services;
+using Moq;
 using Xunit;
 
 namespace GexVisor.UI.Tests.Services;
@@ -7,9 +9,6 @@ namespace GexVisor.UI.Tests.Services;
 /// <summary>
 /// Unit tests for ComparisonService selection and validation logic.
 /// Tests multi-symbol selection constraints and state management.
-///
-/// NOTE: LoadSymbolsAsync tests require IGexDataService interface extraction.
-/// See issue #87 for implementation details.
 /// </summary>
 public class ComparisonServiceTests
 {
@@ -217,10 +216,214 @@ public class ComparisonServiceTests
         asset.Should().BeNull();
     }
 
-    private ComparisonService CreateService()
+    private ComparisonService CreateService(Mock<IGexDataService>? mockDataService = null)
     {
-        // Use a mock HttpClient-based GexDataService for selection-only tests
-        var mockDataService = new GexDataService(new HttpClient());
-        return new ComparisonService(mockDataService);
+        mockDataService ??= new Mock<IGexDataService>();
+        return new ComparisonService(mockDataService.Object);
+    }
+
+    private static GexTimeline CreateMockTimeline(string symbol)
+    {
+        return new GexTimeline
+        {
+            Symbol = symbol,
+            AssetClass = "Index",
+            DateRange = new DateRange { Start = "2024-01-01", End = "2024-12-31" },
+            Count = 10,
+            Timeline = new List<GexDataPoint>
+            {
+                new() { Date = "2024-01-01", Price = 450, Gex = 1000, CallGex = 600, PutGex = 400, ZeroGamma = 445, MaxGamma = 460, Regime = "Positive Gamma", CallOi = 500000, PutOi = 400000, Contracts = 900000, Quality = 0.95m },
+                new() { Date = "2024-01-02", Price = 455, Gex = 1100, CallGex = 650, PutGex = 450, ZeroGamma = 448, MaxGamma = 465, Regime = "Positive Gamma", CallOi = 510000, PutOi = 410000, Contracts = 920000, Quality = 0.95m },
+                new() { Date = "2024-01-03", Price = 460, Gex = 1200, CallGex = 700, PutGex = 500, ZeroGamma = 450, MaxGamma = 470, Regime = "Positive Gamma", CallOi = 520000, PutOi = 420000, Contracts = 940000, Quality = 0.96m },
+                new() { Date = "2024-01-04", Price = 448, Gex = -500, CallGex = 200, PutGex = -700, ZeroGamma = 455, MaxGamma = 465, Regime = "Negative Gamma", CallOi = 400000, PutOi = 600000, Contracts = 1000000, Quality = 0.94m },
+                new() { Date = "2024-01-05", Price = 445, Gex = -600, CallGex = 150, PutGex = -750, ZeroGamma = 458, MaxGamma = 468, Regime = "Negative Gamma", CallOi = 380000, PutOi = 620000, Contracts = 1000000, Quality = 0.93m },
+                new() { Date = "2024-01-06", Price = 442, Gex = -700, CallGex = 100, PutGex = -800, ZeroGamma = 460, MaxGamma = 470, Regime = "Negative Gamma", CallOi = 360000, PutOi = 640000, Contracts = 1000000, Quality = 0.92m },
+                new() { Date = "2024-01-07", Price = 455, Gex = 800, CallGex = 500, PutGex = 300, ZeroGamma = 450, MaxGamma = 465, Regime = "Positive Gamma", CallOi = 480000, PutOi = 420000, Contracts = 900000, Quality = 0.94m },
+                new() { Date = "2024-01-08", Price = 460, Gex = 900, CallGex = 550, PutGex = 350, ZeroGamma = 452, MaxGamma = 467, Regime = "Positive Gamma", CallOi = 490000, PutOi = 410000, Contracts = 900000, Quality = 0.95m },
+                new() { Date = "2024-01-09", Price = 465, Gex = 1000, CallGex = 600, PutGex = 400, ZeroGamma = 454, MaxGamma = 469, Regime = "Positive Gamma", CallOi = 500000, PutOi = 400000, Contracts = 900000, Quality = 0.96m },
+                new() { Date = "2024-01-10", Price = 470, Gex = 1100, CallGex = 650, PutGex = 450, ZeroGamma = 456, MaxGamma = 471, Regime = "Positive Gamma", CallOi = 510000, PutOi = 390000, Contracts = 900000, Quality = 0.97m }
+            }
+        };
+    }
+
+    // === LoadSymbolsAsync Tests ===
+
+    [Fact]
+    public async Task LoadSymbolsAsync_WithTwoValidSymbols_ReturnsTrue()
+    {
+        // Arrange
+        var mock = new Mock<IGexDataService>();
+        mock.Setup(x => x.LoadSymbolAsync("SPY")).ReturnsAsync(CreateMockTimeline("SPY"));
+        mock.Setup(x => x.LoadSymbolAsync("QQQ")).ReturnsAsync(CreateMockTimeline("QQQ"));
+        var service = CreateService(mock);
+
+        // Act
+        var result = await service.LoadSymbolsAsync(new List<string> { "SPY", "QQQ" });
+
+        // Assert
+        result.Should().BeTrue();
+        service.LoadedAssets.Should().HaveCount(2);
+        service.LoadedAssets.Should().ContainKey("SPY");
+        service.LoadedAssets.Should().ContainKey("QQQ");
+        service.SelectedSymbols.Should().BeEquivalentTo(new[] { "SPY", "QQQ" });
+    }
+
+    [Fact]
+    public async Task LoadSymbolsAsync_WithFourValidSymbols_LoadsInParallel()
+    {
+        // Arrange
+        var mock = new Mock<IGexDataService>();
+        mock.Setup(x => x.LoadSymbolAsync("SPY")).ReturnsAsync(CreateMockTimeline("SPY"));
+        mock.Setup(x => x.LoadSymbolAsync("QQQ")).ReturnsAsync(CreateMockTimeline("QQQ"));
+        mock.Setup(x => x.LoadSymbolAsync("IWM")).ReturnsAsync(CreateMockTimeline("IWM"));
+        mock.Setup(x => x.LoadSymbolAsync("DIA")).ReturnsAsync(CreateMockTimeline("DIA"));
+        var service = CreateService(mock);
+
+        // Act
+        var result = await service.LoadSymbolsAsync(new List<string> { "SPY", "QQQ", "IWM", "DIA" });
+
+        // Assert
+        result.Should().BeTrue();
+        service.LoadedAssets.Should().HaveCount(4);
+        mock.Verify(x => x.LoadSymbolAsync(It.IsAny<string>()), Times.Exactly(4));
+    }
+
+    [Fact]
+    public async Task LoadSymbolsAsync_WithLessThanTwoSymbols_ThrowsException()
+    {
+        // Arrange
+        var service = CreateService();
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(
+            async () => await service.LoadSymbolsAsync(new List<string> { "SPY" }));
+    }
+
+    [Fact]
+    public async Task LoadSymbolsAsync_WithMoreThanFourSymbols_ThrowsException()
+    {
+        // Arrange
+        var service = CreateService();
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(
+            async () => await service.LoadSymbolsAsync(new List<string> { "SPY", "QQQ", "IWM", "DIA", "AAPL" }));
+    }
+
+    [Fact]
+    public async Task LoadSymbolsAsync_WithOneInvalidSymbol_ReturnsNull()
+    {
+        // Arrange
+        var mock = new Mock<IGexDataService>();
+        mock.Setup(x => x.LoadSymbolAsync("SPY")).ReturnsAsync(CreateMockTimeline("SPY"));
+        mock.Setup(x => x.LoadSymbolAsync("INVALID")).ReturnsAsync((GexTimeline?)null);
+        var service = CreateService(mock);
+
+        // Act
+        var result = await service.LoadSymbolsAsync(new List<string> { "SPY", "INVALID" });
+
+        // Assert
+        result.Should().BeFalse();
+        service.LoadedAssets.Should().HaveCount(1);
+        service.LoadedAssets.Should().ContainKey("SPY");
+        service.LoadedAssets.Should().NotContainKey("INVALID");
+    }
+
+    [Fact]
+    public async Task LoadSymbolsAsync_WithAllInvalidSymbols_ReturnsFalse()
+    {
+        // Arrange
+        var mock = new Mock<IGexDataService>();
+        mock.Setup(x => x.LoadSymbolAsync(It.IsAny<string>())).ReturnsAsync((GexTimeline?)null);
+        var service = CreateService(mock);
+
+        // Act
+        var result = await service.LoadSymbolsAsync(new List<string> { "INVALID1", "INVALID2" });
+
+        // Assert
+        result.Should().BeFalse();
+        service.LoadedAssets.Should().BeEmpty();
+        service.SelectedSymbols.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task LoadSymbolsAsync_WithPartialFailures_KeepsSuccessfulLoads()
+    {
+        // Arrange
+        var mock = new Mock<IGexDataService>();
+        mock.Setup(x => x.LoadSymbolAsync("SPY")).ReturnsAsync(CreateMockTimeline("SPY"));
+        mock.Setup(x => x.LoadSymbolAsync("QQQ")).ReturnsAsync(CreateMockTimeline("QQQ"));
+        mock.Setup(x => x.LoadSymbolAsync("INVALID")).ReturnsAsync((GexTimeline?)null);
+        var service = CreateService(mock);
+
+        // Act
+        var result = await service.LoadSymbolsAsync(new List<string> { "SPY", "QQQ", "INVALID" });
+
+        // Assert
+        result.Should().BeTrue(); // 2 succeeded, so returns true
+        service.LoadedAssets.Should().HaveCount(2);
+        service.LoadedAssets.Should().ContainKey("SPY");
+        service.LoadedAssets.Should().ContainKey("QQQ");
+        service.SelectedSymbols.Should().BeEquivalentTo(new[] { "SPY", "QQQ" });
+    }
+
+    [Fact]
+    public async Task LoadSymbolsAsync_WithExceptionDuringLoad_HandlesGracefully()
+    {
+        // Arrange
+        var mock = new Mock<IGexDataService>();
+        mock.Setup(x => x.LoadSymbolAsync("SPY")).ReturnsAsync(CreateMockTimeline("SPY"));
+        mock.Setup(x => x.LoadSymbolAsync("QQQ")).ThrowsAsync(new Exception("Network error"));
+        var service = CreateService(mock);
+
+        // Act
+        var result = await service.LoadSymbolsAsync(new List<string> { "SPY", "QQQ" });
+
+        // Assert
+        result.Should().BeFalse(); // Only 1 succeeded, needs 2
+        service.LoadedAssets.Should().HaveCount(1);
+        service.LoadedAssets.Should().ContainKey("SPY");
+        service.LoadedAssets.Should().NotContainKey("QQQ");
+    }
+
+    [Fact]
+    public async Task LoadSymbolsAsync_FiresOnSelectionChanged()
+    {
+        // Arrange
+        var mock = new Mock<IGexDataService>();
+        mock.Setup(x => x.LoadSymbolAsync("SPY")).ReturnsAsync(CreateMockTimeline("SPY"));
+        mock.Setup(x => x.LoadSymbolAsync("QQQ")).ReturnsAsync(CreateMockTimeline("QQQ"));
+        var service = CreateService(mock);
+        var eventFired = false;
+        service.OnSelectionChanged += () => eventFired = true;
+
+        // Act
+        await service.LoadSymbolsAsync(new List<string> { "SPY", "QQQ" });
+
+        // Assert
+        eventFired.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task LoadSymbolsAsync_ClearsPreviousState()
+    {
+        // Arrange
+        var mock = new Mock<IGexDataService>();
+        mock.Setup(x => x.LoadSymbolAsync(It.IsAny<string>())).ReturnsAsync((string s) => CreateMockTimeline(s));
+        var service = CreateService(mock);
+
+        // Load first set
+        await service.LoadSymbolsAsync(new List<string> { "SPY", "QQQ" });
+        service.LoadedAssets.Should().HaveCount(2);
+
+        // Act - Load second set
+        await service.LoadSymbolsAsync(new List<string> { "IWM", "DIA" });
+
+        // Assert
+        service.LoadedAssets.Should().HaveCount(2);
+        service.LoadedAssets.Should().ContainKey("IWM");
+        service.LoadedAssets.Should().ContainKey("DIA");
+        service.LoadedAssets.Should().NotContainKey("SPY");
+        service.LoadedAssets.Should().NotContainKey("QQQ");
     }
 }
