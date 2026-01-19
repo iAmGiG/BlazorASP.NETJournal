@@ -186,10 +186,10 @@ public class ComparisonAnalysisService
     {
         // Parse dates once upfront
         var transitions1 = regime1.Transitions
-            .Select(t => DateTime.Parse(t.Date))
+            .Select(t => DateOnly.Parse(t.Date))
             .ToList();
         var transitions2 = regime2.Transitions
-            .Select(t => DateTime.Parse(t.Date))
+            .Select(t => DateOnly.Parse(t.Date))
             .ToList();
 
         if (transitions1.Count == 0 && transitions2.Count == 0)
@@ -210,7 +210,7 @@ public class ComparisonAnalysisService
         {
             foreach (var t2 in transitions2)
             {
-                if (Math.Abs((t2 - t1).TotalDays) <= AppConstants.Correlation.RegimeFlipCorrelationWindow)
+                if (Math.Abs(t2.DayNumber - t1.DayNumber) <= AppConstants.Correlation.RegimeFlipCorrelationWindow)
                 {
                     correlatedFlips++;
                     break; // Count each t1 only once
@@ -277,15 +277,15 @@ public class ComparisonAnalysisService
     /// </summary>
     private DateRangeOverlap FindDateOverlap(GexTimeline t1, GexTimeline t2)
     {
-        var start1 = DateTime.Parse(t1.DateRange.Start);
-        var end1 = DateTime.Parse(t1.DateRange.End);
-        var start2 = DateTime.Parse(t2.DateRange.Start);
-        var end2 = DateTime.Parse(t2.DateRange.End);
+        var start1 = DateOnly.Parse(t1.DateRange.Start);
+        var end1 = DateOnly.Parse(t1.DateRange.End);
+        var start2 = DateOnly.Parse(t2.DateRange.Start);
+        var end2 = DateOnly.Parse(t2.DateRange.End);
 
         var overlapStart = start1 > start2 ? start1 : start2;
         var overlapEnd = end1 < end2 ? end1 : end2;
 
-        var totalDays = (overlapEnd - overlapStart).Days + 1;
+        var totalDays = (overlapEnd.DayNumber - overlapStart.DayNumber) + 1;
 
         return new DateRangeOverlap
         {
@@ -306,13 +306,13 @@ public class ComparisonAnalysisService
             return new DateRangeOverlap { Start = "", End = "", TotalDays = 0 };
         }
 
-        var starts = assets.Select(a => DateTime.Parse(a.Timeline.DateRange.Start)).ToList();
-        var ends = assets.Select(a => DateTime.Parse(a.Timeline.DateRange.End)).ToList();
+        var starts = assets.Select(a => DateOnly.Parse(a.Timeline.DateRange.Start)).ToList();
+        var ends = assets.Select(a => DateOnly.Parse(a.Timeline.DateRange.End)).ToList();
 
         var overlapStart = starts.Max();
         var overlapEnd = ends.Min();
 
-        var totalDays = (overlapEnd - overlapStart).Days + 1;
+        var totalDays = (overlapEnd.DayNumber - overlapStart.DayNumber) + 1;
 
         return new DateRangeOverlap
         {
@@ -324,14 +324,19 @@ public class ComparisonAnalysisService
 
     /// <summary>
     /// Filter timeline data to specified date range.
-    /// Uses string.Compare for date filtering - requires dates in AppConstants.DataFormat.DateFormat (yyyy-MM-dd) format.
-    /// String comparison works correctly only because ISO 8601 format (yyyy-MM-dd) is lexicographically sortable.
+    /// Uses DateOnly for robust date filtering, independent of string format.
     /// </summary>
     private List<GexDataPoint> FilterByDateRange(List<GexDataPoint> timeline, DateRangeOverlap range)
     {
+        if (!DateOnly.TryParse(range.Start, out var startDate) ||
+            !DateOnly.TryParse(range.End, out var endDate))
+        {
+            return new List<GexDataPoint>();
+        }
+
         return timeline
-            .Where(d => string.Compare(d.Date, range.Start) >= 0 &&
-                       string.Compare(d.Date, range.End) <= 0)
+            .Where(d => DateOnly.TryParse(d.Date, out var date) &&
+                       date >= startDate && date <= endDate)
             .ToList();
     }
 
