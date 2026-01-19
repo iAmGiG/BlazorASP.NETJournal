@@ -96,7 +96,53 @@ profitable outcomes).
 
 ---
 
-## Phase 3: Cross-Asset Generalization
+## Phase 3: Intraday Dynamics — The Scar Tissue Hypothesis
+
+### The Paradox
+
+> How do 0DTE options (< 24 hours lifespan) create persistent multi-month regimes?
+
+### Scar Tissue Mechanism
+
+```
+09:45 AM │ Opening Flurry
+         │ Establish initial dealer inventory
+         ↓
+12:00 PM │ Midday Pivot
+         │ Theta decay accelerates, gamma adjustments
+         ↓
+03:00 PM │ Gamma Trap
+         │ ATM gamma explodes, hyper-active hedging
+         ↓
+04:00 PM │ Expiry Discontinuity
+         │ 0DTE gamma vanishes INSTANTLY
+         │ Delta hedge (stock/futures) REMAINS
+         ↓
+OVERNIGHT │ Residual Inventory
+         │ "Toxic flow" carried overnight
+         │ Cannot liquidate without slippage
+         ↓
+NEXT DAY │ Structural Persistence
+         │ "Scar tissue" dictates opening price
+         │ Links independent 0DTE cycles
+```
+
+### Intraday Experiments
+
+| Experiment | Description | Success Metric |
+|------------|-------------|----------------|
+| Intraday Flip Detection | Predict 4PM state from 9:45AM data | Accuracy vs baseline |
+| Volume vs. OI | A/B test flow vs. structure predictive power | Correlation strength |
+| Gamma Wall Validation | LLM identifies resistance levels | Price reversal frequency |
+
+### Supplementary Signals
+
+- **SABR Parameters**: ρ (spot-vol correlation), ν (vol-of-vol)
+- **GAMMA-SVIX Divergence**: Historical correlation -0.89; divergence = regime shift
+
+---
+
+## Phase 4: Cross-Asset Generalization
 
 ### The Divergence Problem
 
@@ -143,9 +189,9 @@ GameStop (2021) demonstrated intentional exploitation of dealer mechanics:
 
 ---
 
-## Phase 4: Intraday Dynamics — The Scar Tissue Hypothesis
+## Phase 5: Agent-Based Simulation
 
-### The Paradox
+### Neuro-Symbolic Architecture
 
 > How do 0DTE options (< 24 hours lifespan) create persistent multi-month regimes?
 
@@ -188,8 +234,6 @@ NEXT DAY │ Structural Persistence
 - **GAMMA-SVIX Divergence**: Historical correlation -0.89; divergence = regime shift
 
 ---
-
-## Phase 5: Agent-Based Simulation
 
 ### Neuro-Symbolic Architecture
 
@@ -323,9 +367,9 @@ Phase 1: Can AI see the wall?
          ↓ (Validated)
 Phase 2: Can AI see the wall evolving?
          ↓ (In Progress)
-Phase 3: Can AI see walls across assets?
+Phase 3: Can AI see intraday wall dynamics?
          ↓ (Proposed)
-Phase 4: Can AI see intraday wall dynamics?
+Phase 4: Can AI see walls across assets?
          ↓ (Proposed)
 Phase 5: Can AI simulate wall formation?
          ↓ (Proposed)

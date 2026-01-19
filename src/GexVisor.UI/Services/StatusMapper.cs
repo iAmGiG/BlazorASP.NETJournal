@@ -57,6 +57,25 @@ public class StatusMapper
     };
 
     /// <summary>
+    /// Pre-normalized patterns with hyphens/underscores replaced with spaces.
+    /// Avoids repeated regex operations in hot path.
+    /// </summary>
+    private static readonly Dictionary<string, (string Pattern, string NormalizedPattern)[]> NormalizedDefaultPatterns;
+
+    static StatusMapper()
+    {
+        // Pre-normalize all patterns to avoid repeated regex operations
+        NormalizedDefaultPatterns = new Dictionary<string, (string, string)[]>();
+
+        foreach (var (status, patterns) in DefaultInferenceRules)
+        {
+            NormalizedDefaultPatterns[status] = patterns
+                .Select(p => (p, HyphenUnderscoreNormalizer.Replace(p, " ")))
+                .ToArray();
+        }
+    }
+
+    /// <summary>
     /// Custom per-project mappings (projectId -> rawStatus -> normalizedStatus).
     /// </summary>
     private Dictionary<string, Dictionary<string, string>> _customMappings = new();
@@ -112,9 +131,9 @@ public class StatusMapper
         // Normalize once before loop to avoid repeated regex operations
         var normalizedText = HyphenUnderscoreNormalizer.Replace(lower, " ");
 
-        foreach (var (normalizedStatus, patterns) in DefaultInferenceRules)
+        foreach (var (normalizedStatus, patterns) in NormalizedDefaultPatterns)
         {
-            foreach (var pattern in patterns)
+            foreach (var (pattern, normalizedPattern) in patterns)
             {
                 // Exact match has highest priority
                 if (lower == pattern)
@@ -123,7 +142,7 @@ public class StatusMapper
                 }
 
                 // Word boundary match: pattern must be complete word or phrase
-                if (MatchesWithWordBoundary(normalizedText, pattern))
+                if (MatchesWithWordBoundary(normalizedText, normalizedPattern))
                 {
                     return normalizedStatus;
                 }
@@ -140,14 +159,11 @@ public class StatusMapper
     /// - "not started" contains "started" but MatchesWithWordBoundary returns false
     /// - "in progress" contains "progress" but MatchesWithWordBoundary returns false
     /// - "in-progress" matches "in progress" by normalizing hyphens/spaces
-    /// Optimized to use compiled regex and avoid allocations in hot path.
-    /// Expects normalizedText to already have hyphens/underscores replaced with spaces.
+    /// Optimized to use pre-normalized patterns to avoid allocations in hot path.
+    /// Expects both normalizedText and normalizedPattern to have hyphens/underscores replaced with spaces.
     /// </summary>
-    private bool MatchesWithWordBoundary(string normalizedText, string pattern)
+    private bool MatchesWithWordBoundary(string normalizedText, string normalizedPattern)
     {
-        // Normalize pattern (text is already normalized by caller)
-        var normalizedPattern = HyphenUnderscoreNormalizer.Replace(pattern, " ");
-
         // Simple word boundary check: pattern must be surrounded by word boundaries
         // More efficient than Regex for most cases
         var patternIndex = normalizedText.IndexOf(normalizedPattern, StringComparison.Ordinal);
@@ -186,15 +202,15 @@ public class StatusMapper
         // Normalize once before loop to avoid repeated regex operations
         var normalizedText = HyphenUnderscoreNormalizer.Replace(lower, " ");
 
-        foreach (var (normalizedStatus, patterns) in DefaultInferenceRules)
+        foreach (var (normalizedStatus, patterns) in NormalizedDefaultPatterns)
         {
-            foreach (var pattern in patterns)
+            foreach (var (pattern, normalizedPattern) in patterns)
             {
                 if (lower == pattern)
                 {
                     return (normalizedStatus, true, false);
                 }
-                if (MatchesWithWordBoundary(normalizedText, pattern))
+                if (MatchesWithWordBoundary(normalizedText, normalizedPattern))
                 {
                     return (normalizedStatus, false, false);
                 }

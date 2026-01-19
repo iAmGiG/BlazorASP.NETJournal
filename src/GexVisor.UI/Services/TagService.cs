@@ -108,6 +108,7 @@ public class TagService
 
     /// <summary>
     /// Get tag suggestions based on partial input.
+    /// Normalizes input to handle space/hyphen variations (e.g., "gamma f" matches "gamma-flip").
     /// </summary>
     public IEnumerable<string> GetSuggestions(string partial)
     {
@@ -116,9 +117,12 @@ public class TagService
             return AllTags.Take(10);
         }
 
+        // Normalize input to handle space/hyphen mismatches
+        var normalized = NormalizeTag(partial);
+
         return AllTags
-            .Where(t => t.Contains(partial, StringComparison.OrdinalIgnoreCase))
-            .OrderBy(t => !t.StartsWith(partial, StringComparison.OrdinalIgnoreCase))
+            .Where(t => t.Contains(normalized, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(t => !t.StartsWith(normalized, StringComparison.OrdinalIgnoreCase))
             .ThenBy(t => t)
             .Take(10);
     }
