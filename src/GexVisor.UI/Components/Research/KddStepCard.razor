@@ -1,0 +1,13 @@
+@namespace GexVisor.UI.Components.Research
+
+<div class="kdd-step @(Active ? "active" : "")" @onclick="OnClick">
+    <div class="step-num">Step @Number</div>
+    <div class="step-name">@Name</div>
+</div>
+
+@code {
+    [Parameter] public int Number { get; set; }
+    [Parameter] public string Name { get; set; } = "";
+    [Parameter] public bool Active { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+}

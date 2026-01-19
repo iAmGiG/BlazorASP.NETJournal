@@ -1,0 +1,29 @@
+@namespace GexVisor.UI.Components.Research
+
+<div class="technique-card @(Active ? "active" : "")" @onclick="OnClick">
+    <div class="technique-header">
+        <div class="technique-icon @IconClass">@Icon</div>
+        <div>
+            <div class="technique-title">@Title</div>
+            <div class="technique-subtitle">@Subtitle</div>
+        </div>
+    </div>
+    <div class="technique-question">
+        <div class="label">Pattern Question</div>
+        <div class="text">"@Question"</div>
+    </div>
+    <div class="technique-example">
+        <strong>Example:</strong> @Example
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Icon { get; set; } = "";
+    [Parameter] public string IconClass { get; set; } = "";
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Subtitle { get; set; } = "";
+    [Parameter] public string Question { get; set; } = "";
+    [Parameter] public string Example { get; set; } = "";
+    [Parameter] public bool Active { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+}

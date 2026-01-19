@@ -1,0 +1,344 @@
+.patterns-page {
+    min-height: 100vh;
+}
+
+.patterns-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-panel);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.patterns-header h1 {
+    font-size: 1.8rem;
+    color: var(--accent-blue);
+    margin: 0;
+}
+
+.subtitle {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+.patterns-content {
+    padding: 20px;
+    max-width: 1300px;
+    margin: 0 auto;
+}
+
+/* Key Question Box */
+.key-question {
+    background: linear-gradient(135deg, #238636 0%, #2ea043 100%);
+    border-radius: 8px;
+    padding: 16px 24px;
+    text-align: center;
+    margin: 20px auto;
+    max-width: 700px;
+}
+
+.key-question .label {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+}
+
+.key-question .question {
+    font-size: 1.1rem;
+    color: #fff;
+    font-weight: 600;
+}
+
+/* VS Box */
+.vs-box {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 20px 0 30px 0;
+    flex-wrap: wrap;
+}
+
+.vs-item {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 12px 20px;
+    text-align: center;
+    min-width: 280px;
+}
+
+.vs-item.highlight {
+    border-color: var(--accent-green);
+    background: rgba(0, 200, 83, 0.1);
+}
+
+.vs-item.dimmed {
+    opacity: 0.6;
+}
+
+.vs-item .title {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+}
+
+.vs-item .desc {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+/* Section Title */
+.section-title {
+    font-size: 1.1rem;
+    color: var(--accent-blue);
+    margin: 40px 0 20px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* KDD Flow */
+.kdd-flow {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin: 30px 0;
+    flex-wrap: wrap;
+    padding: 20px;
+    background: var(--bg-panel);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.kdd-arrow {
+    color: var(--text-muted);
+    font-size: 1.2rem;
+}
+
+/* Techniques Grid */
+.techniques-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+/* Detail Cards (inside DetailPanel) */
+::deep .detail-card {
+    background: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 16px;
+}
+
+::deep .detail-card h4 {
+    color: var(--accent-green);
+    margin: 0 0 12px 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+::deep .detail-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+::deep .detail-card li {
+    padding: 6px 0;
+    border-bottom: 1px solid var(--bg-panel);
+}
+
+::deep .detail-card li:last-child {
+    border-bottom: none;
+}
+
+.concept-tag {
+    background: rgba(41, 98, 255, 0.15);
+    color: var(--accent-blue);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.65rem;
+    margin-left: 6px;
+}
+
+/* Pattern Examples Section */
+.pattern-examples {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 30px;
+}
+
+.pattern-examples.taxonomy {
+    border-left: 3px solid var(--accent-red);
+}
+
+.pattern-examples h3 {
+    color: var(--text-primary);
+    font-size: 1rem;
+    margin: 0 0 16px 0;
+}
+
+.section-desc {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+}
+
+.pattern-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 12px;
+}
+
+.pattern-item {
+    background: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 14px;
+}
+
+.pattern-item.structural {
+    border-left: 3px solid var(--accent-green);
+}
+
+.pattern-item.statistical {
+    border-left: 3px solid #f0883e;
+    opacity: 0.8;
+}
+
+.pattern-item.narrative {
+    border-left: 3px solid var(--accent-red);
+    opacity: 0.7;
+}
+
+.pattern-type {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.pattern-type.green { color: var(--accent-green); }
+.pattern-type.orange { color: #f0883e; }
+.pattern-type.red { color: var(--accent-red); }
+
+.pattern-desc {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+}
+
+.pattern-example {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-bottom: 8px;
+}
+
+.pattern-metrics {
+    display: flex;
+    gap: 8px;
+    font-size: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.pattern-metrics span {
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.pattern-metrics .success {
+    background: #238636;
+    color: white;
+}
+
+.pattern-metrics .warning {
+    background: #9e6a03;
+    color: white;
+}
+
+.pattern-metrics .danger {
+    background: #da3633;
+    color: white;
+}
+
+/* Discussion Box */
+.discussion-box {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-left: 3px solid var(--accent-purple);
+    border-radius: 6px;
+    padding: 20px;
+    margin-top: 30px;
+}
+
+.discussion-box h3 {
+    color: var(--accent-purple);
+    font-size: 0.95rem;
+    margin: 0 0 12px 0;
+}
+
+.discussion-box ul {
+    color: var(--text-muted);
+    margin: 0 0 0 20px;
+    padding: 0;
+    font-size: 0.85rem;
+}
+
+.discussion-box li {
+    margin: 8px 0;
+}
+
+/* Footer */
+.patterns-footer {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .kdd-flow {
+        flex-direction: column;
+    }
+
+    .kdd-arrow {
+        transform: rotate(90deg);
+    }
+
+    .vs-box {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .vs-item {
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .pattern-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .techniques-grid {
+        grid-template-columns: 1fr;
+    }
+}

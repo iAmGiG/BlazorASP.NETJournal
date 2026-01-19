@@ -1,0 +1,84 @@
+.technique-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.technique-card:hover {
+    border-color: var(--text-muted);
+    transform: translateY(-2px);
+}
+
+.technique-card.active {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 20px rgba(41, 98, 255, 0.15);
+}
+
+.technique-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.technique-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.technique-icon.assoc { background: rgba(255, 123, 114, 0.2); }
+.technique-icon.cluster { background: rgba(165, 214, 255, 0.2); }
+.technique-icon.class { background: rgba(127, 186, 122, 0.2); }
+.technique-icon.anomaly { background: rgba(255, 203, 107, 0.2); }
+.technique-icon.dim { background: rgba(203, 166, 247, 0.2); }
+.technique-icon.text { background: rgba(125, 211, 252, 0.2); }
+
+.technique-title {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.technique-subtitle {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.technique-question {
+    background: var(--bg-dark);
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    border-left: 3px solid var(--accent-green);
+}
+
+.technique-question .label {
+    font-size: 0.65rem;
+    color: var(--accent-green);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.technique-question .text {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-style: italic;
+}
+
+.technique-example {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.technique-example strong {
+    color: var(--text-secondary);
+}

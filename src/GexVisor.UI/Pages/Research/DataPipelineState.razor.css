@@ -1,0 +1,316 @@
+.pipeline-page {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.pipeline-header {
+    margin-bottom: 30px;
+}
+
+.header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.pipeline-header h1 {
+    font-size: 1.8rem;
+    color: var(--accent-blue);
+    margin: 0;
+}
+
+.subtitle {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+/* Legend */
+.legend {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+}
+
+.legend-color.source { background: var(--accent-red); }
+.legend-color.process { background: var(--accent-blue); }
+.legend-color.storage { background: var(--accent-green); }
+.legend-color.output { background: var(--accent-purple); }
+
+.hint {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-bottom: 20px;
+    font-style: italic;
+}
+
+/* State Diagram */
+.state-diagram {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    padding: 20px;
+}
+
+.state-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
+}
+
+.parallel-states {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.state {
+    background: var(--bg-panel);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px 24px;
+    min-width: 200px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.state:hover {
+    border-color: var(--accent-blue);
+    background: var(--bg-card);
+}
+
+.state.active {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 20px rgba(41, 98, 255, 0.2);
+}
+
+.state.source { border-left: 4px solid var(--accent-red); }
+.state.storage { border-left: 4px solid var(--accent-green); }
+.state.process { border-left: 4px solid var(--accent-blue); }
+.state.output { border-left: 4px solid var(--accent-purple); }
+
+.state-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+}
+
+.state-type {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Arrows */
+.arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--text-muted);
+    padding: 8px 0;
+}
+
+.arrow-line {
+    width: 2px;
+    height: 30px;
+    background: var(--border-color);
+}
+
+.arrow-head {
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 8px solid var(--border-color);
+}
+
+.arrow-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+    font-style: italic;
+}
+
+/* Detail Cards (inside DetailPanel) */
+::deep .detail-card {
+    background: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 16px;
+}
+
+::deep .detail-card h4 {
+    color: var(--accent-green);
+    margin-bottom: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+::deep .detail-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+::deep .detail-card li {
+    padding: 6px 0;
+    border-bottom: 1px solid var(--bg-panel);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+::deep .detail-card li:last-child {
+    border-bottom: none;
+}
+
+::deep .detail-card li::before {
+    content: ">";
+    color: var(--text-muted);
+    font-family: monospace;
+    opacity: 0.5;
+}
+
+.concept-tag {
+    background: rgba(41, 98, 255, 0.15);
+    color: var(--accent-blue);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.65rem;
+    margin-left: auto;
+}
+
+/* Concepts Section */
+.section-title {
+    font-size: 1.1rem;
+    color: var(--accent-blue);
+    margin: 40px 0 20px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.concepts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.concept-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    transition: border-color 0.2s ease;
+}
+
+.concept-card:hover {
+    border-color: var(--text-muted);
+}
+
+.concept-card h3 {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    margin: 0 0 10px 0;
+}
+
+.concept-card p {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.code-example {
+    background: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    padding: 12px;
+    border-radius: 6px;
+    margin-top: 12px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.75rem;
+    color: var(--accent-green);
+    overflow-x: auto;
+    white-space: pre;
+}
+
+/* Discussion Box */
+.discussion-box {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-left: 3px solid var(--accent-purple);
+    border-radius: 6px;
+    padding: 20px;
+    margin-top: 30px;
+}
+
+.discussion-box h3 {
+    color: var(--accent-purple);
+    font-size: 0.95rem;
+    margin: 0 0 12px 0;
+}
+
+.discussion-box ul {
+    color: var(--text-muted);
+    margin: 0 0 0 20px;
+    padding: 0;
+    font-size: 0.85rem;
+}
+
+.discussion-box li {
+    margin: 8px 0;
+}
+
+/* Footer */
+.pipeline-footer {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .parallel-states {
+        flex-direction: column;
+    }
+
+    .state {
+        min-width: 180px;
+        padding: 12px 16px;
+    }
+
+    .concepts-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .legend {
+        gap: 12px;
+    }
+}
