@@ -54,8 +54,14 @@ dotnet build
 1. Run the application:
 
 ```bash
-dotnet run
+# Run Blazor WebAssembly app (UI only - uses static demo data)
+dotnet run --project src/GexVisor.UI
+
+# OR run the full application with API backend
+dotnet run --project src/GexVisor.Api
 ```
+
+The application will be available at `https://localhost:5001` (or the port shown in the console output).
 
 ## Project Structure
 
@@ -63,11 +69,15 @@ dotnet run
 GexVisor/
 ├── src/                          # Source code
 │   ├── GexVisor.UI/              # Blazor WebAssembly UI
-│   └── GexVisor.Core/            # Core models and business logic
+│   ├── GexVisor.Core/            # Core models and business logic
+│   └── GexVisor.Api/             # ASP.NET Core API backend
+├── tests/                        # Unit and integration tests
+│   ├── GexVisor.UI.Tests/        # UI component and service tests
+│   └── GexVisor.Core.Tests/      # Core business logic tests
 ├── docs/                         # Documentation
 │   ├── research-visuals/         # Interactive research visualizations
 │   └── research-archive/         # Historical research materials
-├── tests/                        # Unit and integration tests
+├── .claude/                      # Claude working notes (not committed)
 ├── .editorconfig                 # Code style settings
 ├── .pre-commit-config.yaml       # Git hooks configuration
 ├── GexVisor.NET.sln              # Solution file
@@ -92,15 +102,23 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed development instructions.
 ### Building and Testing
 
 ```bash
-# Run tests
+# Run all tests
 dotnet test
 
-# Run specific test file
-dotnet test tests/MyProject.Tests.csproj
+# Run specific test project
+dotnet test tests/GexVisor.Core.Tests      # Core business logic tests (17 tests)
+dotnet test tests/GexVisor.UI.Tests        # UI component tests (44 tests)
 
 # Build for release
 dotnet build --configuration Release
+
+# Watch mode for development
+dotnet watch --project src/GexVisor.UI
 ```
+
+**Test Coverage:**
+- **Core Tests** (17): JournalFramework, OptionsLog P&L calculations
+- **UI Tests** (44): Services, components, caching optimizations
 
 ### Git Workflow
 
@@ -137,17 +155,25 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for commit message guidelines.
 - [x] Paper Trading Journal - track theoretical trades (#65)
 - [x] Backtest Results Tracker with comparison (#67)
 - [x] Research Task Board - Kanban-style task management (#68)
+- [x] GitHub Projects integration - Kanban board sync (#69-73)
 - [x] Accessibility improvements - ARIA labels (#35)
 - [x] UI consistency - unified patterns across all pages
+- [x] Mobile responsive layout (#32)
+- [x] CSS migration to shared variables (#17)
+- [x] GitVersion semantic versioning (#10)
+- [x] Pattern validation progress tracker (#78)
+- [x] Regime transition timeline (#79)
+- [x] DateOnly type migration (#90)
+- [x] OptionsLog P&L bug fix (#91)
 
 ### In Progress
+- [ ] OptionsLog unit tests (#93)
 - [ ] SQLite WASM integration (#18) - research complete, awaiting database
 
 ### Planned
-- [ ] Mobile responsive layout (#32)
-- [ ] CSS migration to shared variables (#17)
+- [ ] DateRange DateOnly refactoring (#94)
+- [ ] StatusMapper pattern optimization (#95)
 - [ ] Add SQLite database as static asset (#11)
-- [ ] Versioning strategy (#10)
 
 ## Research Visualizations
 
