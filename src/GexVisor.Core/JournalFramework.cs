@@ -141,6 +141,7 @@ namespace GexVisor.Core
         /// Returns null if trade is not yet closed (ExitPrice is null).
         /// For options: P&L = (ExitPrice - EntryPrice) * Quantity * ContractMultiplier * directionMultiplier
         /// Note: Quantity (inherited) represents the number of contracts.
+        /// BTO/STC are long positions (profit when price rises), STO/BTC are short positions (profit when price falls).
         /// </summary>
         public override decimal? CalculatePnL()
         {
@@ -148,7 +149,7 @@ namespace GexVisor.Core
                 return null;
 
             var priceDelta = ExitPrice.Value - EntryPrice;
-            var directionMultiplier = (OptionTradeType == TradeType.BTO || OptionTradeType == TradeType.BTC) ? 1 : -1;
+            var directionMultiplier = (OptionTradeType == TradeType.BTO || OptionTradeType == TradeType.STC) ? 1 : -1;
 
             return priceDelta * Quantity * ContractMultiplier * directionMultiplier;
         }
