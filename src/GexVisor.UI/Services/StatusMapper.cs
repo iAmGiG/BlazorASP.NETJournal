@@ -109,6 +109,8 @@ public class StatusMapper
     public string InferStatus(string rawStatus)
     {
         var lower = rawStatus.ToLowerInvariant().Trim();
+        // Normalize once before loop to avoid repeated regex operations
+        var normalizedText = HyphenUnderscoreNormalizer.Replace(lower, " ");
 
         foreach (var (normalizedStatus, patterns) in DefaultInferenceRules)
         {
@@ -121,7 +123,7 @@ public class StatusMapper
                 }
 
                 // Word boundary match: pattern must be complete word or phrase
-                if (MatchesWithWordBoundary(lower, pattern))
+                if (MatchesWithWordBoundary(normalizedText, pattern))
                 {
                     return normalizedStatus;
                 }
@@ -139,11 +141,11 @@ public class StatusMapper
     /// - "in progress" contains "progress" but MatchesWithWordBoundary returns false
     /// - "in-progress" matches "in progress" by normalizing hyphens/spaces
     /// Optimized to use compiled regex and avoid allocations in hot path.
+    /// Expects normalizedText to already have hyphens/underscores replaced with spaces.
     /// </summary>
-    private bool MatchesWithWordBoundary(string text, string pattern)
+    private bool MatchesWithWordBoundary(string normalizedText, string pattern)
     {
-        // Normalize hyphens and underscores to spaces for flexible matching
-        var normalizedText = HyphenUnderscoreNormalizer.Replace(text, " ");
+        // Normalize pattern (text is already normalized by caller)
         var normalizedPattern = HyphenUnderscoreNormalizer.Replace(pattern, " ");
 
         // Simple word boundary check: pattern must be surrounded by word boundaries
@@ -181,6 +183,8 @@ public class StatusMapper
 
         // Check inference rules
         var lower = rawStatus.ToLowerInvariant().Trim();
+        // Normalize once before loop to avoid repeated regex operations
+        var normalizedText = HyphenUnderscoreNormalizer.Replace(lower, " ");
 
         foreach (var (normalizedStatus, patterns) in DefaultInferenceRules)
         {
@@ -190,7 +194,7 @@ public class StatusMapper
                 {
                     return (normalizedStatus, true, false);
                 }
-                if (MatchesWithWordBoundary(lower, pattern))
+                if (MatchesWithWordBoundary(normalizedText, pattern))
                 {
                     return (normalizedStatus, false, false);
                 }

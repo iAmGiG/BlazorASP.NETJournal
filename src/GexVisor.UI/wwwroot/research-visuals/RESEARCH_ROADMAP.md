@@ -143,7 +143,7 @@ GameStop (2021) demonstrated intentional exploitation of dealer mechanics:
 
 ---
 
-## Phase 3: Intraday Dynamics — The Scar Tissue Hypothesis
+## Phase 4: Intraday Dynamics — The Scar Tissue Hypothesis
 
 ### The Paradox
 
@@ -189,7 +189,7 @@ NEXT DAY │ Structural Persistence
 
 ---
 
-## Phase 4: Agent-Based Simulation
+## Phase 5: Agent-Based Simulation
 
 ### Neuro-Symbolic Architecture
 
@@ -226,7 +226,7 @@ Key experiment: Run simulation WITH and WITHOUT "Market Maker Inventory Constrai
 
 ---
 
-## Phase 4: Network Effects — GNN Contagion
+## Phase 6: Network Effects — GNN Contagion
 
 ### The Network Problem
 
@@ -316,7 +316,7 @@ By anchoring reasoning to option math (verifiable ground truth), we:
 - Create template for other critical applications
 - Build confidence in abstract risk reasoning
 
-### Roadmap to Phase 3+
+### Roadmap to Phase 6+
 
 ```
 Phase 1: Can AI see the wall?
@@ -325,9 +325,13 @@ Phase 2: Can AI see the wall evolving?
          ↓ (In Progress)
 Phase 3: Can AI see walls across assets?
          ↓ (Proposed)
-Phase 4: Can AI simulate wall formation?
+Phase 4: Can AI see intraday wall dynamics?
          ↓ (Proposed)
-Phase 5: Can AI integrate news + structure?
+Phase 5: Can AI simulate wall formation?
+         ↓ (Proposed)
+Phase 6: Can AI model network contagion?
+         ↓ (Proposed)
+Phase 7: Can AI integrate news + structure?
          (Future: Cross-Modal Reasoning)
 ```
 
