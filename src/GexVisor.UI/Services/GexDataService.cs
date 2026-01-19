@@ -104,7 +104,11 @@ public class GexDataService : IGexDataService
         {
             Symbol = raw.Symbol,
             AssetClass = raw.AssetClass,
-            DateRange = new DateRange { Start = raw.DateRange.Start, End = raw.DateRange.End },
+            DateRange = new DateRange
+            {
+                Start = DateOnly.Parse(raw.DateRange.Start),
+                End = DateOnly.Parse(raw.DateRange.End)
+            },
             Count = raw.Count,
             Timeline = timeline
         };
