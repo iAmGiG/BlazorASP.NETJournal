@@ -1,4 +1,5 @@
 using System.Timers;
+using GexVisor.UI.Configuration;
 using GexVisor.UI.Models;
 
 namespace GexVisor.UI.Services;
@@ -79,7 +80,7 @@ public class GexStateService : IDisposable
 
         return new GexDataPoint
         {
-            Date = date,
+            Date = DateOnly.Parse(date),
             Price = price,
             Gex = oi * (1 + tilt),
             CallGex = oi * 0.6m,
@@ -384,8 +385,8 @@ public class GexStateService : IDisposable
             AssetClass = "Index",
             DateRange = new DateRange
             {
-                Start = _timeline.First().Date,
-                End = _timeline.Last().Date
+                Start = _timeline.First().Date.ToString(AppConstants.DataFormat.DateFormat),
+                End = _timeline.Last().Date.ToString(AppConstants.DataFormat.DateFormat)
             },
             Count = _timeline.Count,
             Timeline = _timeline

@@ -1,3 +1,4 @@
+@using GexVisor.UI.Configuration
 @using GexVisor.UI.Models
 @using GexVisor.UI.Services
 @inject GexStateService StateService
@@ -85,7 +86,7 @@
         {
             var point = StateService.State.CurrentDataPoint;
             if (point == null) return "----";
-            return point.Date.Split('-')[0];
+            return point.Date.ToString(AppConstants.DataFormat.DateFormat).Split('-')[0];
         }
     }
 
@@ -116,7 +117,7 @@
     private string GetFilename(string suffix)
     {
         var symbol = SymbolLabel;
-        var date = StateService.State.CurrentDataPoint?.Date ?? "unknown";
+        var date = StateService.State.CurrentDataPoint?.Date.ToString(AppConstants.DataFormat.DateFormat) ?? "unknown";
         return $"gex-{symbol}-{date}-{suffix}.png";
     }
 

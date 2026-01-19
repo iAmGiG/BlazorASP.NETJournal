@@ -184,13 +184,9 @@ public class ComparisonAnalysisService
         RegimeAnalysisSummary regime1,
         RegimeAnalysisSummary regime2)
     {
-        // Parse dates once upfront
-        var transitions1 = regime1.Transitions
-            .Select(t => DateOnly.Parse(t.Date))
-            .ToList();
-        var transitions2 = regime2.Transitions
-            .Select(t => DateOnly.Parse(t.Date))
-            .ToList();
+        // RegimeTransition.Date is now DateOnly - no parsing needed
+        var transitions1 = regime1.Transitions.Select(t => t.Date).ToList();
+        var transitions2 = regime2.Transitions.Select(t => t.Date).ToList();
 
         if (transitions1.Count == 0 && transitions2.Count == 0)
         {
@@ -289,8 +285,8 @@ public class ComparisonAnalysisService
 
         return new DateRangeOverlap
         {
-            Start = overlapStart.ToString(AppConstants.DataFormat.DateFormat),
-            End = overlapEnd.ToString(AppConstants.DataFormat.DateFormat),
+            Start = overlapStart,
+            End = overlapEnd,
             TotalDays = totalDays
         };
     }
@@ -303,7 +299,7 @@ public class ComparisonAnalysisService
     {
         if (assets.Count == 0)
         {
-            return new DateRangeOverlap { Start = "", End = "", TotalDays = 0 };
+            return new DateRangeOverlap { Start = DateOnly.MinValue, End = DateOnly.MinValue, TotalDays = 0 };
         }
 
         var starts = assets.Select(a => DateOnly.Parse(a.Timeline.DateRange.Start)).ToList();
@@ -316,27 +312,20 @@ public class ComparisonAnalysisService
 
         return new DateRangeOverlap
         {
-            Start = overlapStart.ToString(AppConstants.DataFormat.DateFormat),
-            End = overlapEnd.ToString(AppConstants.DataFormat.DateFormat),
+            Start = overlapStart,
+            End = overlapEnd,
             TotalDays = Math.Max(0, totalDays)
         };
     }
 
     /// <summary>
     /// Filter timeline data to specified date range.
-    /// Uses DateOnly for robust date filtering, independent of string format.
+    /// GexDataPoint.Date is now DateOnly, enabling direct type-safe comparisons.
     /// </summary>
     private List<GexDataPoint> FilterByDateRange(List<GexDataPoint> timeline, DateRangeOverlap range)
     {
-        if (!DateOnly.TryParse(range.Start, out var startDate) ||
-            !DateOnly.TryParse(range.End, out var endDate))
-        {
-            return new List<GexDataPoint>();
-        }
-
         return timeline
-            .Where(d => DateOnly.TryParse(d.Date, out var date) &&
-                       date >= startDate && date <= endDate)
+            .Where(d => d.Date >= range.Start && d.Date <= range.End)
             .ToList();
     }
 

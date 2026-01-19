@@ -5,7 +5,7 @@ namespace GexVisor.UI.Models;
 /// </summary>
 public record GexDataPoint
 {
-    public required string Date { get; init; }
+    public required DateOnly Date { get; init; }
     public required decimal Price { get; init; }
     public required decimal Gex { get; init; }
     public required decimal CallGex { get; init; }

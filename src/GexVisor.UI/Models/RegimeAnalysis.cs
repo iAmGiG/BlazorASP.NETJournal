@@ -6,8 +6,8 @@ namespace GexVisor.UI.Models;
 /// </summary>
 public record RegimeSegment
 {
-    public required string StartDate { get; init; }
-    public required string EndDate { get; init; }
+    public required DateOnly StartDate { get; init; }
+    public required DateOnly EndDate { get; init; }
     public required GammaRegime Regime { get; init; }
     public required int DurationDays { get; init; }
 
@@ -31,7 +31,7 @@ public record RegimeSegment
 /// </summary>
 public record RegimeTransition
 {
-    public required string Date { get; init; }
+    public required DateOnly Date { get; init; }
     public required GammaRegime FromRegime { get; init; }
     public required GammaRegime ToRegime { get; init; }
     public decimal GexAtTransition { get; init; }

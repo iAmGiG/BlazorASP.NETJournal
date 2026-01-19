@@ -162,18 +162,14 @@
         StateService.SetCurrentIndex(idx);
     }
 
-    private static string FormatDate(string dateStr)
+    private static string FormatDate(DateOnly date)
     {
-        if (DateTime.TryParse(dateStr, out var date))
-            return date.ToString("MMM d, yyyy");
-        return dateStr;
+        return date.ToString("MMM d, yyyy");
     }
 
-    private static string FormatShortDate(string dateStr)
+    private static string FormatShortDate(DateOnly date)
     {
-        if (DateTime.TryParse(dateStr, out var date))
-            return date.ToString("MMM yyyy");
-        return dateStr;
+        return date.ToString("MMM yyyy");
     }
 
     protected override void OnInitialized()

@@ -1,4 +1,5 @@
 @namespace GexVisor.UI.Components.Gex
+@using GexVisor.UI.Configuration
 @using GexVisor.UI.Models
 @using GexVisor.UI.Services
 @inject AnnotationService AnnotationService
@@ -229,7 +230,7 @@
     {
         _editingAnnotation = null;
         var currentPoint = StateService.State.CurrentDataPoint;
-        _startDate = currentPoint?.Date ?? DateTime.Today.ToString("yyyy-MM-dd");
+        _startDate = currentPoint?.Date.ToString(AppConstants.DataFormat.DateFormat) ?? DateTime.Today.ToString("yyyy-MM-dd");
         _endDate = null;
         _isRange = false;
         _patternType = PatternTypes.GammaFlipPositive;

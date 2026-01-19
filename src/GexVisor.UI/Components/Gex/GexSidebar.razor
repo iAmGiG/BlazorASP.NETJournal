@@ -1,3 +1,4 @@
+@using GexVisor.UI.Configuration
 @using GexVisor.UI.Models
 @using GexVisor.UI.Services
 @inject GexStateService StateService
@@ -233,7 +234,7 @@
 
     private double ProgressPercent => MaxIndex > 0 ? (double)CurrentIndex / MaxIndex * 100 : 0;
 
-    private string EventDate => StateService.State.CurrentDataPoint?.Date ?? "Select a point";
+    private string EventDate => StateService.State.CurrentDataPoint?.Date.ToString(AppConstants.DataFormat.DateFormat) ?? "Select a point";
     private string EventLabel => StateService.State.CurrentDataPoint?.Label ?? "Use controls or drag timeline";
 
     private string SparklineTitle
@@ -243,8 +244,8 @@
             if (StateService.Timeline.Count < 2) return "Price History";
             var first = StateService.Timeline[0];
             var last = StateService.Timeline[^1];
-            var startYear = first.Date.Split('-')[0];
-            var endYear = last.Date.Split('-')[0];
+            var startYear = first.Date.ToString(AppConstants.DataFormat.DateFormat).Split('-')[0];
+            var endYear = last.Date.ToString(AppConstants.DataFormat.DateFormat).Split('-')[0];
             return $"{SymbolLabel} {startYear}-{endYear}";
         }
     }
@@ -344,10 +345,10 @@
         var current = StateService.State.CurrentDataPoint;
         if (current == null) { StateService.JumpToStart(); return; }
 
-        var currentYear = int.Parse(current.Date.Split('-')[0]);
+        var currentYear = current.Date.Year;
         var nextIndex = StateService.Timeline
             .Select((p, i) => (Point: p, Index: i))
-            .FirstOrDefault(x => int.Parse(x.Point.Date.Split('-')[0]) > currentYear);
+            .FirstOrDefault(x => x.Point.Date.Year > currentYear);
 
         if (nextIndex.Point != null)
             StateService.SetCurrentIndex(nextIndex.Index);
@@ -358,10 +359,10 @@
         var current = StateService.State.CurrentDataPoint;
         if (current == null) { StateService.JumpToStart(); return; }
 
-        var currentYear = int.Parse(current.Date.Split('-')[0]);
+        var currentYear = current.Date.Year;
         var prevIndex = StateService.Timeline
             .Select((p, i) => (Point: p, Index: i))
-            .LastOrDefault(x => int.Parse(x.Point.Date.Split('-')[0]) < currentYear);
+            .LastOrDefault(x => x.Point.Date.Year < currentYear);
 
         if (prevIndex.Point != null)
             StateService.SetCurrentIndex(prevIndex.Index);

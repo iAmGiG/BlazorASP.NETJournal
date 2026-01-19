@@ -85,7 +85,7 @@ public class GexDataService : IGexDataService
     {
         var timeline = raw.Timeline.Select(point => new GexDataPoint
         {
-            Date = point.Date,
+            Date = DateOnly.Parse(point.Date),
             Price = point.Price,
             Gex = point.Gex,
             CallGex = point.CallGex,

@@ -100,8 +100,8 @@ public record CrossAssetSummary
 /// </summary>
 public record DateRangeOverlap
 {
-    public required string Start { get; init; }
-    public required string End { get; init; }
+    public required DateOnly Start { get; init; }
+    public required DateOnly End { get; init; }
     public int TotalDays { get; init; }
 
     /// <summary>
@@ -122,7 +122,7 @@ public record DateRangeOverlap
 /// </summary>
 public record RegimeDivergenceEvent
 {
-    public required string Date { get; init; }
+    public required DateOnly Date { get; init; }
     public required Dictionary<string, GammaRegime> AssetRegimes { get; init; }
     public required Dictionary<string, decimal> AssetGexValues { get; init; }
 
