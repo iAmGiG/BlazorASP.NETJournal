@@ -8,7 +8,7 @@ namespace GexVisor.UI.Services;
 public class BoardStateService
 {
     private readonly GitHubProjectService _projectService;
-    private readonly LocalStorageService _storage;
+    private readonly ILocalStorageService _storage;
 
     public event Action? OnBoardStateChanged;
 

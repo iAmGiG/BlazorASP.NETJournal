@@ -6,7 +6,7 @@ namespace GexVisor.UI.Services;
 /// </summary>
 public class TagService
 {
-    private readonly LocalStorageService _storage;
+    private readonly ILocalStorageService _storage;
     private HashSet<string> _customTags = [];
     private List<string>? _allTagsCache;
 
@@ -61,7 +61,7 @@ public class TagService
         }
     }
 
-    public TagService(LocalStorageService storage)
+    public TagService(ILocalStorageService storage)
     {
         _storage = storage;
     }

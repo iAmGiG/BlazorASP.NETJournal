@@ -9,7 +9,7 @@ namespace GexVisor.UI.Services;
 /// </summary>
 public class StatusMapper
 {
-    private readonly LocalStorageService _storage;
+    private readonly ILocalStorageService _storage;
 
     private const string StorageKey = "gexvisor.statusMappings";
 
@@ -61,7 +61,7 @@ public class StatusMapper
     /// </summary>
     private Dictionary<string, Dictionary<string, string>> _customMappings = new();
 
-    public StatusMapper(LocalStorageService storage)
+    public StatusMapper(ILocalStorageService storage)
     {
         _storage = storage;
     }

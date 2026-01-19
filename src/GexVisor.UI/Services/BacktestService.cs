@@ -9,7 +9,7 @@ namespace GexVisor.UI.Services;
 /// </summary>
 public class BacktestService : BaseEntryService<BacktestResult>
 {
-    public BacktestService(LocalStorageService storage)
+    public BacktestService(ILocalStorageService storage)
         : base(storage, StorageKeys.BacktestResults)
     {
     }

@@ -6,7 +6,7 @@ namespace GexVisor.UI.Services;
 /// <summary>
 /// Service for persisting data to browser localStorage via JS interop.
 /// </summary>
-public class LocalStorageService
+public class LocalStorageService : ILocalStorageService
 {
     private readonly IJSRuntime _js;
     private readonly JsonSerializerOptions _jsonOptions;

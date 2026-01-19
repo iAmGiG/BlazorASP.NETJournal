@@ -13,7 +13,7 @@ public class GitHubProjectService
 {
     private readonly HttpClient _http;
     private readonly GitHubAuthService _auth;
-    private readonly LocalStorageService _storage;
+    private readonly ILocalStorageService _storage;
 
     public event Action? OnProjectsChanged;
 

@@ -9,7 +9,7 @@ namespace GexVisor.UI.Services;
 /// </summary>
 public class PaperTradeService : BaseEntryService<PaperTrade>
 {
-    public PaperTradeService(LocalStorageService storage)
+    public PaperTradeService(ILocalStorageService storage)
         : base(storage, StorageKeys.PaperTrades)
     {
     }

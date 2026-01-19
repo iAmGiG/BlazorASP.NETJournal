@@ -9,7 +9,7 @@ namespace GexVisor.UI.Services;
 /// Service for loading GEX data from JSON files.
 /// Handles index loading, symbol data fetching, and data transformation.
 /// </summary>
-public class GexDataService
+public class GexDataService : IGexDataService
 {
     private readonly HttpClient _httpClient;
     private readonly JsonSerializerOptions _jsonOptions;

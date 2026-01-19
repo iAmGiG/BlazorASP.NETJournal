@@ -9,7 +9,7 @@ namespace GexVisor.UI.Services;
 /// </summary>
 public class NotebookService : BaseEntryService<NotebookEntry>
 {
-    public NotebookService(LocalStorageService storage)
+    public NotebookService(ILocalStorageService storage)
         : base(storage, StorageKeys.NotebookEntries)
     {
     }

@@ -9,14 +9,14 @@ namespace GexVisor.UI.Services;
 /// </summary>
 public class AnnotationService
 {
-    private readonly LocalStorageService _storage;
+    private readonly ILocalStorageService _storage;
     private List<PatternAnnotation> _annotations = [];
 
     public event Action? OnAnnotationsChanged;
 
     public IReadOnlyList<PatternAnnotation> Annotations => _annotations;
 
-    public AnnotationService(LocalStorageService storage)
+    public AnnotationService(ILocalStorageService storage)
     {
         _storage = storage;
     }

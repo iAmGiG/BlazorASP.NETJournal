@@ -8,7 +8,7 @@ namespace GexVisor.UI.Services;
 /// </summary>
 public class ComparisonService
 {
-    private readonly GexDataService _dataService;
+    private readonly IGexDataService _dataService;
     private List<string> _selectedSymbols = [];
     private Dictionary<string, AssetComparisonData> _loadedAssets = new();
 
@@ -20,7 +20,7 @@ public class ComparisonService
     public int SelectionCount => _selectedSymbols.Count;
     public bool IsValidSelection => SelectionCount >= 2 && SelectionCount <= 4;
 
-    public ComparisonService(GexDataService dataService)
+    public ComparisonService(IGexDataService dataService)
     {
         _dataService = dataService;
     }

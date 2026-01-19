@@ -12,7 +12,7 @@ namespace GexVisor.UI.Services;
 public class GitHubAuthService
 {
     private readonly HttpClient _http;
-    private readonly LocalStorageService _storage;
+    private readonly ILocalStorageService _storage;
     private readonly GitHubAppConfig _config;
 
     private GitHubAuthState _state = new();

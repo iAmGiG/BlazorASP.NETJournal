@@ -9,7 +9,7 @@ namespace GexVisor.UI.Services;
 /// </summary>
 public class ResearchTaskService : BaseEntryService<ResearchTask>
 {
-    public ResearchTaskService(LocalStorageService storage)
+    public ResearchTaskService(ILocalStorageService storage)
         : base(storage, StorageKeys.TaskBoard)
     {
     }

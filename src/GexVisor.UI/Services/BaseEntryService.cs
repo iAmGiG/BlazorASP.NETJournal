@@ -9,7 +9,7 @@ namespace GexVisor.UI.Services;
 /// <typeparam name="T">Entry type implementing IEntry</typeparam>
 public abstract class BaseEntryService<T> where T : class, IEntry
 {
-    protected readonly LocalStorageService Storage;
+    protected readonly ILocalStorageService Storage;
     protected readonly string StorageKey;
     protected List<T> Entries = [];
 
@@ -18,7 +18,7 @@ public abstract class BaseEntryService<T> where T : class, IEntry
     public IReadOnlyList<T> All => Entries;
     public int Count => Entries.Count;
 
-    protected BaseEntryService(LocalStorageService storage, string storageKey)
+    protected BaseEntryService(ILocalStorageService storage, string storageKey)
     {
         Storage = storage;
         StorageKey = storageKey;
