@@ -385,8 +385,8 @@ public class GexStateService : IDisposable
             AssetClass = "Index",
             DateRange = new DateRange
             {
-                Start = _timeline.First().Date.ToString(AppConstants.DataFormat.DateFormat),
-                End = _timeline.Last().Date.ToString(AppConstants.DataFormat.DateFormat)
+                Start = _timeline.First().Date,
+                End = _timeline.Last().Date
             },
             Count = _timeline.Count,
             Timeline = _timeline

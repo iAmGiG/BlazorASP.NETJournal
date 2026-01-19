@@ -273,10 +273,10 @@ public class ComparisonAnalysisService
     /// </summary>
     private DateRangeOverlap FindDateOverlap(GexTimeline t1, GexTimeline t2)
     {
-        var start1 = DateOnly.Parse(t1.DateRange.Start);
-        var end1 = DateOnly.Parse(t1.DateRange.End);
-        var start2 = DateOnly.Parse(t2.DateRange.Start);
-        var end2 = DateOnly.Parse(t2.DateRange.End);
+        var start1 = t1.DateRange.Start;
+        var end1 = t1.DateRange.End;
+        var start2 = t2.DateRange.Start;
+        var end2 = t2.DateRange.End;
 
         var overlapStart = start1 > start2 ? start1 : start2;
         var overlapEnd = end1 < end2 ? end1 : end2;
@@ -293,7 +293,6 @@ public class ComparisonAnalysisService
 
     /// <summary>
     /// Find common date range across all assets (intersection).
-    /// Expects dates in AppConstants.DataFormat.DateFormat (yyyy-MM-dd) for proper parsing.
     /// </summary>
     private DateRangeOverlap FindCommonDateRange(List<AssetComparisonData> assets)
     {
@@ -302,8 +301,8 @@ public class ComparisonAnalysisService
             return new DateRangeOverlap { Start = DateOnly.MinValue, End = DateOnly.MinValue, TotalDays = 0 };
         }
 
-        var starts = assets.Select(a => DateOnly.Parse(a.Timeline.DateRange.Start)).ToList();
-        var ends = assets.Select(a => DateOnly.Parse(a.Timeline.DateRange.End)).ToList();
+        var starts = assets.Select(a => a.Timeline.DateRange.Start).ToList();
+        var ends = assets.Select(a => a.Timeline.DateRange.End).ToList();
 
         var overlapStart = starts.Max();
         var overlapEnd = ends.Min();

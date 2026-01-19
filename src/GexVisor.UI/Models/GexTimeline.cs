@@ -41,7 +41,7 @@ public record GexTimeline
             return new RegimeAnalysisSummary
             {
                 Symbol = Symbol,
-                DateRange = $"{DateRange.Start} → {DateRange.End}",
+                DateRange = $"{DateRange.Start:yyyy-MM-dd} → {DateRange.End:yyyy-MM-dd}",
                 TotalDays = 0,
                 Segments = [],
                 Transitions = []
@@ -117,7 +117,7 @@ public record GexTimeline
         return new RegimeAnalysisSummary
         {
             Symbol = Symbol,
-            DateRange = $"{DateRange.Start} → {DateRange.End}",
+            DateRange = $"{DateRange.Start:yyyy-MM-dd} → {DateRange.End:yyyy-MM-dd}",
             TotalDays = Timeline.Count,
             PositiveGammaDays = positiveSegments.Sum(s => s.DurationDays),
             NegativeGammaDays = negativeSegments.Sum(s => s.DurationDays),
@@ -133,6 +133,6 @@ public record GexTimeline
 
 public record DateRange
 {
-    public required string Start { get; init; }
-    public required string End { get; init; }
+    public required DateOnly Start { get; init; }
+    public required DateOnly End { get; init; }
 }
