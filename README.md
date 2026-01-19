@@ -74,10 +74,10 @@ GexVisor/
 ├── tests/                        # Unit and integration tests
 │   ├── GexVisor.UI.Tests/        # UI component and service tests
 │   └── GexVisor.Core.Tests/      # Core business logic tests
+├── tools/                        # Utility scripts
+│   └── export_data.py            # SQLite → JSON data export
 ├── docs/                         # Documentation
-│   ├── research-visuals/         # Interactive research visualizations
-│   └── research-archive/         # Historical research materials
-├── .claude/                      # Claude working notes (not committed)
+│   └── research-visuals/         # Interactive research visualizations
 ├── .editorconfig                 # Code style settings
 ├── .pre-commit-config.yaml       # Git hooks configuration
 ├── GexVisor.NET.sln              # Solution file
@@ -107,7 +107,7 @@ dotnet test
 
 # Run specific test project
 dotnet test tests/GexVisor.Core.Tests      # Core business logic tests (17 tests)
-dotnet test tests/GexVisor.UI.Tests        # UI component tests (44 tests)
+dotnet test tests/GexVisor.UI.Tests        # UI component tests (101 tests)
 
 # Build for release
 dotnet build --configuration Release
@@ -116,9 +116,9 @@ dotnet build --configuration Release
 dotnet watch --project src/GexVisor.UI
 ```
 
-**Test Coverage:**
+**Test Coverage (118 total):**
 - **Core Tests** (17): JournalFramework, OptionsLog P&L calculations
-- **UI Tests** (44): Services, components, caching optimizations
+- **UI Tests** (101): Services, components, comparison dashboard, caching
 
 ### Git Workflow
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Export GEX research data from SQLite to JSON for the visualizer.
+Export GEX research data from SQLite to JSON for the Blazor visualizer.
 
 NOTE: This exports data from .cache/gex_research.db which contains historical
 options data collected via premium API. The exported JSON files are gitignored
@@ -10,10 +10,9 @@ For public/demo usage, the visualizer includes a built-in demo timeline with
 simulated SPY data from 2020-2025.
 
 Usage:
-    python export_data.py                          # Export all to data/
-    python export_data.py SPY QQQ                  # Export specific symbols
-    python export_data.py --output ../path/to/dir  # Custom output directory
-    python export_data.py --blazor                 # Export to Blazor wwwroot/data
+    python tools/export_data.py                    # Export all to wwwroot/data/
+    python tools/export_data.py SPY QQQ            # Export specific symbols
+    python tools/export_data.py --output /path     # Custom output directory
 """
 
 import json
@@ -21,10 +20,10 @@ import sqlite3
 import sys
 from pathlib import Path
 
-# Database path (relative to project root)
-DB_PATH = Path(__file__).parent.parent.parent / ".cache" / "gex_research.db"
-DEFAULT_OUTPUT_DIR = Path(__file__).parent / "data"
-BLAZOR_OUTPUT_DIR = Path(__file__).parent.parent.parent / "src" / "GexVisor.UI" / "wwwroot" / "data"
+# Paths relative to project root (script is in tools/)
+PROJECT_ROOT = Path(__file__).parent.parent
+DB_PATH = PROJECT_ROOT / ".cache" / "gex_research.db"
+DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "src" / "GexVisor.UI" / "wwwroot" / "data"
 
 
 def get_symbols(conn, filter_symbols=None):
@@ -134,9 +133,6 @@ def main():
         if args[i] == "--output" and i + 1 < len(args):
             output_dir = Path(args[i + 1])
             i += 2
-        elif args[i] == "--blazor":
-            output_dir = BLAZOR_OUTPUT_DIR
-            i += 1
         elif not args[i].startswith("-"):
             filter_symbols.append(args[i])
             i += 1
