@@ -42,6 +42,16 @@ csharp_space_between_method_call_empty_parameter_list_parentheses = false
 csharp_preserve_single_line_statements = false
 csharp_preserve_single_line_blocks = true
 
+# Analyzer rules
+# CA1305: Specify IFormatProvider
+dotnet_diagnostic.CA1305.severity = warning
+
+# IDE0049: Use language keywords instead of BCL types
+dotnet_diagnostic.IDE0049.severity = warning
+
+# Note: Prefer DateOnly over DateTime for date-only operations (fixes #92)
+dotnet_code_quality.CA1305.api_surface = all
+
 # Naming conventions
 dotnet_naming_rule.interfaces_should_be_begins_with_i.severity = suggestion
 dotnet_naming_rule.interfaces_should_be_begins_with_i.symbols = interface
@@ -67,3 +77,16 @@ indent_size = 2
 # JSON files
 [*.json]
 indent_size = 2
+
+# Analyzer rules for C#
+[*.cs]
+# Prefer DateOnly for date-only scenarios (no time component)
+# CA1305: Specify IFormatProvider
+dotnet_diagnostic.CA1305.severity = warning
+
+# IDE0049: Use language keywords instead of BCL types
+dotnet_diagnostic.IDE0049.severity = warning
+
+# Custom rule: Prefer DateOnly over DateTime for date-only operations
+# Note: This prevents linters from auto-converting DateOnly.Parse to DateTime.Parse
+dotnet_code_quality.CA1305.api_surface = all
