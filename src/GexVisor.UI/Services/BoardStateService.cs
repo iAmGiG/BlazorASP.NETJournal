@@ -55,12 +55,20 @@ public class BoardStateService
 
     /// <summary>
     /// Force refresh items from GitHub.
+    /// Guards against concurrent refresh operations to prevent race conditions.
     /// </summary>
     public async Task<List<GitHubProjectItem>> RefreshItemsAsync()
     {
         var project = _projectService.SelectedProject;
         if (project == null)
             return new();
+
+        // Prevent concurrent refresh operations
+        if (_isLoading)
+        {
+            // Return cached data if available while another refresh is in progress
+            return _itemsCache.TryGetValue(project.Id, out var cached) ? cached : new();
+        }
 
         _isLoading = true;
         _lastError = null;

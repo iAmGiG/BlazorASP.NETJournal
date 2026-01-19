@@ -96,53 +96,7 @@ profitable outcomes).
 
 ---
 
-## Phase 3: Intraday Dynamics — The Scar Tissue Hypothesis
-
-### The Paradox
-
-> How do 0DTE options (< 24 hours lifespan) create persistent multi-month regimes?
-
-### Scar Tissue Mechanism
-
-```
-09:45 AM │ Opening Flurry
-         │ Establish initial dealer inventory
-         ↓
-12:00 PM │ Midday Pivot
-         │ Theta decay accelerates, gamma adjustments
-         ↓
-03:00 PM │ Gamma Trap
-         │ ATM gamma explodes, hyper-active hedging
-         ↓
-04:00 PM │ Expiry Discontinuity
-         │ 0DTE gamma vanishes INSTANTLY
-         │ Delta hedge (stock/futures) REMAINS
-         ↓
-OVERNIGHT │ Residual Inventory
-         │ "Toxic flow" carried overnight
-         │ Cannot liquidate without slippage
-         ↓
-NEXT DAY │ Structural Persistence
-         │ "Scar tissue" dictates opening price
-         │ Links independent 0DTE cycles
-```
-
-### Intraday Experiments
-
-| Experiment | Description | Success Metric |
-|------------|-------------|----------------|
-| Intraday Flip Detection | Predict 4PM state from 9:45AM data | Accuracy vs baseline |
-| Volume vs. OI | A/B test flow vs. structure predictive power | Correlation strength |
-| Gamma Wall Validation | LLM identifies resistance levels | Price reversal frequency |
-
-### Supplementary Signals
-
-- **SABR Parameters**: ρ (spot-vol correlation), ν (vol-of-vol)
-- **GAMMA-SVIX Divergence**: Historical correlation -0.89; divergence = regime shift
-
----
-
-## Phase 4: Cross-Asset Generalization
+## Phase 3: Cross-Asset Generalization
 
 ### The Divergence Problem
 
@@ -189,9 +143,9 @@ GameStop (2021) demonstrated intentional exploitation of dealer mechanics:
 
 ---
 
-## Phase 5: Agent-Based Simulation
+## Phase 3: Intraday Dynamics — The Scar Tissue Hypothesis
 
-### Neuro-Symbolic Architecture
+### The Paradox
 
 > How do 0DTE options (< 24 hours lifespan) create persistent multi-month regimes?
 
@@ -235,6 +189,8 @@ NEXT DAY │ Structural Persistence
 
 ---
 
+## Phase 4: Agent-Based Simulation
+
 ### Neuro-Symbolic Architecture
 
 ```
@@ -270,7 +226,7 @@ Key experiment: Run simulation WITH and WITHOUT "Market Maker Inventory Constrai
 
 ---
 
-## Phase 6: Network Effects — GNN Contagion
+## Phase 4: Network Effects — GNN Contagion
 
 ### The Network Problem
 
@@ -360,22 +316,18 @@ By anchoring reasoning to option math (verifiable ground truth), we:
 - Create template for other critical applications
 - Build confidence in abstract risk reasoning
 
-### Roadmap to Phase 6+
+### Roadmap to Phase 3+
 
 ```
 Phase 1: Can AI see the wall?
          ↓ (Validated)
 Phase 2: Can AI see the wall evolving?
          ↓ (In Progress)
-Phase 3: Can AI see intraday wall dynamics?
+Phase 3: Can AI see walls across assets?
          ↓ (Proposed)
-Phase 4: Can AI see walls across assets?
+Phase 4: Can AI simulate wall formation?
          ↓ (Proposed)
-Phase 5: Can AI simulate wall formation?
-         ↓ (Proposed)
-Phase 6: Can AI model network contagion?
-         ↓ (Proposed)
-Phase 7: Can AI integrate news + structure?
+Phase 5: Can AI integrate news + structure?
          (Future: Cross-Modal Reasoning)
 ```
 

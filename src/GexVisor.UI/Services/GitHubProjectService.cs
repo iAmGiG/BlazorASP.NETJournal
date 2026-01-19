@@ -223,31 +223,25 @@ public class GitHubProjectService
 
     /// <summary>
     /// Execute a GraphQL query against the GitHub API via proxy.
+    /// Throws exceptions for network errors, auth failures, or JSON parsing errors
+    /// to allow proper error handling by callers (BoardStateService).
     /// </summary>
     private async Task<T?> ExecuteGraphQLAsync<T>(string query, object? variables = null) where T : class
     {
-        try
-        {
-            var request = new HttpRequestMessage(HttpMethod.Post, GitHubAppConfig.GraphQLUrl);
-            request.Headers.Authorization = _auth.GetAuthHeader();
+        var request = new HttpRequestMessage(HttpMethod.Post, GitHubAppConfig.GraphQLUrl);
+        request.Headers.Authorization = _auth.GetAuthHeader();
 
-            var body = new { query, variables };
-            request.Content = new StringContent(
-                JsonSerializer.Serialize(body),
-                System.Text.Encoding.UTF8,
-                "application/json"
-            );
+        var body = new { query, variables };
+        request.Content = new StringContent(
+            JsonSerializer.Serialize(body),
+            System.Text.Encoding.UTF8,
+            "application/json"
+        );
 
-            var response = await _http.SendAsync(request);
-            if (!response.IsSuccessStatusCode)
-                return null;
+        var response = await _http.SendAsync(request);
+        response.EnsureSuccessStatusCode(); // Throws HttpRequestException on failure
 
-            return await response.Content.ReadFromJsonAsync<T>();
-        }
-        catch
-        {
-            return null;
-        }
+        return await response.Content.ReadFromJsonAsync<T>();
     }
 
     private async Task SaveAsync()

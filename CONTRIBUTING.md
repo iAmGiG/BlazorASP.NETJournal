@@ -192,24 +192,12 @@ public class JournalFramework
 {
     // Properties first
     public Guid Id { get; set; }
-    public string Title { get; set; }
+    public string? Description { get; set; }
 
     // Constructors
     public JournalFramework()
     {
         Id = Guid.NewGuid();
-    }
-
-    // Public methods
-    public void Save()
-    {
-        // Implementation
-    }
-
-    // Private methods
-    private void Validate()
-    {
-        // Implementation
     }
 }
 ```
