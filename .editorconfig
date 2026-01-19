@@ -78,15 +78,3 @@ indent_size = 2
 [*.json]
 indent_size = 2
 
-# Analyzer rules for C#
-[*.cs]
-# Prefer DateOnly for date-only scenarios (no time component)
-# CA1305: Specify IFormatProvider
-dotnet_diagnostic.CA1305.severity = warning
-
-# IDE0049: Use language keywords instead of BCL types
-dotnet_diagnostic.IDE0049.severity = warning
-
-# Custom rule: Prefer DateOnly over DateTime for date-only operations
-# Note: This prevents linters from auto-converting DateOnly.Parse to DateTime.Parse
-dotnet_code_quality.CA1305.api_surface = all

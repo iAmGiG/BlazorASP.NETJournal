@@ -174,9 +174,9 @@ public class AnnotationService
 
     private static int GetDaysBetween(string startDate, string endDate)
     {
-        if (DateTime.TryParse(startDate, out var start) && DateTime.TryParse(endDate, out var end))
+        if (DateOnly.TryParse(startDate, out var start) && DateOnly.TryParse(endDate, out var end))
         {
-            return (int)(end - start).TotalDays + 1;
+            return end.DayNumber - start.DayNumber + 1;
         }
         return 1;
     }

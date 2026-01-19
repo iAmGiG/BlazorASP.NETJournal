@@ -120,9 +120,8 @@ public class GexDataService : IGexDataService
     private static string GenerateLabel(RawGexDataPoint point)
     {
         var regime = point.Regime == "NEGATIVE_GAMMA" ? "Short γ" : "Long γ";
-        var date = DateTime.Parse(point.Date);
-        var month = date.ToString("MMM");
-        return $"{month} {date.Year} - {regime}";
+        var date = DateOnly.Parse(point.Date);
+        return $"{date:MMM} {date.Year} - {regime}";
     }
 
     /// <summary>
