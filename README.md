@@ -131,6 +131,31 @@ Branch naming convention:
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for commit message guidelines.
 
+### GitHub CLI Workflow
+
+This project uses GitHub CLI (`gh`) for streamlined issue and PR management:
+
+```bash
+# Create an issue
+gh issue create --title "Bug: Description" --label "bug" --body "Details..."
+
+# List open issues
+gh issue list --state open --limit 20
+
+# Close an issue with a comment
+gh issue close 123 --comment "Fixed in commit abc1234"
+
+# Create a pull request
+gh pr create --title "Feature: Description" --body "Changes made..."
+
+# View PR details
+gh pr view 456
+```
+
+**Note**: The TaskBoard (`/tasks`) integrates with GitHub Projects v2, allowing you to sync
+local tasks with your GitHub project board. See
+[docs/GITHUB_INTEGRATION.md](docs/GITHUB_INTEGRATION.md) for setup instructions.
+
 ## Features
 
 ### Completed
@@ -165,15 +190,39 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for commit message guidelines.
 - [x] Regime transition timeline (#79)
 - [x] DateOnly type migration (#90)
 - [x] OptionsLog P&L bug fix (#91)
+- [x] OptionsLog unit tests - 17 comprehensive tests (#93)
 
 ### In Progress
-- [ ] OptionsLog unit tests (#93)
 - [ ] SQLite WASM integration (#18) - research complete, awaiting database
 
 ### Planned
 - [ ] DateRange DateOnly refactoring (#94)
 - [ ] StatusMapper pattern optimization (#95)
 - [ ] Add SQLite database as static asset (#11)
+
+## GitHub Projects Integration
+
+The TaskBoard (`/tasks`) integrates with GitHub Projects v2, allowing you to sync research
+tasks with your GitHub project boards:
+
+- **OAuth Authentication** - Secure device flow login
+- **Project Selector** - Choose from your GitHub Projects v2 boards
+- **Dynamic Kanban** - View tasks organized by GitHub's status columns
+- **Unified View** - Normalize statuses across different project naming conventions
+- **Custom Mappings** - Override auto-detected status mappings
+
+### Quick Start
+
+1. Navigate to `/tasks`
+2. Click "GitHub: Connect" and follow OAuth flow
+3. Select a project from the dropdown
+4. Switch between tabs:
+   - **Local Tasks** - Your local task board
+   - **GitHub: {Project}** - GitHub's native columns
+   - **Unified View** - Normalized 3-column view (Backlog/In Progress/Done)
+
+See [docs/GITHUB_INTEGRATION.md](docs/GITHUB_INTEGRATION.md) for detailed setup and
+architecture documentation.
 
 ## Research Visualizations
 
