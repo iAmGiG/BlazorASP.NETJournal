@@ -103,7 +103,27 @@ namespace GexVisor.Core
     {
         public enum TradeType { BTO, BTC, STO, STC };
 
-        public TradeType OptionTradeType { get; set; }
+        private TradeType _optionTradeType;
+
+        /// <summary>
+        /// Gets or sets the option trade type.
+        /// Automatically synchronizes the inherited TradeDirection property to maintain consistency:
+        /// - BTO/BTC → Long (buying direction)
+        /// - STO/STC → Short (selling direction)
+        /// </summary>
+        public TradeType OptionTradeType
+        {
+            get => _optionTradeType;
+            set
+            {
+                _optionTradeType = value;
+                // Sync base TradeDirection for consistency
+                TradeDirection = (value == TradeType.BTO || value == TradeType.BTC)
+                    ? Type.Long
+                    : Type.Short;
+            }
+        }
+
         public decimal StrikePrice { get; set; }
         public DateTime? ExpirationDate { get; set; }
 
