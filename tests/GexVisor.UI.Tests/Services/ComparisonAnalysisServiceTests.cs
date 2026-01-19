@@ -1,3 +1,4 @@
+using System.Globalization;
 using FluentAssertions;
 using GexVisor.UI.Models;
 using GexVisor.UI.Services;
@@ -231,7 +232,7 @@ public class ComparisonAnalysisServiceTests
     {
         var timeline = dataPoints.Select(d => new GexDataPoint
         {
-            Date = d.date,
+            Date = DateOnly.Parse(d.date, CultureInfo.InvariantCulture),
             Price = d.price,
             Gex = d.gex,
             CallGex = d.gex > 0 ? d.gex : 0,
@@ -257,8 +258,8 @@ public class ComparisonAnalysisServiceTests
                 Count = timeline.Count,
                 DateRange = new DateRange
                 {
-                    Start = dataPoints[0].date,
-                    End = dataPoints[^1].date
+                    Start = DateOnly.Parse(dataPoints[0].date, CultureInfo.InvariantCulture),
+                    End = DateOnly.Parse(dataPoints[^1].date, CultureInfo.InvariantCulture)
                 },
                 Timeline = timeline
             },

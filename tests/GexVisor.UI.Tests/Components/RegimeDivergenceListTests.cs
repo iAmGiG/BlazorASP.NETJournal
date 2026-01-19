@@ -1,3 +1,4 @@
+using System.Globalization;
 using Bunit;
 using FluentAssertions;
 using GexVisor.UI.Components.Comparison;
@@ -55,10 +56,11 @@ public class RegimeDivergenceListTests : TestContext
             .Add(p => p.Events, events));
 
         // Assert - should be sorted by date descending (2024-01-03, 2024-01-02, 2024-01-01)
+        // DateOnly renders in locale format (e.g., "1/3/2024")
         var eventDates = cut.FindAll(".event-date");
-        eventDates[0].TextContent.Should().Contain("2024-01-03");
-        eventDates[1].TextContent.Should().Contain("2024-01-02");
-        eventDates[2].TextContent.Should().Contain("2024-01-01");
+        eventDates[0].TextContent.Should().Contain("1/3/2024");
+        eventDates[1].TextContent.Should().Contain("1/2/2024");
+        eventDates[2].TextContent.Should().Contain("1/1/2024");
     }
 
     [Fact]
@@ -188,8 +190,9 @@ public class RegimeDivergenceListTests : TestContext
             .Add(p => p.Events, events));
 
         // Initial order: date descending (2024-01-02 first)
+        // DateOnly renders in locale format (e.g., "1/2/2024")
         var eventDates = cut.FindAll(".event-date");
-        eventDates[0].TextContent.Should().Contain("2024-01-02");
+        eventDates[0].TextContent.Should().Contain("1/2/2024");
 
         // Act - change sort to magnitude
         var sortSelect = cut.Find(".sort-select");
@@ -218,7 +221,7 @@ public class RegimeDivergenceListTests : TestContext
     {
         return new RegimeDivergenceEvent
         {
-            Date = date,
+            Date = DateOnly.Parse(date, CultureInfo.InvariantCulture),
             AssetRegimes = new Dictionary<string, GammaRegime>
             {
                 { "SPY", GammaRegime.Positive },
@@ -256,7 +259,7 @@ public class RegimeDivergenceListTests : TestContext
 
         return new RegimeDivergenceEvent
         {
-            Date = date,
+            Date = DateOnly.Parse(date, CultureInfo.InvariantCulture),
             AssetRegimes = assetRegimes,
             AssetGexValues = assetGexValues,
             IsDispersionOpportunity = false

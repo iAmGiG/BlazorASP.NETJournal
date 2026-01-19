@@ -1,3 +1,4 @@
+using System.Globalization;
 using FluentAssertions;
 using GexVisor.UI.Models;
 using GexVisor.UI.Services;
@@ -228,20 +229,20 @@ public class ComparisonServiceTests
         {
             Symbol = symbol,
             AssetClass = "Index",
-            DateRange = new DateRange { Start = "2024-01-01", End = "2024-12-31" },
+            DateRange = new DateRange { Start = DateOnly.Parse("2024-01-01", CultureInfo.InvariantCulture), End = DateOnly.Parse("2024-12-31", CultureInfo.InvariantCulture) },
             Count = 10,
             Timeline = new List<GexDataPoint>
             {
-                new() { Date = "2024-01-01", Price = 450, Gex = 1000, CallGex = 600, PutGex = 400, ZeroGamma = 445, MaxGamma = 460, Regime = "Positive Gamma", CallOi = 500000, PutOi = 400000, Contracts = 900000, Quality = 0.95m },
-                new() { Date = "2024-01-02", Price = 455, Gex = 1100, CallGex = 650, PutGex = 450, ZeroGamma = 448, MaxGamma = 465, Regime = "Positive Gamma", CallOi = 510000, PutOi = 410000, Contracts = 920000, Quality = 0.95m },
-                new() { Date = "2024-01-03", Price = 460, Gex = 1200, CallGex = 700, PutGex = 500, ZeroGamma = 450, MaxGamma = 470, Regime = "Positive Gamma", CallOi = 520000, PutOi = 420000, Contracts = 940000, Quality = 0.96m },
-                new() { Date = "2024-01-04", Price = 448, Gex = -500, CallGex = 200, PutGex = -700, ZeroGamma = 455, MaxGamma = 465, Regime = "Negative Gamma", CallOi = 400000, PutOi = 600000, Contracts = 1000000, Quality = 0.94m },
-                new() { Date = "2024-01-05", Price = 445, Gex = -600, CallGex = 150, PutGex = -750, ZeroGamma = 458, MaxGamma = 468, Regime = "Negative Gamma", CallOi = 380000, PutOi = 620000, Contracts = 1000000, Quality = 0.93m },
-                new() { Date = "2024-01-06", Price = 442, Gex = -700, CallGex = 100, PutGex = -800, ZeroGamma = 460, MaxGamma = 470, Regime = "Negative Gamma", CallOi = 360000, PutOi = 640000, Contracts = 1000000, Quality = 0.92m },
-                new() { Date = "2024-01-07", Price = 455, Gex = 800, CallGex = 500, PutGex = 300, ZeroGamma = 450, MaxGamma = 465, Regime = "Positive Gamma", CallOi = 480000, PutOi = 420000, Contracts = 900000, Quality = 0.94m },
-                new() { Date = "2024-01-08", Price = 460, Gex = 900, CallGex = 550, PutGex = 350, ZeroGamma = 452, MaxGamma = 467, Regime = "Positive Gamma", CallOi = 490000, PutOi = 410000, Contracts = 900000, Quality = 0.95m },
-                new() { Date = "2024-01-09", Price = 465, Gex = 1000, CallGex = 600, PutGex = 400, ZeroGamma = 454, MaxGamma = 469, Regime = "Positive Gamma", CallOi = 500000, PutOi = 400000, Contracts = 900000, Quality = 0.96m },
-                new() { Date = "2024-01-10", Price = 470, Gex = 1100, CallGex = 650, PutGex = 450, ZeroGamma = 456, MaxGamma = 471, Regime = "Positive Gamma", CallOi = 510000, PutOi = 390000, Contracts = 900000, Quality = 0.97m }
+                new() { Date = DateOnly.Parse("2024-01-01", CultureInfo.InvariantCulture), Price = 450, Gex = 1000, CallGex = 600, PutGex = 400, ZeroGamma = 445, MaxGamma = 460, Regime = "Positive Gamma", CallOi = 500000, PutOi = 400000, Contracts = 900000, Quality = 0.95m },
+                new() { Date = DateOnly.Parse("2024-01-02", CultureInfo.InvariantCulture), Price = 455, Gex = 1100, CallGex = 650, PutGex = 450, ZeroGamma = 448, MaxGamma = 465, Regime = "Positive Gamma", CallOi = 510000, PutOi = 410000, Contracts = 920000, Quality = 0.95m },
+                new() { Date = DateOnly.Parse("2024-01-03", CultureInfo.InvariantCulture), Price = 460, Gex = 1200, CallGex = 700, PutGex = 500, ZeroGamma = 450, MaxGamma = 470, Regime = "Positive Gamma", CallOi = 520000, PutOi = 420000, Contracts = 940000, Quality = 0.96m },
+                new() { Date = DateOnly.Parse("2024-01-04", CultureInfo.InvariantCulture), Price = 448, Gex = -500, CallGex = 200, PutGex = -700, ZeroGamma = 455, MaxGamma = 465, Regime = "Negative Gamma", CallOi = 400000, PutOi = 600000, Contracts = 1000000, Quality = 0.94m },
+                new() { Date = DateOnly.Parse("2024-01-05", CultureInfo.InvariantCulture), Price = 445, Gex = -600, CallGex = 150, PutGex = -750, ZeroGamma = 458, MaxGamma = 468, Regime = "Negative Gamma", CallOi = 380000, PutOi = 620000, Contracts = 1000000, Quality = 0.93m },
+                new() { Date = DateOnly.Parse("2024-01-06", CultureInfo.InvariantCulture), Price = 442, Gex = -700, CallGex = 100, PutGex = -800, ZeroGamma = 460, MaxGamma = 470, Regime = "Negative Gamma", CallOi = 360000, PutOi = 640000, Contracts = 1000000, Quality = 0.92m },
+                new() { Date = DateOnly.Parse("2024-01-07", CultureInfo.InvariantCulture), Price = 455, Gex = 800, CallGex = 500, PutGex = 300, ZeroGamma = 450, MaxGamma = 465, Regime = "Positive Gamma", CallOi = 480000, PutOi = 420000, Contracts = 900000, Quality = 0.94m },
+                new() { Date = DateOnly.Parse("2024-01-08", CultureInfo.InvariantCulture), Price = 460, Gex = 900, CallGex = 550, PutGex = 350, ZeroGamma = 452, MaxGamma = 467, Regime = "Positive Gamma", CallOi = 490000, PutOi = 410000, Contracts = 900000, Quality = 0.95m },
+                new() { Date = DateOnly.Parse("2024-01-09", CultureInfo.InvariantCulture), Price = 465, Gex = 1000, CallGex = 600, PutGex = 400, ZeroGamma = 454, MaxGamma = 469, Regime = "Positive Gamma", CallOi = 500000, PutOi = 400000, Contracts = 900000, Quality = 0.96m },
+                new() { Date = DateOnly.Parse("2024-01-10", CultureInfo.InvariantCulture), Price = 470, Gex = 1100, CallGex = 650, PutGex = 450, ZeroGamma = 456, MaxGamma = 471, Regime = "Positive Gamma", CallOi = 510000, PutOi = 390000, Contracts = 900000, Quality = 0.97m }
             }
         };
     }
