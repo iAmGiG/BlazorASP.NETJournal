@@ -1,31 +1,87 @@
-# GEX Regime Trace Comparator
+# GEX Data Export Tool
 
-Interactive visualization tool for exploring Gamma Exposure (GEX) methodology differences across market regimes.
+This directory contains the data export script for converting GEX research data from SQLite to JSON format.
 
-> **Note**: This directory contains the original JavaScript implementation. The application has been
-> ported to Blazor WebAssembly - run `dotnet run` from the repository root and navigate to `/gex`.
+> **Note**: The original JavaScript visualizer has been removed. The application is now fully
+> implemented in Blazor WebAssembly - run `dotnet run --project src/GexVisor.UI` and navigate to `/gex`.
 
-## Quick Start (Legacy JS Version)
+## Data Export Script
 
-Open `index.html` in a browser - no server required.
+The `export_data.py` script exports historical GEX data from the research database to JSON files
+for use with the Blazor application.
 
-## Quick Start (Blazor Version)
+### Prerequisites
+
+- Python 3.8+
+- Access to `.cache/gex_research.db` (premium API data - not included in repo)
+
+### Usage
 
 ```bash
-cd src/GexVisor.UI
-dotnet run
-# Navigate to http://localhost:5000/gex
+# Export all symbols to Blazor wwwroot/data
+python export_data.py --blazor
+
+# Export specific symbols
+python export_data.py --blazor SPY QQQ IWM
+
+# Export to legacy data/ directory
+python export_data.py
+python export_data.py SPY QQQ
+
+# Export to custom directory
+python export_data.py --output /path/to/dir
 ```
 
-## Blazor Version Features
+### Output Format
 
-The Blazor port includes all original features plus:
+Each symbol generates a JSON file with this structure:
 
-- **Pattern Annotations**: Mark patterns on the timeline for LLM training data (#66)
-- **Keyboard Shortcuts Overlay**: Press `?` to see all shortcuts (#34)
-- **Settings Persistence**: Playback speed and axis scales saved to localStorage (#44)
-- **Export as PNG**: Export charts via camera button in header (#33)
-- **Accessibility**: Full ARIA labels for screen readers (#35)
+```json
+{
+  "symbol": "SPY",
+  "asset_class": "Index",
+  "date_range": { "start": "2020-01-02", "end": "2025-12-31" },
+  "count": 1258,
+  "timeline": [
+    {
+      "date": "2020-01-02",
+      "price": 321.75,
+      "gex": 1234.56,
+      "call_gex": 800.00,
+      "put_gex": 434.56,
+      "zero_gamma": 318.50,
+      "max_gamma": 325.00,
+      "regime": "POSITIVE_GAMMA",
+      "call_oi": 0.35,
+      "put_oi": 0.28,
+      "contracts": 150000,
+      "quality": 0.95
+    }
+  ]
+}
+```
+
+An `index.json` file is also generated listing all exported symbols grouped by asset class.
+
+### Data Privacy
+
+The `data/` folder is gitignored. Exported JSON files contain proprietary historical options data
+and should remain **LOCAL ONLY** - do not commit to public repositories.
+
+### Demo Mode
+
+The Blazor application includes a built-in demo mode with simulated SPY data (2020-2025) that works without any data files.
+
+## Blazor Application Features
+
+The GEX Visualizer (Blazor) includes:
+
+- **Dual View Comparison**: Normalized (Practitioner) vs Absolute (S² Scaled) GEX
+- **Pattern Annotations**: Mark patterns on the timeline for LLM training data
+- **Keyboard Shortcuts**: Press `?` to see all shortcuts
+- **Settings Persistence**: Playback speed and axis scales saved to localStorage
+- **Export as PNG**: Export charts via camera button in header
+- **Accessibility**: Full ARIA labels for screen readers
 
 ### Research Tools (via Home Page)
 
@@ -35,123 +91,15 @@ The Blazor port includes all original features plus:
 - **Backtest Results** (`/backtests`) - Compare strategy performance
 - **Research Tasks** (`/tasks`) - Kanban-style task board
 
-## Features (Both Versions)
-
-- **Dual View Comparison**: Normalized (Practitioner) vs Absolute (S² Scaled) GEX
-- **Historical Timeline**: 21 EOD regime snapshots from March 2020 to December 2025
-- **Media Controls**: Play/pause, step through, timeline scrubbing, keyboard shortcuts
-- **Price Sparkline**: Click to jump, hover for tooltips, historical trajectory
-- **Axis Scaling**: TradingView-style zoom via scroll or drag on Y/X axes
-- **Color-Coded Regimes**: Cyan for long gamma (stabilizing), red for short gamma (amplifying)
-- **Research Metrics**: Volatility warnings, regime persistence, UVXY lead-lag signals
-- **Help System**: Two `?` buttons - sim controls (sidebar) and chart controls (bottom-right)
-
-## Controls
-
-| Control | Action |
-|---------|--------|
-| Space | Play/Pause simulation |
-| Arrow Left/Right | Step backward/forward |
-| Arrow Up/Down | Jump to next/prev year |
-| Home/End | Jump to start/end |
-| Scroll on Chart | Adjust spot price (Shift = faster) |
-| Drag on Chart | Drag up/down to adjust spot price |
-| Y-Axis Drag/Scroll | Zoom price range |
-| X-Axis Drag/Scroll | Zoom magnitude scale |
-| Double-click Axis | Reset zoom |
-| Click Sparkline | Jump to that point |
-| R | Reset view (zoom) |
-| F | Toggle fullscreen |
-| ? | Show keyboard shortcuts help |
-| Escape | Close help overlay |
-
-## Color Legend
-
-| Color | Meaning |
-|-------|---------|
-| Cyan/Green | Long gamma - dealers stabilize volatility |
-| Red/Orange | Short gamma - dealers amplify volatility |
-| Yellow | Spot price line |
-| Purple | Zero gamma (0γ) flip point |
-
-## Terminology
-
-| Symbol | Meaning |
-|--------|---------|
-| GEX | Gamma Exposure - net gamma dealers hold from hedging |
-| S² | Spot price squared - scaling factor (Price × Price) |
-| γ | Greek letter gamma - hedge adjustment per $1 move |
-| 0γ | Zero gamma level - dealer exposure flip point |
-| Tilt | Dealer positioning bias (negative = short gamma) |
-| UVXY | ProShares Ultra VIX ETF - volatility proxy |
-
-## Data Modes
-
-**Demo Mode** (default): Uses built-in simulated SPY timeline (2020-2025) with 21 representative
-snapshots. Works out of the box for research demonstrations.
-
-**Real Data Mode** (local only): Loads actual historical GEX data from exported JSON files. Requires:
-
-1. Access to `.cache/gex_research.db` (premium API data - not included in repo)
-2. Run `python export_data.py` to generate JSON files
-3. **Start local server** (browsers block fetch on file:// URLs):
-
-   ```bash
-   python run.py
-   ```
-
-4. Click "Real Data" button in visualizer
-
-> ⚠️ **Note**: The `data/` folder is gitignored. Real data exports contain proprietary historical
-> options data and should remain LOCAL ONLY.
-
 ## File Structure
 
 ```text
-├── index.html       # HTML structure
-├── styles.css       # Main CSS (imports component files)
-├── css/             # Component-based stylesheets
-│   ├── base.css     # Variables, reset, animations
-│   ├── header.css   # Header, metrics, volatility warning
-│   ├── sidebar.css  # Sidebar layout, data controls
-│   ├── controls.css # Media controls, timeline, sliders
-│   ├── charts.css   # Chart panels, axes, SVG elements
-│   ├── cards.css    # Info cards (persistence, gamma)
-│   ├── sparkline.css# Price sparkline and tooltips
-│   └── helpers.css  # Keyboard help, toggles
-├── main.js          # Orchestration and initialization
-├── state.js         # State object, strike range, timeline
-├── ui.js            # DOM updates, status indicators
-├── chart.js         # SVG creation, bar rendering
-├── simulation.js    # Playback controls, sparkline
-├── events.js        # Keyboard, mouse, drag handlers
-├── data-loader.js   # Real data loading module
-├── run.py           # Dev server (FastAPI or stdlib fallback)
-├── server.py        # FastAPI server for production
 ├── export_data.py   # SQLite → JSON export script
 ├── data/            # (gitignored) Exported JSON files
 └── README.md        # This file
 ```
 
-No build step required - open `index.html` directly in browser.
+## Related
 
-## Development Server
-
-```bash
-# Basic (no dependencies)
-python run.py
-
-# With FastAPI (recommended for development)
-pip install fastapi uvicorn
-python run.py
-```
-
-The server auto-detects FastAPI availability and falls back to stdlib if not installed.
-
-## Research Background
-
-Based on GEX research analyzing 50.88M+ options records (2020-2025). Demonstrates how the S²
-scaling factor in absolute GEX methodology causes regime over-detection as SPY price increases
-from ~$300 (2020) to ~$600 (2025).
-
-See `docs/08_research/02_gex_research/` for full methodology documentation.
+- [Research Visuals](../research-visuals/) - Interactive research visualizations
+- [Main README](../../README.md) - Project overview and setup
