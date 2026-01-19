@@ -191,12 +191,12 @@ local tasks with your GitHub project board. See
 - [x] DateOnly type migration (#90)
 - [x] OptionsLog P&L bug fix (#91)
 - [x] OptionsLog unit tests - 17 comprehensive tests (#93)
+- [x] DateRange DateOnly refactoring (#94)
 
 ### In Progress
 - [ ] SQLite WASM integration (#18) - research complete, awaiting database
 
 ### Planned
-- [ ] DateRange DateOnly refactoring (#94)
 - [ ] StatusMapper pattern optimization (#95)
 - [ ] Add SQLite database as static asset (#11)
 
