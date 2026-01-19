@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Timers;
 using GexVisor.UI.Configuration;
 using GexVisor.UI.Models;
@@ -80,7 +81,7 @@ public class GexStateService : IDisposable
 
         return new GexDataPoint
         {
-            Date = DateOnly.Parse(date),
+            Date = DateOnly.Parse(date, CultureInfo.InvariantCulture),
             Price = price,
             Gex = oi * (1 + tilt),
             CallGex = oi * 0.6m,

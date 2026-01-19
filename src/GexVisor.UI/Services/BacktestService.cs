@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using GexVisor.UI.Models;
@@ -185,7 +186,7 @@ public class BacktestService : BaseEntryService<BacktestResult>
         {
             var tags = string.Join(";", r.Tags);
             var notes = r.Notes?.Replace("\"", "\"\"") ?? "";
-            sb.AppendLine($"{r.Id},{r.CreatedAt:O},{r.StrategyName},{r.StartDate},{r.EndDate},{r.TotalTrades},{r.WinningTrades},{r.WinRate:F2},{r.TotalReturn:F2},{r.MaxDrawdown:F2},{r.SharpeRatio},{r.ProfitFactor},{r.ReturnInPositiveGamma},{r.ReturnInNegativeGamma},\"{tags}\",\"{notes}\"");
+            sb.AppendLine(CultureInfo.InvariantCulture, $"{r.Id},{r.CreatedAt:O},{r.StrategyName},{r.StartDate},{r.EndDate},{r.TotalTrades},{r.WinningTrades},{r.WinRate:F2},{r.TotalReturn:F2},{r.MaxDrawdown:F2},{r.SharpeRatio},{r.ProfitFactor},{r.ReturnInPositiveGamma},{r.ReturnInNegativeGamma},\"{tags}\",\"{notes}\"");
         }
 
         return sb.ToString();

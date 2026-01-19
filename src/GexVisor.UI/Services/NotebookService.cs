@@ -1,5 +1,6 @@
-using GexVisor.UI.Models;
+using System.Globalization;
 using System.Text.Json;
+using GexVisor.UI.Models;
 
 namespace GexVisor.UI.Services;
 
@@ -83,28 +84,28 @@ public class NotebookService : BaseEntryService<NotebookEntry>
     {
         var sb = new System.Text.StringBuilder();
         sb.AppendLine("# Research Notebook Export");
-        sb.AppendLine($"*Exported: {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC*");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"*Exported: {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC*");
         sb.AppendLine();
         sb.AppendLine("---");
         sb.AppendLine();
 
         foreach (var entry in GetOrderedEntries())
         {
-            sb.AppendLine($"## {entry.Title}");
+            sb.AppendLine(CultureInfo.InvariantCulture, $"## {entry.Title}");
             sb.AppendLine();
-            sb.AppendLine($"**Date:** {entry.CreatedAt:yyyy-MM-dd HH:mm}");
+            sb.AppendLine(CultureInfo.InvariantCulture, $"**Date:** {entry.CreatedAt:yyyy-MM-dd HH:mm}");
 
             if (!string.IsNullOrEmpty(entry.LinkedDate))
-                sb.AppendLine($"**Linked to:** {entry.LinkedDate}");
+                sb.AppendLine(CultureInfo.InvariantCulture, $"**Linked to:** {entry.LinkedDate}");
 
             if (entry.Tags.Count > 0)
-                sb.AppendLine($"**Tags:** {string.Join(", ", entry.Tags.Select(t => $"`{t}`"))}");
+                sb.AppendLine(CultureInfo.InvariantCulture, $"**Tags:** {string.Join(", ", entry.Tags.Select(t => $"`{t}`"))}");
 
             if (entry.PriceAtCreation.HasValue)
-                sb.AppendLine($"**Price:** ${entry.PriceAtCreation:F2}");
+                sb.AppendLine(CultureInfo.InvariantCulture, $"**Price:** ${entry.PriceAtCreation:F2}");
 
             if (entry.GexAtCreation.HasValue)
-                sb.AppendLine($"**GEX:** {entry.GexAtCreation:F2}B");
+                sb.AppendLine(CultureInfo.InvariantCulture, $"**GEX:** {entry.GexAtCreation:F2}B");
 
             sb.AppendLine();
             sb.AppendLine(entry.Content);

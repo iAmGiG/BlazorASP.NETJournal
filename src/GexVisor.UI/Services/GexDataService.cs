@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -85,7 +86,7 @@ public class GexDataService : IGexDataService
     {
         var timeline = raw.Timeline.Select(point => new GexDataPoint
         {
-            Date = DateOnly.Parse(point.Date),
+            Date = DateOnly.Parse(point.Date, CultureInfo.InvariantCulture),
             Price = point.Price,
             Gex = point.Gex,
             CallGex = point.CallGex,
@@ -106,8 +107,8 @@ public class GexDataService : IGexDataService
             AssetClass = raw.AssetClass,
             DateRange = new DateRange
             {
-                Start = DateOnly.Parse(raw.DateRange.Start),
-                End = DateOnly.Parse(raw.DateRange.End)
+                Start = DateOnly.Parse(raw.DateRange.Start, CultureInfo.InvariantCulture),
+                End = DateOnly.Parse(raw.DateRange.End, CultureInfo.InvariantCulture)
             },
             Count = raw.Count,
             Timeline = timeline
@@ -120,7 +121,7 @@ public class GexDataService : IGexDataService
     private static string GenerateLabel(RawGexDataPoint point)
     {
         var regime = point.Regime == "NEGATIVE_GAMMA" ? "Short γ" : "Long γ";
-        var date = DateOnly.Parse(point.Date);
+        var date = DateOnly.Parse(point.Date, CultureInfo.InvariantCulture);
         return $"{date:MMM} {date.Year} - {regime}";
     }
 

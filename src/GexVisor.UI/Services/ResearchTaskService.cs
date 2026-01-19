@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using GexVisor.UI.Models;
@@ -215,7 +216,7 @@ public class ResearchTaskService : BaseEntryService<ResearchTask>
         {
             var tags = string.Join(";", t.Tags);
             var desc = t.Description?.Replace("\"", "\"\"") ?? "";
-            sb.AppendLine($"{t.Id},{t.CreatedAt:O},\"{t.Title}\",\"{desc}\",{t.Status},{t.Priority},\"{tags}\",{t.CompletedAt:O},{t.GitHubIssueUrl}");
+            sb.AppendLine(CultureInfo.InvariantCulture, $"{t.Id},{t.CreatedAt:O},\"{t.Title}\",\"{desc}\",{t.Status},{t.Priority},\"{tags}\",{t.CompletedAt:O},{t.GitHubIssueUrl}");
         }
 
         return sb.ToString();

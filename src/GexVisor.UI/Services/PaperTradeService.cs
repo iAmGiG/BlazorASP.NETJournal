@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using GexVisor.UI.Models;
@@ -180,7 +181,7 @@ public class PaperTradeService : BaseEntryService<PaperTrade>
         {
             var tags = string.Join(";", t.Tags);
             var notes = t.Notes?.Replace("\"", "\"\"") ?? "";
-            sb.AppendLine($"{t.Id},{t.CreatedAt:O},{t.Direction},{t.EntryPrice},{t.TargetPrice},{t.StopLoss},{t.ExitDate:O},{t.ExitPrice},{t.ExitReason},{t.PnLPoints},{t.PnLPercent:F2},{t.GexAtCreation},{t.IsNegativeGammaAtCreation},\"{tags}\",\"{notes}\"");
+            sb.AppendLine(CultureInfo.InvariantCulture, $"{t.Id},{t.CreatedAt:O},{t.Direction},{t.EntryPrice},{t.TargetPrice},{t.StopLoss},{t.ExitDate:O},{t.ExitPrice},{t.ExitReason},{t.PnLPoints},{t.PnLPercent:F2},{t.GexAtCreation},{t.IsNegativeGammaAtCreation},\"{tags}\",\"{notes}\"");
         }
 
         return sb.ToString();

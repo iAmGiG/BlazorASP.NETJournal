@@ -1,5 +1,6 @@
-using GexVisor.UI.Models;
+using System.Globalization;
 using System.Text.Json;
+using GexVisor.UI.Models;
 
 namespace GexVisor.UI.Services;
 
@@ -123,11 +124,11 @@ public class AnnotationService
                 a.Taxonomy,
                 a.Confidence,
                 EscapeCsv(a.Notes ?? ""),
-                a.PriceAtAnnotation.ToString("F2"),
-                a.GexAtAnnotation.ToString("F4"),
+                a.PriceAtAnnotation.ToString("F2", CultureInfo.InvariantCulture),
+                a.GexAtAnnotation.ToString("F4", CultureInfo.InvariantCulture),
                 a.IsNegativeGamma.ToString().ToLower(),
                 a.Outcome ?? "",
-                a.PriceMove?.ToString("F2") ?? ""
+                a.PriceMove?.ToString("F2", CultureInfo.InvariantCulture) ?? ""
             };
             lines.Add(string.Join(",", fields));
         }
