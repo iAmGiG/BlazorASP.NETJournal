@@ -1,3 +1,4 @@
+using GexVisor.UI.Configuration;
 using GexVisor.UI.Models;
 
 namespace GexVisor.UI.Services;
@@ -17,7 +18,7 @@ public class BoardStateService
     private bool _isLoading;
     private string? _lastError;
 
-    private static readonly TimeSpan CacheExpiry = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan CacheExpiry = TimeSpan.FromMinutes(AppConstants.Cache.BoardStateCacheMinutes);
 
     public bool IsLoading => _isLoading;
     public string? LastError => _lastError;
@@ -114,26 +115,26 @@ public class BoardStateService
         }
 
         // Add a catch-all for items with no status or unrecognized status
-        result["(No Status)"] = new List<GitHubProjectItem>();
+        result[AppConstants.GitHub.NoStatusLabel] = new List<GitHubProjectItem>();
 
         // Group items by their status
         foreach (var item in items)
         {
-            var status = item.Status ?? "(No Status)";
+            var status = item.Status ?? AppConstants.GitHub.NoStatusLabel;
             if (result.ContainsKey(status))
             {
                 result[status].Add(item);
             }
             else
             {
-                result["(No Status)"].Add(item);
+                result[AppConstants.GitHub.NoStatusLabel].Add(item);
             }
         }
 
-        // Remove empty "(No Status)" column if not needed
-        if (result["(No Status)"].Count == 0)
+        // Remove empty no-status column if not needed
+        if (result[AppConstants.GitHub.NoStatusLabel].Count == 0)
         {
-            result.Remove("(No Status)");
+            result.Remove(AppConstants.GitHub.NoStatusLabel);
         }
 
         return result;
@@ -186,8 +187,8 @@ public class BoardStateService
         {
             TotalItems = items.Count,
             ColumnCount = project?.StatusField?.Options.Count ?? 0,
-            OpenItems = items.Count(i => i.State?.ToUpper() != "CLOSED"),
-            ClosedItems = items.Count(i => i.State?.ToUpper() == "CLOSED"),
+            OpenItems = items.Count(i => i.State?.ToUpper() != AppConstants.GitHub.ClosedState),
+            ClosedItems = items.Count(i => i.State?.ToUpper() == AppConstants.GitHub.ClosedState),
             LastRefresh = _cacheTimestamps.TryGetValue(project?.Id ?? "", out var ts) ? ts : null
         };
     }

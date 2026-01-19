@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using GexVisor.UI.Configuration;
 using GexVisor.UI.Models;
 
 namespace GexVisor.UI.Services;
@@ -52,11 +53,11 @@ public class GitHubProjectService
         if (!_auth.IsAuthenticated)
             return new();
 
-        var query = """
+        var query = $$"""
             query {
                 viewer {
                     login
-                    projectsV2(first: 20) {
+                    projectsV2(first: {{AppConstants.GitHub.MaxProjectsPerQuery}}) {
                         nodes {
                             id
                             title
@@ -66,7 +67,7 @@ public class GitHubProjectService
                             items(first: 1) {
                                 totalCount
                             }
-                            fields(first: 20) {
+                            fields(first: {{AppConstants.GitHub.MaxFieldsPerProject}}) {
                                 nodes {
                                     ... on ProjectV2Field {
                                         id
@@ -101,7 +102,7 @@ public class GitHubProjectService
                     Url = p.Url,
                     ItemCount = p.Items?.TotalCount ?? 0,
                     StatusField = p.Fields?.Nodes?
-                        .Where(f => f.Name?.ToLower() == "status" && f.Options != null)
+                        .Where(f => f.Name?.ToLower() == AppConstants.GitHub.StatusFieldName && f.Options != null)
                         .Select(f => new GitHubStatusField
                         {
                             Id = f.Id,
@@ -151,11 +152,11 @@ public class GitHubProjectService
         if (!_auth.IsAuthenticated || _selectedProject == null)
             return new();
 
-        var query = """
+        var query = $$"""
             query($projectId: ID!) {
                 node(id: $projectId) {
                     ... on ProjectV2 {
-                        items(first: 100) {
+                        items(first: {{AppConstants.GitHub.MaxItemsPerProject}}) {
                             nodes {
                                 id
                                 content {
@@ -165,7 +166,7 @@ public class GitHubProjectService
                                         body
                                         state
                                         url
-                                        labels(first: 10) {
+                                        labels(first: {{AppConstants.GitHub.MaxLabelsPerIssue}}) {
                                             nodes {
                                                 name
                                                 color
@@ -178,7 +179,7 @@ public class GitHubProjectService
                                         body
                                     }
                                 }
-                                fieldValues(first: 10) {
+                                fieldValues(first: {{AppConstants.GitHub.MaxFieldValuesPerItem}}) {
                                     nodes {
                                         ... on ProjectV2ItemFieldSingleSelectValue {
                                             field {
@@ -214,7 +215,7 @@ public class GitHubProjectService
                 State = n.Content.State,
                 Url = n.Content.Url,
                 Status = n.FieldValues?.Nodes?
-                    .FirstOrDefault(f => f.Field?.Name?.ToLower() == "status")?.Name,
+                    .FirstOrDefault(f => f.Field?.Name?.ToLower() == AppConstants.GitHub.StatusFieldName)?.Name,
                 Labels = n.Content.Labels?.Nodes?
                     .Select(l => l.Name).ToList() ?? new()
             })

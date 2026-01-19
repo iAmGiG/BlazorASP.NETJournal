@@ -1,3 +1,4 @@
+using GexVisor.UI.Configuration;
 using GexVisor.UI.Models;
 
 namespace GexVisor.UI.Services;
@@ -105,7 +106,7 @@ public class ComparisonAnalysisService
                     regimes[asset.Symbol] = regime;
                     gexValues[asset.Symbol] = dataPoint.Gex;
 
-                    if (asset.Timeline.AssetClass == "Index")
+                    if (asset.Timeline.AssetClass == AppConstants.Correlation.IndexAssetClass)
                         hasIndex = true;
                     else
                         hasStock = true;
@@ -202,14 +203,14 @@ public class ComparisonAnalysisService
             return 0;
         }
 
-        // Count how many flips occur within 5 days of each other
+        // Count how many flips occur within the correlation window of each other
         // Use optimized iteration instead of nested Any() calls
         var correlatedFlips = 0;
         foreach (var t1 in transitions1)
         {
             foreach (var t2 in transitions2)
             {
-                if (Math.Abs((t2 - t1).TotalDays) <= 5)
+                if (Math.Abs((t2 - t1).TotalDays) <= AppConstants.Correlation.RegimeFlipCorrelationWindow)
                 {
                     correlatedFlips++;
                     break; // Count each t1 only once
@@ -243,8 +244,8 @@ public class ComparisonAnalysisService
         List<CorrelationMetrics> correlations)
     {
         // Identify index and stock assets
-        var indexAssets = assets.Where(a => a.Timeline.AssetClass == "Index").ToList();
-        var stockAssets = assets.Where(a => a.Timeline.AssetClass != "Index").ToList();
+        var indexAssets = assets.Where(a => a.Timeline.AssetClass == AppConstants.Correlation.IndexAssetClass).ToList();
+        var stockAssets = assets.Where(a => a.Timeline.AssetClass != AppConstants.Correlation.IndexAssetClass).ToList();
 
         if (indexAssets.Count == 0 || stockAssets.Count == 0)
         {
@@ -272,6 +273,7 @@ public class ComparisonAnalysisService
 
     /// <summary>
     /// Find overlapping date range between two timelines.
+    /// Expects dates in AppConstants.DataFormat.DateFormat (yyyy-MM-dd) for proper parsing.
     /// </summary>
     private DateRangeOverlap FindDateOverlap(GexTimeline t1, GexTimeline t2)
     {
@@ -287,14 +289,15 @@ public class ComparisonAnalysisService
 
         return new DateRangeOverlap
         {
-            Start = overlapStart.ToString("yyyy-MM-dd"),
-            End = overlapEnd.ToString("yyyy-MM-dd"),
+            Start = overlapStart.ToString(AppConstants.DataFormat.DateFormat),
+            End = overlapEnd.ToString(AppConstants.DataFormat.DateFormat),
             TotalDays = totalDays
         };
     }
 
     /// <summary>
     /// Find common date range across all assets (intersection).
+    /// Expects dates in AppConstants.DataFormat.DateFormat (yyyy-MM-dd) for proper parsing.
     /// </summary>
     private DateRangeOverlap FindCommonDateRange(List<AssetComparisonData> assets)
     {
@@ -313,14 +316,16 @@ public class ComparisonAnalysisService
 
         return new DateRangeOverlap
         {
-            Start = overlapStart.ToString("yyyy-MM-dd"),
-            End = overlapEnd.ToString("yyyy-MM-dd"),
+            Start = overlapStart.ToString(AppConstants.DataFormat.DateFormat),
+            End = overlapEnd.ToString(AppConstants.DataFormat.DateFormat),
             TotalDays = Math.Max(0, totalDays)
         };
     }
 
     /// <summary>
     /// Filter timeline data to specified date range.
+    /// Uses string.Compare for date filtering - requires dates in AppConstants.DataFormat.DateFormat (yyyy-MM-dd) format.
+    /// String comparison works correctly only because ISO 8601 format (yyyy-MM-dd) is lexicographically sortable.
     /// </summary>
     private List<GexDataPoint> FilterByDateRange(List<GexDataPoint> timeline, DateRangeOverlap range)
     {
@@ -363,7 +368,7 @@ public class ComparisonAnalysisService
         var variance = returns.Sum(r => (r - mean) * (r - mean)) / returns.Count;
         var dailyVol = (decimal)Math.Sqrt((double)variance);
 
-        // Annualize (assuming 252 trading days)
-        return dailyVol * (decimal)Math.Sqrt(252);
+        // Annualize using standard trading days per year
+        return dailyVol * (decimal)Math.Sqrt(AppConstants.Finance.TradingDaysPerYear);
     }
 }

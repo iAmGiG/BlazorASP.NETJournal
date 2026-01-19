@@ -1,3 +1,5 @@
+using GexVisor.UI.Configuration;
+
 namespace GexVisor.UI.Models;
 
 /// <summary>
@@ -27,33 +29,35 @@ public record PatternValidationStats
         : null;
 
     /// <summary>
-    /// Progress toward minimum sample size (n=30 for statistical significance).
+    /// Progress toward minimum sample size for statistical significance.
     /// </summary>
-    public double SampleProgress => Math.Min(100, (double)CompletedCount / 30 * 100);
+    public double SampleProgress => Math.Min(100, (double)CompletedCount / AppConstants.Validation.MinimumSampleSize * 100);
 
     /// <summary>
     /// Validation status based on research criteria.
-    /// Requires: n>=30 completed AND win rate >=60%
+    /// Requires: minimum sample size AND minimum win rate threshold.
     /// </summary>
     public ValidationStatus Status
     {
         get
         {
-            if (CompletedCount < 10)
+            if (CompletedCount < AppConstants.Validation.MinimumPartialSamples)
                 return ValidationStatus.Unvalidated;
 
-            if (CompletedCount < 30)
+            if (CompletedCount < AppConstants.Validation.MinimumSampleSize)
                 return ValidationStatus.Partial;
 
             // Have sufficient sample - check win rate
-            return WinRate >= 60 ? ValidationStatus.Validated : ValidationStatus.Failed;
+            return WinRate >= AppConstants.Validation.MinimumWinRatePercent
+                ? ValidationStatus.Validated
+                : ValidationStatus.Failed;
         }
     }
 
     /// <summary>
-    /// Number of additional samples needed to reach n=30.
+    /// Number of additional samples needed to reach minimum sample size.
     /// </summary>
-    public int SamplesNeeded => Math.Max(0, 30 - CompletedCount);
+    public int SamplesNeeded => Math.Max(0, AppConstants.Validation.MinimumSampleSize - CompletedCount);
 
     /// <summary>
     /// Breakdown by taxonomy (MECH/PROB/NARR).

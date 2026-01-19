@@ -1,3 +1,5 @@
+using GexVisor.UI.Configuration;
+
 namespace GexVisor.UI.Services;
 
 /// <summary>
@@ -114,7 +116,7 @@ public class TagService
     {
         if (string.IsNullOrWhiteSpace(partial))
         {
-            return AllTags.Take(10);
+            return AllTags.Take(AppConstants.UI.MaxTagSuggestions);
         }
 
         // Normalize input to handle space/hyphen mismatches
@@ -124,7 +126,7 @@ public class TagService
             .Where(t => t.Contains(normalized, StringComparison.OrdinalIgnoreCase))
             .OrderBy(t => !t.StartsWith(normalized, StringComparison.OrdinalIgnoreCase))
             .ThenBy(t => t)
-            .Take(10);
+            .Take(AppConstants.UI.MaxTagSuggestions);
     }
 
     /// <summary>

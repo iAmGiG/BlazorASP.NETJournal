@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using GexVisor.UI.Configuration;
 using GexVisor.UI.Models;
 
 namespace GexVisor.UI.Services;
@@ -115,7 +116,7 @@ public class GitHubAuthService
                 }
                 else if (tokenResponse.IsSlowDown)
                 {
-                    interval += 5; // Back off as requested
+                    interval += AppConstants.GitHub.PollingBackoffIncrement; // Back off as requested by GitHub
                 }
                 else if (tokenResponse.IsPending)
                 {

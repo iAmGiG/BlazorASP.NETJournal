@@ -139,9 +139,8 @@ namespace GexVisor.Core
         /// <summary>
         /// Calculates profit/loss for options trade.
         /// Returns null if trade is not yet closed (ExitPrice is null).
-        /// For options: P&L = (ExitPrice - EntryPrice) * Quantity * ContractMultiplier
+        /// For options: P&L = (ExitPrice - EntryPrice) * Quantity * ContractMultiplier * directionMultiplier
         /// Note: Quantity (inherited) represents the number of contracts.
-        /// Uses the ContractMultiplier property to support Mini-Options (10), Futures Options (50), etc.
         /// </summary>
         public override decimal? CalculatePnL()
         {
@@ -149,7 +148,6 @@ namespace GexVisor.Core
                 return null;
 
             var priceDelta = ExitPrice.Value - EntryPrice;
-            // BTO/STO determine if we're buying (positive delta) or selling (negative delta)
             var directionMultiplier = (OptionTradeType == TradeType.BTO || OptionTradeType == TradeType.BTC) ? 1 : -1;
 
             return priceDelta * Quantity * ContractMultiplier * directionMultiplier;
