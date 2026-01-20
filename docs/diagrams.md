@@ -315,6 +315,7 @@ flowchart TB
         BES[BaseEntryService&lt;T&gt;<br/>Abstract]
         NS[NotebookService]
         PTS[PaperTradeService]
+        TLS[TradeLogService]
         BS[BacktestService]
         AS[AnnotationService]
         RTS[ResearchTaskService]
@@ -335,6 +336,7 @@ flowchart TB
     subgraph Utilities["Utilities"]
         TS[TagService]
         SS[SqliteService]
+        DMP[DecisionMetadataParser]
     end
 
     subgraph External["External Dependencies"]
@@ -667,6 +669,66 @@ sequenceDiagram
     CD->>CD: Render CorrelationMatrix
     CD->>CD: Render RegimeDivergenceList
 ```
+
+---
+
+## Trade Journal Import Flow
+
+Sequence diagram showing how autotrader logs are imported and processed.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant UI as TradeLogging.razor
+    participant Parser as DecisionMetadataParser
+    participant Service as TradeLogService
+    participant Storage as LocalStorageService
+
+    User->>UI: Upload CSV/JSON file
+    UI->>Parser: ParseJsonLog(content) or ParseCsvLog(content)
+    Parser->>Parser: Extract trades & decisions
+    Parser-->>UI: (List<OptionsLog>, List<TradeDecision>)
+    UI->>Service: ImportTrades(trades, decisions)
+    Service->>Storage: SetAsync("tradeLogs", trades)
+    Service->>Storage: SetAsync("decisions", decisions)
+    Storage-->>Service: Success
+    Service-->>UI: Import complete
+    UI-->>User: Show success message
+```
+
+**Key components:**
+- **DecisionMetadataParser**: Handles both JSON and CSV formats
+- **TradeLogService**: Manages CRUD operations and persistence
+- **TradeDecision**: Metadata model with pattern tracking and confidence scores
+
+---
+
+## Trade Decision Context Flow
+
+Graph showing how decision metadata enhances trade display.
+
+```mermaid
+graph TD
+    A[Trade Entry] --> B{Has Decision Metadata?}
+    B -->|Yes| C[Display PatternBadge]
+    B -->|Yes| D[Display RegimeContextCard]
+    B -->|Yes| E[Display DecisionTimeline]
+    B -->|No| F[Show basic trade info only]
+    C --> G[User views patterns]
+    D --> G
+    E --> G
+    F --> G
+```
+
+**Decision metadata includes:**
+- Active patterns (MECH, PROB, NARR taxonomy)
+- Primary trigger signal
+- Confidence score (0-1)
+- Regime type (Positive γ / Negative γ)
+- GEX level at entry
+- IV level at entry
+- Spot price
+- Decision rationale text
 
 ---
 

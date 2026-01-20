@@ -4,17 +4,17 @@ Detailed technical documentation of the GexVisor system architecture.
 
 ## Service Inventory
 
-GexVisor has 20 services organized into 5 functional domains.
+GexVisor has 22 services organized into 5 functional domains.
 
 ### Core Services (3)
 
 | Service | Lifetime | Interface | Responsibility |
 |---------|----------|-----------|----------------|
-| `GexStateService` | Singleton | ❌ None | Central state container for visualization |
+| `GexStateService` | Singleton | ✅ `IGexStateService` | Central state container for visualization |
 | `GexDataService` | Scoped | `IGexDataService` | Load GEX data from JSON files |
 | `LocalStorageService` | Scoped | `ILocalStorageService` | Browser localStorage via JS interop |
 
-### Journal Services (6)
+### Journal Services (7)
 
 All inherit from `BaseEntryService<T>` using the Template Method pattern.
 
@@ -22,6 +22,7 @@ All inherit from `BaseEntryService<T>` using the Template Method pattern.
 |---------|-------------|------------|
 | `NotebookService` | `gexvisor.notebook` | Research notes |
 | `PaperTradeService` | `gexvisor.paperTrades` | Simulated trades |
+| `TradeLogService` | `gexvisor.tradeLogs` | Trade journal with decision metadata |
 | `BacktestService` | `gexvisor.backtests` | Strategy results |
 | `AnnotationService` | `gexvisor.annotations` | Pattern annotations |
 | `ResearchTaskService` | `gexvisor.tasks` | Kanban tasks |
@@ -43,12 +44,13 @@ All inherit from `BaseEntryService<T>` using the Template Method pattern.
 | `ComparisonService` | Stateful | Symbol selection, parallel loading |
 | `ComparisonAnalysisService` | Stateless | Correlation calculations |
 
-### Utilities (2)
+### Utilities (3)
 
 | Service | Responsibility |
 |---------|----------------|
 | `TagService` | Autocomplete, predefined + custom tags |
 | `SqliteService` | WASM SQLite queries (sql.js) |
+| `DecisionMetadataParser` | Parse autotrader logs (JSON/CSV), extract decision metadata |
 
 ---
 
@@ -155,6 +157,8 @@ builder.Services.AddScoped<GitHubProjectService>();
 builder.Services.AddScoped<BoardStateService>();
 builder.Services.AddScoped<StatusMapper>();
 builder.Services.AddScoped<SqliteService>();
+builder.Services.AddScoped<TradeLogService>();
+builder.Services.AddScoped<DecisionMetadataParser>();
 ```
 
 ---
@@ -167,7 +171,8 @@ All persistence uses browser localStorage via `LocalStorageService`.
 |-----|------|-------------|
 | `gexvisor.settings` | `AppSettings` | Playback speed, axis scales, last symbol |
 | `gexvisor.notebook` | `List<NotebookEntry>` | Research notes |
-| `gexvisor.paperTrades` | `List<PaperTrade>` | Trade journal |
+| `gexvisor.paperTrades` | `List<PaperTrade>` | Paper trading journal |
+| `gexvisor.tradeLogs` | `List<OptionsLog>` | Autotrader trade logs with decision metadata |
 | `gexvisor.backtests` | `List<BacktestResult>` | Strategy results |
 | `gexvisor.annotations` | `List<PatternAnnotation>` | Pattern annotations |
 | `gexvisor.tasks` | `List<ResearchTask>` | Local Kanban tasks |
@@ -185,6 +190,7 @@ All persistence uses browser localStorage via `LocalStorageService`.
 | `GexStateService` | `OnStateChanged` | Any state property changes | GexChart, GexHeader, RegimeTimeline |
 | `GexStateService` | `OnSettingsChanged` | Axis scale or playback speed changes | GexVisualizer (debounced save) |
 | `BaseEntryService<T>` | `OnEntriesChanged` | Add/Update/Delete entry | Journal page components |
+| `TradeLogService` | `OnTradesChanged` | Add/Update/Delete trade | TradeLogging page components |
 | `ComparisonService` | `OnSelectionChanged` | Symbol toggled or loaded | ComparisonDashboard |
 | `GitHubAuthService` | `OnAuthStateChanged` | Login/logout | GitHubAuthPanel |
 | `GitHubAuthService` | `OnDeviceCodeReceived` | Device flow started | GitHubAuthPanel (show code) |
@@ -249,6 +255,24 @@ All persistence uses browser localStorage via `LocalStorageService`.
 10. ResearchNotebook re-renders entry list
 ```
 
+### Trade Journal Import Flow
+
+```
+1. User uploads CSV/JSON file in TradeLogging.razor
+2. File content read as string
+3. TradeLogging calls DecisionMetadataParser.ParseJsonLog() or ParseCsvLog()
+4. Parser extracts:
+   - OptionsLog entries (ticker, prices, dates, multiplier)
+   - TradeDecision metadata (patterns, confidence, regime context)
+5. Parser returns (List<OptionsLog>, List<TradeDecision>)
+6. TradeLogging calls TradeLogService.ImportTrades(trades, decisions)
+7. TradeLogService merges with existing entries
+8. TradeLogService saves to localStorage ("tradeLogs" and "decisions" keys)
+9. TradeLogService fires OnTradesChanged
+10. UI components re-render: TradeGrid, TradeDetailModal, DecisionTimeline
+11. User sees imported trades with decision metadata (PatternBadge, RegimeContextCard)
+```
+
 ---
 
 ## Performance Considerations
@@ -274,16 +298,22 @@ All persistence uses browser localStorage via `LocalStorageService`.
 
 ## Known Architecture Issues
 
+### Recently Resolved
+
+| Issue | Title | Resolution |
+|-------|-------|------------|
+| ✅ #138 | Demo data staleness | Fixed with dynamic date generation (commit 97251f7) |
+| ✅ #139 | GexChart performance | Added memoization to prevent unnecessary recalculations (commit 317fc25) |
+| ✅ #140 | Trade Journal implementation | Complete feature with import/export, 172 tests passing |
+| ✅ #141 | IGexStateService interface extraction | Interface created, enables component testing |
+
+### Open Issues
+
 Tracked in GitHub issues:
 
 | Issue | Title | Priority |
 |-------|-------|----------|
-| #134 | Extract IGexStateService interface | High |
 | #135 | Add GitHub pagination | Low |
-| #136 | LocalStorageService silent errors | Medium |
-| #137 | ComparisonService race condition | Medium |
-| #138 | Demo data staleness | Low |
-| #139 | GexChart recalculation performance | Low |
 
 ---
 

@@ -32,7 +32,9 @@ New to GexVisor? Start here:
 | `/research/patterns` | Pattern discovery (KDD process) |
 | `/research/complexity` | Research complexity map |
 | `/research/paper2` | Structural agreement test |
-| `/paper-trading` | Paper trading journal |
+| `/trading` | Paper trading simulator |
+| `/tradelogging` | Trade Journal - autotrader log import and analysis |
+| `/comparison` | Comparison Dashboard - multi-asset regime analysis |
 | `/backtests` | Backtest results tracker |
 | `/notebook` | Research notebook |
 | `/tasks` | Task board (local + GitHub) |

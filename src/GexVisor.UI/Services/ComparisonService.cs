@@ -41,7 +41,11 @@ public class ComparisonService
         }
 
         // Prevent concurrent loading - if already loading, wait for current operation
-        await _loadLock.WaitAsync();
+        if (!await _loadLock.WaitAsync(TimeSpan.FromSeconds(30)))
+        {
+            throw new TimeoutException("Failed to acquire lock for symbol loading after 30 seconds");
+        }
+
         try
         {
             _isLoading = true;

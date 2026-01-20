@@ -373,6 +373,148 @@ State for dual-timeline comparison in GEX Visualizer.
 
 ---
 
+## Trade Journal Entry Lifecycle
+
+State machine for trade journal entries with decision metadata.
+
+```
+    ┌────────────────┐
+    │   UNIMPORTED   │
+    │                │
+    │ Manual entry   │
+    │ via form       │
+    └───────┬────────┘
+            │ Create or import
+            ▼
+    ┌────────────────┐
+    │    IMPORTED    │
+    │                │
+    │ From autotrader│
+    │ CSV/JSON file  │
+    └───────┬────────┘
+            │ Parser extracts
+            │ metadata
+            ▼
+    ┌────────────────┐
+    │    DISPLAYED   │
+    │                │
+    │ In TradeGrid   │
+    │ With metadata  │
+    ├────────────────┤
+    │ Shows:         │
+    │ • PatternBadge │
+    │ • RegimeCard   │
+    │ • Decision     │
+    │   Timeline     │
+    └───────┬────────┘
+            │
+    ┌───────┴───────┐
+    │               │
+    ▼               ▼
+┌──────────┐  ┌──────────┐
+│  EDITED  │  │ EXPORTED │
+│          │  │          │
+│ User     │  │ Export to│
+│ modifies │  │ CSV/JSON │
+└────┬─────┘  └────┬─────┘
+     │              │
+     ▼              │
+┌──────────┐       │
+│ DELETED  │       │
+│          │       │
+│ Removed  │       │
+│ from log │       │
+└──────────┘       │
+     │             │
+     ▼             ▼
+    [*]           [*]
+```
+
+**Metadata fields:**
+- Active patterns (MECH/PROB/NARR taxonomy)
+- Confidence score (0-1)
+- Regime context (Positive γ / Negative γ)
+- Primary trigger signal
+- Decision rationale text
+
+---
+
+## Autotrader Log Import Process
+
+Data flow for importing external trading logs.
+
+```
+    ┌────────────────┐
+    │ FILE_SELECTED  │
+    │                │
+    │ User uploads   │
+    │ CSV or JSON    │
+    └───────┬────────┘
+            │
+            ▼
+    ┌────────────────┐
+    │    PARSING     │
+    │                │
+    │ DecisionMeta   │
+    │ dataParser     │
+    ├────────────────┤
+    │ • Parse JSON   │
+    │ • Parse CSV    │
+    │ • Extract      │
+    │   trades       │
+    │ • Extract      │
+    │   decisions    │
+    └───────┬────────┘
+            │
+    ┌───────┴───────┐
+    │               │
+    ▼               ▼
+┌──────────┐  ┌───────────┐
+│  ERROR   │  │ VALIDATED │
+│          │  │           │
+│ Invalid  │  │ Required  │
+│ format   │  │ fields OK │
+│ Missing  │  └─────┬─────┘
+│ fields   │        │
+└────┬─────┘        ▼
+     │      ┌───────────────┐
+     │      │   IMPORTED    │
+     │      │               │
+     │      │ TradeLogSvc   │
+     │      │ .ImportTrades │
+     │      ├───────────────┤
+     │      │ • Merge with  │
+     │      │   existing    │
+     │      │ • Save to     │
+     │      │   localStorage│
+     │      │ • Fire event  │
+     │      └───────┬───────┘
+     │              │
+     ▼              ▼
+    ┌─────────────────┐
+    │  ERROR_STATE    │
+    │                 │
+    │ Display message │
+    │ Retry possible  │
+    └─────────────────┘
+```
+
+**Supported formats:**
+- JSON: AutotraderLogEntry array
+- CSV: Configurable columns with fallbacks
+  - EntryPrice/Entry
+  - Timestamp/Date
+  - Quantity
+  - Strike/StrikePrice
+
+**Parser features:**
+- Case-insensitive column matching
+- Quoted field support in CSV
+- Validates numeric fields before import
+- Skips rows with invalid data
+
+---
+
 ## Rendering Format
 
 These diagrams use ASCII art for maximum compatibility. For richer rendering:
