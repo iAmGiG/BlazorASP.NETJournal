@@ -1,0 +1,246 @@
+@page "/research/paper2"
+@using GexVisor.UI.Models
+@implements IDisposable
+
+<PageTitle>Paper 2: Structural Agreement - GexVisor</PageTitle>
+
+<div class="paper2-page">
+    <header class="paper2-header">
+        <div class="header-left">
+            <a href="/arcade" class="back-link">
+                <i class="fas fa-arrow-left"></i> Research Arcade
+            </a>
+            <div class="title-group">
+                <h1>RESEARCH VISUALIZER <span class="tag">FORMULA AGREEMENT TEST</span></h1>
+                <span class="subtitle">Paper 2: Gradual Adoption &amp; Structural Truth</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Timeline Section -->
+    <div class="timeline-container">
+        <div class="year-display">@_currentYear</div>
+        <div class="timeline-track">
+            @foreach (var year in Paper2Timeline.Years)
+            {
+                var data = Paper2Timeline.GetYearData(year);
+                var isActive = year == _currentYear;
+                var barClass = year switch
+                {
+                    2023 => "t-bar t-dip",
+                    >= 2024 => "t-bar t-regime",
+                    _ => "t-bar"
+                };
+                <div class="@barClass @(isActive ? "t-active" : "")"
+                     style="height: @(data.DetectionRate)%; opacity: @(isActive ? 1 : 0.3)">
+                    <span class="t-year">@year</span>
+                    @if (isActive)
+                    {
+                        <span class="t-val">@data.DetectionRate%</span>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Main Stage (3 panels) -->
+    <div class="main-stage">
+        <!-- Absolute GEX Panel -->
+        <div class="chart-panel">
+            <div class="panel-label">
+                <span>Absolute GEX ($S²)</span>
+                <span class="method-tag abs">Paper 2 Method</span>
+            </div>
+            <div class="viz-box">
+                <div class="bar-container">
+                    @for (int i = 0; i < 15; i++)
+                    {
+                        var height = _absBarHeights[i];
+                        var color = _absBarColors[i];
+                        <div class="v-bar" style="height: @height%; background-color: @color;"></div>
+                    }
+                </div>
+            </div>
+            <div class="panel-note">Sensitive to Inflation &amp; Magnitude</div>
+        </div>
+
+        <!-- Logic Panel (Center) -->
+        <div class="logic-panel">
+            <div class="logic-title">LLM REASONING</div>
+
+            <div class="detector-box @(_absActive ? "active-regime" : "")">
+                <div class="detector-label">ABS MODEL</div>
+                <div class="detector-status">@_absStatus</div>
+            </div>
+
+            <div class="agreement-section">
+                <div class="agreement-line"></div>
+                <div class="agreement-badge @(_agreementMatch ? "match-success" : "")">
+                    @(_agreementMatch ? "100% AGREEMENT" : "DIVERGENCE")
+                </div>
+                <div class="agreement-line"></div>
+            </div>
+
+            <div class="detector-box @(_normActive ? "active-regime" : "")">
+                <div class="detector-label">NORM MODEL</div>
+                <div class="detector-status">@_normStatus</div>
+            </div>
+        </div>
+
+        <!-- Normalized GEX Panel -->
+        <div class="chart-panel">
+            <div class="panel-label">
+                <span>Normalized GEX (Ratio)</span>
+                <span class="method-tag norm">Practitioner Method</span>
+            </div>
+            <div class="viz-box">
+                <div class="bar-container">
+                    @for (int i = 0; i < 15; i++)
+                    {
+                        var height = _normBarHeights[i];
+                        var color = _normBarColors[i];
+                        <div class="v-bar" style="height: @height%; background-color: @color;"></div>
+                    }
+                </div>
+            </div>
+            <div class="panel-note">Sensitive only to Directional Tilt</div>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+        <button @onclick='() => SetYear(2020)'>2020 (Baseline)</button>
+        <button @onclick='() => SetYear(2023)'>2023 (The Dip)</button>
+        <button @onclick='() => SetYear(2024)'>2024 (Regime)</button>
+        <button class="primary" @onclick="PlaySimulation">
+            @(_isPlaying ? "PLAYING..." : "▶ PLAY FULL EVOLUTION")
+        </button>
+    </div>
+</div>
+
+@code {
+    private int _currentYear = 2020;
+    private Timer? _simTimer;
+    private bool _isPlaying;
+    private Random _random = new();
+
+    // Bar data
+    private double[] _absBarHeights = new double[15];
+    private string[] _absBarColors = new string[15];
+    private double[] _normBarHeights = new double[15];
+    private string[] _normBarColors = new string[15];
+
+    // Detector states
+    private bool _absActive;
+    private string _absStatus = "NO REGIME";
+    private bool _normActive;
+    private string _normStatus = "NO REGIME";
+    private bool _agreementMatch = true;
+
+    protected override void OnInitialized()
+    {
+        SetYear(2020);
+    }
+
+    private void SetYear(int year)
+    {
+        _currentYear = year;
+        var data = Paper2Timeline.GetYearData(year);
+        RenderBars(data);
+        UpdateDetectors(data);
+        StateHasChanged();
+    }
+
+    private void RenderBars(YearData data)
+    {
+        double magnitude = data.Magnitude / 23.0; // Normalize to max (2025)
+
+        for (int i = 0; i < 15; i++)
+        {
+            // Random variation based on persistence
+            bool isFlawed = _random.NextDouble() > data.Persistence;
+            int dir = isFlawed ? 1 : -1; // 1 = Positive (Green), -1 = Negative (Red)
+
+            // Absolute bars: scaled by magnitude
+            double hAbs = (_random.NextDouble() * 0.4 + 0.6) * magnitude * 100;
+            // Normalized bars: always roughly similar height
+            double hNorm = (_random.NextDouble() * 0.4 + 0.4) * 80;
+
+            // The Dip (2023): adjust visuals
+            if (_currentYear == 2023)
+            {
+                hAbs *= 0.8;
+                hNorm *= 1.2;
+            }
+
+            _absBarHeights[i] = Math.Min(hAbs, 100);
+            _absBarColors[i] = dir == -1 ? "#ff0055" : "#00d26a";
+
+            _normBarHeights[i] = Math.Min(hNorm, 100);
+            _normBarColors[i] = dir == -1 ? "#00f2ea" : "#00d26a";
+        }
+    }
+
+    private void UpdateDetectors(YearData data)
+    {
+        if (_currentYear >= 2024)
+        {
+            _absActive = true;
+            _absStatus = "REGIME DETECTED";
+            _normActive = true;
+            _normStatus = "REGIME DETECTED";
+            _agreementMatch = true;
+        }
+        else if (_currentYear == 2023)
+        {
+            _absActive = false;
+            _absStatus = "UNSTABLE";
+            _normActive = false;
+            _normStatus = "UNSTABLE";
+            _agreementMatch = true; // They AGREE that it's NOT a regime
+        }
+        else
+        {
+            _absActive = false;
+            _absStatus = "NO REGIME";
+            _normActive = false;
+            _normStatus = "NO REGIME";
+            _agreementMatch = true;
+        }
+    }
+
+    private void PlaySimulation()
+    {
+        if (_isPlaying)
+        {
+            return;
+        }
+
+        _isPlaying = true;
+        _currentYear = 2020;
+        SetYear(2020);
+
+        _simTimer?.Dispose();
+        _simTimer = new Timer(async _ =>
+        {
+            if (_currentYear >= 2025)
+            {
+                _isPlaying = false;
+                _simTimer?.Dispose();
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
+
+            _currentYear++;
+            await InvokeAsync(() =>
+            {
+                SetYear(_currentYear);
+            });
+        }, null, 1200, 1200); // 1.2s per year
+    }
+
+    public void Dispose()
+    {
+        _simTimer?.Dispose();
+    }
+}

@@ -1,0 +1,307 @@
+@page "/research/complexity"
+@using GexVisor.UI.Models
+
+<PageTitle>Research Complexity Map - GexVisor</PageTitle>
+
+<div class="complexity-page">
+    <header class="complexity-header">
+        <div class="header-left">
+            <a href="/arcade" class="back-link">
+                <i class="fas fa-arrow-left"></i> Research Arcade
+            </a>
+            <div class="title-group">
+                <h1>Research Complexity Map</h1>
+                <span class="subtitle">Mapping Abandoned &amp; Deferred Research by Barrier Type</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Foundation Stats -->
+    <div class="foundation-banner">
+        <div class="foundation-stat">
+            <div class="foundation-value">71.5%</div>
+            <div class="foundation-label">Detection Rate</div>
+        </div>
+        <div class="foundation-stat">
+            <div class="foundation-value">91.2%</div>
+            <div class="foundation-label">Accuracy</div>
+        </div>
+        <div class="foundation-stat">
+            <div class="foundation-value">242</div>
+            <div class="foundation-label">Trading Days</div>
+        </div>
+        <div class="foundation-stat">
+            <div class="foundation-value">16</div>
+            <div class="foundation-label">Research Paths</div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <!-- Filters -->
+        <aside class="filters-panel">
+            <div class="filter-section">
+                <div class="filter-title">Barrier Type</div>
+                <div class="filter-group">
+                    <button class="filter-btn @(_barrierFilter == "all" ? "active" : "")" @onclick="@(() => SetBarrierFilter("all"))">
+                        All
+                    </button>
+                    @foreach (var q in ResearchPathData.Quadrants.Where(x => x.Key != "none"))
+                    {
+                        var count = GetFilteredPaths().Count(p => p.BarrierType == q.Key || (q.Key == "scope" && p.Quadrant == "scope"));
+                        <button class="filter-btn @(_barrierFilter == q.Key ? "active" : "")"
+                                style="--filter-color: @q.Value.Color"
+                                @onclick="@(() => SetBarrierFilter(q.Key))">
+                            @q.Value.Label.ToLower().Replace("_", " ") <span class="count">@count</span>
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <div class="filter-title">Status</div>
+                <div class="filter-group status-group">
+                    @foreach (var status in ResearchPathData.StatusColors)
+                    {
+                        var count = GetFilteredPaths().Count(p => p.Status == status.Key);
+                        <button class="filter-btn @(_statusFilter == status.Key ? "active" : "")"
+                                style="--filter-color: @status.Value"
+                                @onclick="@(() => ToggleStatusFilter(status.Key))">
+                            <span class="status-dot" style="background: @status.Value"></span>
+                            @status.Key <span class="count">@count</span>
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <div class="filter-title">Complexity</div>
+                <div class="filter-group">
+                    @for (int i = 0; i <= 5; i++)
+                    {
+                        var ring = i;
+                        var count = GetFilteredPaths().Count(p => p.Ring == ring);
+                        <button class="filter-btn ring-btn @(_ringFilter == ring ? "active" : "")"
+                                @onclick="@(() => ToggleRingFilter(ring))">
+                            Ring @ring <span class="count">@count</span>
+                        </button>
+                    }
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="content-area">
+            <!-- Ring Legend -->
+            <div class="ring-legend">
+                @for (int i = 0; i <= 5; i++)
+                {
+                    <div class="ring-item">
+                        <span class="ring-num">@i</span>
+                        <span class="ring-name">@ResearchPathData.RingNames[i]</span>
+                    </div>
+                }
+            </div>
+
+            <!-- Path Cards Grid -->
+            <div class="paths-grid">
+                @foreach (var path in GetFilteredPaths().OrderBy(p => p.Ring).ThenBy(p => p.Title))
+                {
+                    var statusColor = ResearchPathData.StatusColors.GetValueOrDefault(path.Status, "#888");
+                    var taxonomyColor = ResearchPathData.TaxonomyColors.GetValueOrDefault(path.Taxonomy, ("#888", "#fff"));
+                    var quadrantInfo = ResearchPathData.Quadrants.GetValueOrDefault(path.Quadrant, ("Unknown", "#888"));
+
+                    <div class="path-card @(_selectedPath?.Id == path.Id ? "selected" : "")"
+                         style="--status-color: @statusColor"
+                         @onclick="@(() => SelectPath(path))">
+                        <div class="card-header">
+                            <div class="card-ring">Ring @path.Ring</div>
+                            <div class="card-taxonomy" style="background: @taxonomyColor.Item1; color: @taxonomyColor.Item2">
+                                @path.Taxonomy.ToUpper()
+                            </div>
+                        </div>
+                        <div class="card-title">@path.Title</div>
+                        <div class="card-labels">
+                            <span class="label-short">@path.Label</span>
+                            @if (!string.IsNullOrEmpty(path.LabelLong))
+                            {
+                                <span class="label-long">@path.LabelLong</span>
+                            }
+                        </div>
+                        <div class="card-meta">
+                            <span class="status-badge" style="background: @statusColor">@path.Status</span>
+                            <span class="quadrant-badge" style="color: @quadrantInfo.Item2">@quadrantInfo.Item1</span>
+                        </div>
+                        @if (!string.IsNullOrEmpty(path.Paper) && path.Paper != "N/A")
+                        {
+                            <div class="card-paper">@path.Paper</div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Detail Panel -->
+        <aside class="details-panel">
+            @if (_selectedPath != null)
+            {
+                var statusColor = ResearchPathData.StatusColors.GetValueOrDefault(_selectedPath.Status, "#888");
+                var taxonomyColor = ResearchPathData.TaxonomyColors.GetValueOrDefault(_selectedPath.Taxonomy, ("#888", "#fff"));
+                var quadrantInfo = ResearchPathData.Quadrants.GetValueOrDefault(_selectedPath.Quadrant, ("Unknown", "#888"));
+
+                <div class="detail-header">
+                    <div class="detail-title">@_selectedPath.Title</div>
+                    <button class="close-btn" @onclick="ClearSelection">&times;</button>
+                </div>
+
+                <div class="detail-taxonomy" style="background: @taxonomyColor.Item1; color: @taxonomyColor.Item2">
+                    @_selectedPath.Taxonomy.ToUpper()
+                </div>
+
+                <div class="detail-meta-grid">
+                    <div class="detail-meta-item">
+                        <div class="meta-label">Status</div>
+                        <div class="meta-value" style="color: @statusColor">@_selectedPath.Status</div>
+                    </div>
+                    <div class="detail-meta-item">
+                        <div class="meta-label">Complexity</div>
+                        <div class="meta-value">Ring @_selectedPath.Ring</div>
+                    </div>
+                    <div class="detail-meta-item">
+                        <div class="meta-label">Barrier Type</div>
+                        <div class="meta-value" style="color: @quadrantInfo.Item2">@quadrantInfo.Item1</div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(_selectedPath.Paper) && _selectedPath.Paper != "N/A")
+                    {
+                        <div class="detail-meta-item">
+                            <div class="meta-label">Paper</div>
+                            <div class="meta-value">@_selectedPath.Paper</div>
+                        </div>
+                    }
+                </div>
+
+                @if (!string.IsNullOrEmpty(_selectedPath.IssueUrl))
+                {
+                    <a href="@_selectedPath.IssueUrl" target="_blank" rel="noopener noreferrer" class="issue-link">
+                        <i class="fab fa-github"></i> View Issue @_selectedPath.IssueNum
+                    </a>
+                }
+
+                <div class="detail-section">
+                    <div class="section-label">Description</div>
+                    <div class="section-text">@_selectedPath.Description</div>
+                </div>
+
+                <div class="detail-section barrier">
+                    <div class="section-label">Why It Stalled</div>
+                    <div class="section-text">@_selectedPath.Barrier</div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(_selectedPath.Unblock))
+                {
+                    <div class="detail-section unblock">
+                        <div class="section-label">What Would Unblock</div>
+                        <div class="section-text">@_selectedPath.Unblock</div>
+                    </div>
+                }
+
+                @if (_selectedPath.Related.Count > 0)
+                {
+                    <div class="detail-section">
+                        <div class="section-label">Related Concepts</div>
+                        <div class="related-tags">
+                            @foreach (var tag in _selectedPath.Related)
+                            {
+                                <span class="related-tag" @onclick="@(() => SearchRelated(tag))">@tag</span>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="details-empty">
+                    <div class="empty-icon">🔍</div>
+                    <div class="empty-text">Click a card to explore</div>
+                </div>
+            }
+        </aside>
+    </div>
+
+    <!-- Insight Box -->
+    <div class="insight-box">
+        <div class="insight-title">Key Insight</div>
+        <div class="insight-text">
+            Research paths fail primarily due to <strong>data access barriers</strong> ($10K+ feeds) or
+            <strong>scope creep</strong> (production vs research). Technical infeasibility is rare.
+            The validated core (71.5% detection) proves <strong>LLMs reason about structure</strong>, not just memorize.
+        </div>
+    </div>
+</div>
+
+@code {
+    private string _barrierFilter = "all";
+    private string? _statusFilter;
+    private int? _ringFilter;
+    private ResearchPath? _selectedPath;
+    private string? _searchTerm;
+
+    private IEnumerable<ResearchPath> GetFilteredPaths()
+    {
+        var paths = ResearchPathData.Paths.AsEnumerable();
+
+        if (_barrierFilter != "all")
+        {
+            paths = paths.Where(p => p.BarrierType == _barrierFilter || p.Quadrant == _barrierFilter);
+        }
+
+        if (_statusFilter != null)
+        {
+            paths = paths.Where(p => p.Status == _statusFilter);
+        }
+
+        if (_ringFilter != null)
+        {
+            paths = paths.Where(p => p.Ring == _ringFilter);
+        }
+
+        if (!string.IsNullOrEmpty(_searchTerm))
+        {
+            paths = paths.Where(p =>
+                p.Title.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                p.Related.Any(r => r.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        return paths;
+    }
+
+    private void SetBarrierFilter(string filter)
+    {
+        _barrierFilter = filter;
+    }
+
+    private void ToggleStatusFilter(string status)
+    {
+        _statusFilter = _statusFilter == status ? null : status;
+    }
+
+    private void ToggleRingFilter(int ring)
+    {
+        _ringFilter = _ringFilter == ring ? null : ring;
+    }
+
+    private void SelectPath(ResearchPath path)
+    {
+        _selectedPath = _selectedPath?.Id == path.Id ? null : path;
+    }
+
+    private void ClearSelection()
+    {
+        _selectedPath = null;
+    }
+
+    private void SearchRelated(string term)
+    {
+        _searchTerm = term;
+        _selectedPath = null;
+    }
+}

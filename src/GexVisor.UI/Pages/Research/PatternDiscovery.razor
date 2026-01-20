@@ -1,0 +1,561 @@
+@page "/research/patterns"
+@using GexVisor.UI.Components.Research
+
+<PageTitle>Pattern Discovery Pipeline - GexVisor</PageTitle>
+
+<div class="patterns-page">
+    <header class="patterns-header">
+        <div class="header-left">
+            <a href="/arcade" class="back-link">
+                <i class="fas fa-arrow-left"></i> Research Arcade
+            </a>
+            <div class="title-group">
+                <h1>Pattern Discovery in Data Mining</h1>
+                <span class="subtitle">From Raw Data to Actionable Insights</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="patterns-content">
+        <!-- Core Question -->
+        <div class="key-question">
+            <div class="label">The Core Question</div>
+            <div class="question">"What interesting patterns exist in this data?"</div>
+        </div>
+
+        <div class="vs-box">
+            <div class="vs-item highlight">
+                <div class="title">Pattern Discovery (This Course)</div>
+                <div class="desc">Find meaningful, interpretable structures that generate insights</div>
+            </div>
+            <div class="vs-item dimmed">
+                <div class="title">Predictive ML</div>
+                <div class="desc">"How accurately can I predict Y from X?"</div>
+            </div>
+        </div>
+
+        <!-- KDD Process Flow -->
+        <h2 class="section-title">Knowledge Discovery in Databases (KDD) Process</h2>
+
+        <div class="kdd-flow">
+            <KddStepCard Number="1" Name="Selection" Active="@(_activeKdd == "selection")" OnClick="@(() => ShowKddDetail("selection"))" />
+            <span class="kdd-arrow">→</span>
+            <KddStepCard Number="2" Name="Preprocessing" Active="@(_activeKdd == "preprocessing")" OnClick="@(() => ShowKddDetail("preprocessing"))" />
+            <span class="kdd-arrow">→</span>
+            <KddStepCard Number="3" Name="Transformation" Active="@(_activeKdd == "transformation")" OnClick="@(() => ShowKddDetail("transformation"))" />
+            <span class="kdd-arrow">→</span>
+            <KddStepCard Number="4" Name="Data Mining" Active="@(_activeKdd == "mining")" OnClick="@(() => ShowKddDetail("mining"))" />
+            <span class="kdd-arrow">→</span>
+            <KddStepCard Number="5" Name="Evaluation" Active="@(_activeKdd == "evaluation")" OnClick="@(() => ShowKddDetail("evaluation"))" />
+        </div>
+
+        <!-- KDD Detail Panels -->
+        @if (_activeKdd == "selection")
+        {
+            <DetailPanel Title="Step 1: Selection" OnClose="CloseKdd">
+                <div class="detail-card">
+                    <h4>What Happens</h4>
+                    <ul>
+                        <li>Identify relevant data sources</li>
+                        <li>Define the target dataset</li>
+                        <li>Scope the analysis domain</li>
+                        <li>Understand data availability</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Key Questions</h4>
+                    <ul>
+                        <li>What data is available?</li>
+                        <li>What's the time range needed?</li>
+                        <li>Which features are relevant?</li>
+                        <li>What granularity is needed?</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Common Pitfalls</h4>
+                    <ul>
+                        <li>Selection bias in sampling</li>
+                        <li>Missing important features</li>
+                        <li>Too narrow/wide scope</li>
+                        <li>Ignoring data provenance</li>
+                    </ul>
+                </div>
+            </DetailPanel>
+        }
+
+        @if (_activeKdd == "preprocessing")
+        {
+            <DetailPanel Title="Step 2: Preprocessing" OnClose="CloseKdd">
+                <div class="detail-card">
+                    <h4>Data Cleaning</h4>
+                    <ul>
+                        <li>Handle missing values <span class="concept-tag">Imputation</span></li>
+                        <li>Remove duplicates <span class="concept-tag">Dedup</span></li>
+                        <li>Fix inconsistencies <span class="concept-tag">Validation</span></li>
+                        <li>Detect outliers <span class="concept-tag">Quality</span></li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Missing Value Strategies</h4>
+                    <ul>
+                        <li>Delete rows (listwise deletion)</li>
+                        <li>Mean/median imputation</li>
+                        <li>Mode for categorical</li>
+                        <li>Predictive imputation (KNN, regression)</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Discussion</h4>
+                    <ul>
+                        <li>When is deletion acceptable?</li>
+                        <li>How does imputation affect patterns?</li>
+                        <li>Outliers: errors or insights?</li>
+                        <li>Document decisions for reproducibility?</li>
+                    </ul>
+                </div>
+            </DetailPanel>
+        }
+
+        @if (_activeKdd == "transformation")
+        {
+            <DetailPanel Title="Step 3: Transformation" OnClose="CloseKdd">
+                <div class="detail-card">
+                    <h4>Feature Engineering</h4>
+                    <ul>
+                        <li>Normalization / Scaling <span class="concept-tag">Range</span></li>
+                        <li>Discretization (binning) <span class="concept-tag">Categorical</span></li>
+                        <li>Aggregation <span class="concept-tag">Rollup</span></li>
+                        <li>Derived features <span class="concept-tag">Domain</span></li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Dimensionality Reduction</h4>
+                    <ul>
+                        <li>PCA - Principal Components</li>
+                        <li>Feature selection (filter/wrapper)</li>
+                        <li>Embedding methods</li>
+                        <li>Domain-driven reduction</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Discussion</h4>
+                    <ul>
+                        <li>Binning: equal-width vs equal-frequency?</li>
+                        <li>How many bins is "right"?</li>
+                        <li>When does transformation hide patterns?</li>
+                        <li>Interpretability vs performance?</li>
+                    </ul>
+                </div>
+            </DetailPanel>
+        }
+
+        @if (_activeKdd == "mining")
+        {
+            <DetailPanel Title="Step 4: Data Mining" OnClose="CloseKdd">
+                <div class="detail-card">
+                    <h4>Pattern Discovery Tasks</h4>
+                    <ul>
+                        <li>Association Rules <span class="concept-tag">Co-occurrence</span></li>
+                        <li>Clustering <span class="concept-tag">Grouping</span></li>
+                        <li>Classification Rules <span class="concept-tag">Decision</span></li>
+                        <li>Anomaly Detection <span class="concept-tag">Outliers</span></li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Algorithm Selection</h4>
+                    <ul>
+                        <li>Data characteristics (size, type)</li>
+                        <li>Pattern type sought</li>
+                        <li>Interpretability requirements</li>
+                        <li>Computational constraints</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Discussion</h4>
+                    <ul>
+                        <li>How to choose the right technique?</li>
+                        <li>Combining multiple approaches?</li>
+                        <li>Parameter sensitivity?</li>
+                        <li>Overfitting in pattern discovery?</li>
+                    </ul>
+                </div>
+            </DetailPanel>
+        }
+
+        @if (_activeKdd == "evaluation")
+        {
+            <DetailPanel Title="Step 5: Evaluation & Interpretation" OnClose="CloseKdd">
+                <div class="detail-card">
+                    <h4>Pattern Quality Metrics</h4>
+                    <ul>
+                        <li>Support - How frequent? <span class="concept-tag">Coverage</span></li>
+                        <li>Confidence - How reliable? <span class="concept-tag">Strength</span></li>
+                        <li>Lift - How surprising? <span class="concept-tag">Interest</span></li>
+                        <li>Novelty - How new? <span class="concept-tag">Discovery</span></li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Interestingness Criteria</h4>
+                    <ul>
+                        <li>Actionable - Can we act on it?</li>
+                        <li>Unexpected - Does it surprise experts?</li>
+                        <li>Valid - Does it generalize?</li>
+                        <li>Understandable - Can humans interpret it?</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Discussion</h4>
+                    <ul>
+                        <li>High support but obvious patterns?</li>
+                        <li>Low support but valuable insights?</li>
+                        <li>Domain expert validation?</li>
+                        <li>Spurious correlations?</li>
+                    </ul>
+                </div>
+            </DetailPanel>
+        }
+
+        <!-- Pattern Discovery Techniques -->
+        <h2 class="section-title">Pattern Discovery Techniques</h2>
+
+        <div class="techniques-grid">
+            <TechniqueCard
+                Icon="⛓" IconClass="assoc"
+                Title="Association Rule Mining" Subtitle="Frequent Pattern Discovery"
+                Question="What items/events frequently occur together?"
+                Example="Market basket analysis - customers who buy bread also buy butter (support: 15%, confidence: 72%)"
+                Active="@(_activeTechnique == "association")"
+                OnClick="@(() => ShowTechniqueDetail("association"))" />
+
+            <TechniqueCard
+                Icon="◉" IconClass="cluster"
+                Title="Clustering" Subtitle="Natural Groupings"
+                Question="What natural groups exist in the data?"
+                Example="Customer segmentation - 4 distinct behavioral clusters emerged from purchase patterns"
+                Active="@(_activeTechnique == "clustering")"
+                OnClick="@(() => ShowTechniqueDetail("clustering"))" />
+
+            <TechniqueCard
+                Icon="⎇" IconClass="class"
+                Title="Classification Rules" Subtitle="Interpretable Decision Patterns"
+                Question="What rules distinguish different outcomes?"
+                Example="IF age > 35 AND income > 50K THEN high_value_customer (accuracy: 78%)"
+                Active="@(_activeTechnique == "classification")"
+                OnClick="@(() => ShowTechniqueDetail("classification"))" />
+
+            <TechniqueCard
+                Icon="⚠" IconClass="anomaly"
+                Title="Anomaly Detection" Subtitle="Unusual Pattern Discovery"
+                Question="What doesn't fit the normal pattern?"
+                Example="Fraud detection - transaction deviates 4.2σ from user's normal behavior"
+                Active="@(_activeTechnique == "anomaly")"
+                OnClick="@(() => ShowTechniqueDetail("anomaly"))" />
+
+            <TechniqueCard
+                Icon="◫" IconClass="dim"
+                Title="Dimensionality Reduction" Subtitle="Latent Structure Discovery"
+                Question="What underlying factors explain the variation?"
+                Example="PCA reveals 3 principal components explain 85% of variance in 50-feature dataset"
+                Active="@(_activeTechnique == "dimensionality")"
+                OnClick="@(() => ShowTechniqueDetail("dimensionality"))" />
+
+            <TechniqueCard
+                Icon="📄" IconClass="text"
+                Title="Text Mining" Subtitle="Document Pattern Discovery"
+                Question="What themes/topics exist in text data?"
+                Example="Topic modeling reveals 5 dominant themes in customer feedback"
+                Active="@(_activeTechnique == "text")"
+                OnClick="@(() => ShowTechniqueDetail("text"))" />
+        </div>
+
+        <!-- Technique Detail Panels -->
+        @if (_activeTechnique == "association")
+        {
+            <DetailPanel Title="Association Rule Mining" OnClose="CloseTechnique">
+                <div class="detail-card">
+                    <h4>Key Metrics</h4>
+                    <ul>
+                        <li><strong>Support:</strong> P(A ∩ B) - How often together?</li>
+                        <li><strong>Confidence:</strong> P(B|A) - If A, how likely B?</li>
+                        <li><strong>Lift:</strong> P(B|A)/P(B) - Better than random?</li>
+                        <li><strong>Conviction:</strong> Dependency measure</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Algorithms</h4>
+                    <ul>
+                        <li>Apriori - Classic, level-wise</li>
+                        <li>FP-Growth - Pattern tree, faster</li>
+                        <li>Eclat - Vertical format</li>
+                        <li>Sampling approaches for scale</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Discussion Questions</h4>
+                    <ul>
+                        <li>How to set support threshold?</li>
+                        <li>Confidence vs lift: which matters more?</li>
+                        <li>Handling rare but valuable patterns?</li>
+                        <li>Temporal association patterns?</li>
+                    </ul>
+                </div>
+            </DetailPanel>
+        }
+
+        @if (_activeTechnique == "clustering")
+        {
+            <DetailPanel Title="Clustering" OnClose="CloseTechnique">
+                <div class="detail-card">
+                    <h4>Clustering Approaches</h4>
+                    <ul>
+                        <li>K-Means - Centroid-based, fast</li>
+                        <li>Hierarchical - Dendrogram, flexible k</li>
+                        <li>DBSCAN - Density-based, finds outliers</li>
+                        <li>Gaussian Mixture - Probabilistic</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Evaluation Metrics</h4>
+                    <ul>
+                        <li>Silhouette score - Cohesion vs separation</li>
+                        <li>Within-cluster sum of squares</li>
+                        <li>Calinski-Harabasz index</li>
+                        <li>Domain expert validation</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Discussion Questions</h4>
+                    <ul>
+                        <li>How to choose k?</li>
+                        <li>Feature scaling importance?</li>
+                        <li>Interpreting cluster meaning?</li>
+                        <li>When clusters don't make sense?</li>
+                    </ul>
+                </div>
+            </DetailPanel>
+        }
+
+        @if (_activeTechnique == "classification")
+        {
+            <DetailPanel Title="Classification Rules" OnClose="CloseTechnique">
+                <div class="detail-card">
+                    <h4>Interpretable Models</h4>
+                    <ul>
+                        <li>Decision Trees - Visual, intuitive</li>
+                        <li>Rule Lists - Ordered if-then</li>
+                        <li>Decision Tables - Lookup-based</li>
+                        <li>Bayesian Rule Lists</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Rule Quality</h4>
+                    <ul>
+                        <li>Coverage - How many cases?</li>
+                        <li>Accuracy - How often correct?</li>
+                        <li>Precision/Recall trade-off</li>
+                        <li>Rule complexity (# conditions)</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Discussion Questions</h4>
+                    <ul>
+                        <li>Accuracy vs interpretability?</li>
+                        <li>Pruning: when to stop?</li>
+                        <li>Handling class imbalance?</li>
+                        <li>Rules that contradict intuition?</li>
+                    </ul>
+                </div>
+            </DetailPanel>
+        }
+
+        @if (_activeTechnique == "anomaly")
+        {
+            <DetailPanel Title="Anomaly Detection" OnClose="CloseTechnique">
+                <div class="detail-card">
+                    <h4>Detection Approaches</h4>
+                    <ul>
+                        <li>Statistical - Z-score, IQR</li>
+                        <li>Distance-based - LOF, kNN</li>
+                        <li>Density-based - DBSCAN outliers</li>
+                        <li>Isolation Forest - Tree-based</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Anomaly Types</h4>
+                    <ul>
+                        <li>Point anomalies - Single outlier</li>
+                        <li>Contextual - Unusual in context</li>
+                        <li>Collective - Group anomaly</li>
+                        <li>Concept drift - Pattern shift</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Discussion Questions</h4>
+                    <ul>
+                        <li>Anomaly vs noise vs error?</li>
+                        <li>Threshold selection?</li>
+                        <li>Labeled vs unlabeled approaches?</li>
+                        <li>False positive cost?</li>
+                    </ul>
+                </div>
+            </DetailPanel>
+        }
+
+        @if (_activeTechnique == "dimensionality")
+        {
+            <DetailPanel Title="Dimensionality Reduction" OnClose="CloseTechnique">
+                <div class="detail-card">
+                    <h4>Techniques</h4>
+                    <ul>
+                        <li>PCA - Linear, variance-based</li>
+                        <li>t-SNE - Non-linear, visualization</li>
+                        <li>UMAP - Preserves structure</li>
+                        <li>Autoencoders - Neural compression</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Feature Selection</h4>
+                    <ul>
+                        <li>Filter - Statistical measures</li>
+                        <li>Wrapper - Model performance</li>
+                        <li>Embedded - L1 regularization</li>
+                        <li>Domain knowledge</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Discussion Questions</h4>
+                    <ul>
+                        <li>How many components to keep?</li>
+                        <li>Interpreting principal components?</li>
+                        <li>Information loss acceptable?</li>
+                        <li>When is reduction harmful?</li>
+                    </ul>
+                </div>
+            </DetailPanel>
+        }
+
+        @if (_activeTechnique == "text")
+        {
+            <DetailPanel Title="Text Mining" OnClose="CloseTechnique">
+                <div class="detail-card">
+                    <h4>Text Processing</h4>
+                    <ul>
+                        <li>Tokenization - Word splitting</li>
+                        <li>Stopword removal</li>
+                        <li>Stemming / Lemmatization</li>
+                        <li>TF-IDF weighting</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Pattern Discovery</h4>
+                    <ul>
+                        <li>Topic Modeling (LDA)</li>
+                        <li>Named Entity Recognition</li>
+                        <li>Sentiment patterns</li>
+                        <li>Document clustering</li>
+                    </ul>
+                </div>
+                <div class="detail-card">
+                    <h4>Discussion Questions</h4>
+                    <ul>
+                        <li>Number of topics selection?</li>
+                        <li>Topic coherence evaluation?</li>
+                        <li>Domain-specific stopwords?</li>
+                        <li>Short text challenges?</li>
+                    </ul>
+                </div>
+            </DetailPanel>
+        }
+
+        <!-- Pattern Taxonomy Section -->
+        <div class="pattern-examples taxonomy">
+            <h3>Pattern Taxonomy: What Makes a Pattern "Structural"?</h3>
+            <p class="section-desc">
+                Not all patterns are equal. Research distinguishes three types - only one is reliably mineable:
+            </p>
+            <div class="pattern-grid">
+                <div class="pattern-item structural">
+                    <div class="pattern-type green">Type 1: Structural Constraint Patterns ✓</div>
+                    <div class="pattern-desc">Clear causal mechanism: WHO forces WHOM to do WHAT</div>
+                    <div class="pattern-example">
+                        <strong>Example:</strong> Negative gamma exposure forces dealers to sell rallies and buy dips (regulatory constraint)
+                    </div>
+                    <div class="pattern-metrics">
+                        <span class="success">Testable</span>
+                        <span class="success">Causal</span>
+                        <span class="success">Predictable</span>
+                    </div>
+                </div>
+                <div class="pattern-item statistical">
+                    <div class="pattern-type orange">Type 2: Statistical Regularities ⚠</div>
+                    <div class="pattern-desc">Correlations without established causal mechanisms</div>
+                    <div class="pattern-example">
+                        <strong>Example:</strong> "Markets tend to rally in December" - correlation without explanation
+                    </div>
+                    <div class="pattern-metrics">
+                        <span class="warning">Risky</span>
+                        <span class="warning">May Overfit</span>
+                    </div>
+                </div>
+                <div class="pattern-item narrative">
+                    <div class="pattern-type red">Type 3: Narrative Patterns ✗</div>
+                    <div class="pattern-desc">Post-hoc storytelling without empirical validation</div>
+                    <div class="pattern-example">
+                        <strong>Example:</strong> "The squeeze happened because of Reddit" - not testable
+                    </div>
+                    <div class="pattern-metrics">
+                        <span class="danger">Untestable</span>
+                        <span class="danger">Circular</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Discussion Sections -->
+        <div class="discussion-box">
+            <h3>What Makes a Pattern "Interesting"?</h3>
+            <ul>
+                <li><strong>Actionable:</strong> Can we do something with this knowledge?</li>
+                <li><strong>Unexpected:</strong> Does it tell us something we didn't know?</li>
+                <li><strong>Valid:</strong> Does it hold up on new data (generalization)?</li>
+                <li><strong>Novel:</strong> Is it previously undocumented?</li>
+                <li><strong>Understandable:</strong> Can a domain expert interpret it?</li>
+            </ul>
+        </div>
+
+        <div class="discussion-box">
+            <h3>For Your Project</h3>
+            <ul>
+                <li>What pattern discovery question are you trying to answer?</li>
+                <li>Which technique(s) align with your question type?</li>
+                <li>How will you evaluate if discovered patterns are "interesting"?</li>
+                <li>Who is the domain expert that can validate your findings?</li>
+                <li>Can your pattern survive obfuscation testing?</li>
+            </ul>
+        </div>
+
+        <footer class="patterns-footer">
+            Data Mining | Pattern Discovery Pipeline
+        </footer>
+    </div>
+</div>
+
+@code {
+    private string? _activeKdd;
+    private string? _activeTechnique;
+
+    private void ShowKddDetail(string step)
+    {
+        _activeKdd = step;
+        _activeTechnique = null;
+    }
+
+    private void ShowTechniqueDetail(string technique)
+    {
+        _activeTechnique = technique;
+        _activeKdd = null;
+    }
+
+    private void CloseKdd() => _activeKdd = null;
+    private void CloseTechnique() => _activeTechnique = null;
+}
