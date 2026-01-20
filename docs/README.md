@@ -1,78 +1,57 @@
 # GexVisor Documentation
 
-GexVisor is an interactive Blazor WebAssembly application for exploring GEX (Gamma Exposure) regime dynamics with real-time state management and research visualization tools.
+GexVisor is a Blazor WebAssembly application for exploring GEX (Gamma Exposure)
+regime dynamics with interactive visualizations and research tools.
 
-## Documentation Index
+## Getting Started
+
+New to GexVisor? Start here:
+
+1. **[Getting Started](getting-started.md)** - Build, run, and develop locally
+
+## Documentation
 
 | Document | Description |
 |----------|-------------|
-| [RESEARCH_ROADMAP.md](RESEARCH_ROADMAP.md) | Multi-phase research trajectory for the GEX-LLM Patterns project |
-| [GITHUB_INTEGRATION.md](GITHUB_INTEGRATION.md) | GitHub Projects v2 API integration for task board sync |
-| [sqlite-wasm-research.md](sqlite-wasm-research.md) | Research on client-side SQLite with WebAssembly |
+| [getting-started.md](getting-started.md) | Prerequisites, build, run, and development workflow |
+| [github-integration.md](github-integration.md) | GitHub Projects v2 API integration for task board |
+| [research-roadmap.md](research-roadmap.md) | Multi-phase research trajectory (Phases 1-5) |
+| [adr/](adr/) | Architecture Decision Records |
 
-## Research Origins
+## Application Routes
 
-GexVisor is part of the [GEX-LLM Patterns](https://github.com/iAmGiG/gex-llm-patterns) research project, investigating whether Large Language Models can detect and reason about market microstructure patterns.
+| Route | Description |
+|-------|-------------|
+| `/` | Home - module selection |
+| `/gex` | GEX Visualizer - interactive gamma exposure analysis |
+| `/arcade` | Research Arcade - visualization hub |
+| `/research/pipeline` | Data pipeline state diagram |
+| `/research/patterns` | Pattern discovery (KDD process) |
+| `/research/complexity` | Research complexity map |
+| `/research/paper2` | Structural agreement test |
+| `/paper-trading` | Paper trading journal |
+| `/backtests` | Backtest results tracker |
+| `/notebook` | Research notebook |
+| `/tasks` | Task board (local + GitHub) |
 
-### Key Research Findings
+## Research Context
 
-| Metric | Value | Source |
-|--------|-------|--------|
-| Detection Rate | 71.5% | Unbiased prompts validation |
-| Predictive Accuracy | 91.2% | When pattern detected |
-| Trading Days | 242 | Full year 2024 backtesting |
-| Patterns Cataloged | 15 | Market mechanics pattern library |
+GexVisor supports the [GEX-LLM Patterns](https://github.com/iAmGiG/gex-llm-patterns)
+research project.
 
-### Research Papers
-
-| Paper | Title | Status |
-|-------|-------|--------|
-| Paper 1 | LLM Pattern Detection | Validated |
-| Paper 2 | Regime Detection | In Progress |
-| Paper 3 | Sector Rotation | Planned |
-
-## Application Structure
-
-### Core Pages
-
-| Route | Page | Description |
-|-------|------|-------------|
-| `/` | Index | Module selection landing page |
-| `/gex` | GEX Visualizer | Interactive gamma exposure analysis |
-| `/arcade` | Research Arcade | Research visualization hub |
-
-### Research Visualizations
-
-Migrated from standalone HTML to Blazor components (Epic #100):
-
-| Route | Visualization | Description |
-|-------|---------------|-------------|
-| `/research/pipeline` | Data Pipeline States | State diagram of data flow |
-| `/research/paper2` | Structural Agreement Test | GEX formula validation over time |
-| `/research/patterns` | Pattern Discovery Pipeline | KDD process visualization |
-| `/research/complexity` | Research Complexity Map | 16 research paths by barrier type |
-
-### Journal & Tracking
-
-| Route | Feature | Description |
-|-------|---------|-------------|
-| `/paper-trading` | Paper Trading Journal | Trade logging with P&L tracking |
-| `/backtests` | Backtest Results | Backtest comparison and analysis |
-| `/notebook` | Research Notebook | Pattern annotations and notes |
-| `/tasks` | Task Board | Local + GitHub Projects kanban |
+| Metric | Value |
+|--------|-------|
+| Detection Rate | 71.5% |
+| Predictive Accuracy | 91.2% |
+| Trading Days Analyzed | 242 |
 
 ## Technology Stack
 
-- **.NET 10** / Blazor WebAssembly
-- **CSS** scoped isolation with design system variables
-- **LocalStorage** for client-side persistence
-- **GitHub GraphQL API** for Projects v2 integration
+- .NET 10 / Blazor WebAssembly
+- CSS scoped isolation
+- LocalStorage for persistence
+- GitHub GraphQL API
 
-## Deprecated Files
+## Deprecated
 
-Legacy standalone HTML visualizations are preserved in [deprecated/research-visuals-html/](deprecated/research-visuals-html/) for reference. These have been superseded by the Blazor implementations.
-
-## Related Links
-
-- [GEX-LLM Patterns Repository](https://github.com/iAmGiG/gex-llm-patterns) - Research project source
-- [Research Papers](https://github.com/iAmGiG/gex-llm-patterns/tree/main/docs/papers) - Academic documentation
+Legacy HTML visualizations preserved in [deprecated/](deprecated/) for reference.
