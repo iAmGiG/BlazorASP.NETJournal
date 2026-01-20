@@ -18,7 +18,7 @@
         @if (AvailableSymbols.Any())
         {
             <div class="filter-group">
-                <select class="filter-select" @bind="SelectedSymbol" @bind:after="OnFiltersChanged">
+                <select class="filter-select" @bind="SelectedSymbol" @bind:after="NotifyFiltersChanged">
                     <option value="">All Symbols</option>
                     @foreach (var symbol in AvailableSymbols)
                     {
@@ -30,7 +30,7 @@
 
         @* Trade Type Filter *@
         <div class="filter-group">
-            <select class="filter-select" @bind="SelectedType" @bind:after="OnFiltersChanged">
+            <select class="filter-select" @bind="SelectedType" @bind:after="NotifyFiltersChanged">
                 <option value="">All Types</option>
                 <option value="@OptionsLog.TradeType.BTO">BTO</option>
                 <option value="@OptionsLog.TradeType.STC">STC</option>
@@ -41,7 +41,7 @@
 
         @* Status Filter *@
         <div class="filter-group">
-            <select class="filter-select" @bind="SelectedStatus" @bind:after="OnFiltersChanged">
+            <select class="filter-select" @bind="SelectedStatus" @bind:after="NotifyFiltersChanged">
                 <option value="">All Status</option>
                 <option value="open">Open</option>
                 <option value="closed">Closed</option>
@@ -65,28 +65,28 @@
             {
                 <span class="filter-chip">
                     Search: "@SearchQuery"
-                    <button @onclick="() => { SearchQuery = string.Empty; OnFiltersChanged(); }">×</button>
+                    <button @onclick="() => { SearchQuery = string.Empty; NotifyFiltersChanged(); }">×</button>
                 </span>
             }
             @if (!string.IsNullOrEmpty(SelectedSymbol))
             {
                 <span class="filter-chip">
                     Symbol: @SelectedSymbol
-                    <button @onclick="() => { SelectedSymbol = string.Empty; OnFiltersChanged(); }">×</button>
+                    <button @onclick="() => { SelectedSymbol = string.Empty; NotifyFiltersChanged(); }">×</button>
                 </span>
             }
             @if (!string.IsNullOrEmpty(SelectedType))
             {
                 <span class="filter-chip">
                     Type: @SelectedType
-                    <button @onclick="() => { SelectedType = string.Empty; OnFiltersChanged(); }">×</button>
+                    <button @onclick="() => { SelectedType = string.Empty; NotifyFiltersChanged(); }">×</button>
                 </span>
             }
             @if (!string.IsNullOrEmpty(SelectedStatus))
             {
                 <span class="filter-chip">
                     Status: @SelectedStatus
-                    <button @onclick="() => { SelectedStatus = string.Empty; OnFiltersChanged(); }">×</button>
+                    <button @onclick="() => { SelectedStatus = string.Empty; NotifyFiltersChanged(); }">×</button>
                 </span>
             }
         </div>
@@ -138,7 +138,7 @@
         // Debouncing handled in SearchQuery setter
     }
 
-    private void OnFiltersChanged()
+    private void NotifyFiltersChanged()
     {
         OnFiltersChanged.InvokeAsync(GetCurrentState());
     }
@@ -149,7 +149,7 @@
         SelectedSymbol = string.Empty;
         SelectedType = string.Empty;
         SelectedStatus = string.Empty;
-        OnFiltersChanged();
+        NotifyFiltersChanged();
     }
 
     private FilterState GetCurrentState()

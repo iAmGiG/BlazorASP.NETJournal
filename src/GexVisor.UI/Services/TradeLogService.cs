@@ -207,7 +207,7 @@ public class TradeLogService
     /// <summary>
     /// Calculate summary statistics for trades.
     /// </summary>
-    public TradeSummary CalculateSummary(IEnumerable<OptionsLog>? trades = null)
+    public TradeLogSummary CalculateSummary(IEnumerable<OptionsLog>? trades = null)
     {
         var tradestoAnalyze = (trades ?? _trades).ToList();
         var closedTrades = tradestoAnalyze.Where(t => t.ExitPrice.HasValue).ToList();
@@ -216,7 +216,7 @@ public class TradeLogService
         var winningTrades = closedTrades.Where(t => (t.CalculatePnL() ?? 0) > 0).ToList();
         var losingTrades = closedTrades.Where(t => (t.CalculatePnL() ?? 0) < 0).ToList();
 
-        return new TradeSummary
+        return new TradeLogSummary
         {
             TotalTrades = tradestoAnalyze.Count,
             OpenTrades = tradestoAnalyze.Count(t => !t.ExitPrice.HasValue),
@@ -304,7 +304,7 @@ public class TradeLogService
 /// <summary>
 /// Summary statistics for a set of trades.
 /// </summary>
-public class TradeSummary
+public class TradeLogSummary
 {
     public int TotalTrades { get; set; }
     public int OpenTrades { get; set; }
