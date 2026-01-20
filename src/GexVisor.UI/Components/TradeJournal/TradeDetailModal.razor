@@ -1,0 +1,424 @@
+@using GexVisor.Core
+@using GexVisor.UI.Models
+
+@* Modal for viewing detailed trade information *@
+
+@if (IsVisible && Trade != null)
+{
+    <div class="modal-backdrop" @onclick="Close">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2>Trade Details</h2>
+                <button class="close-btn" @onclick="Close">×</button>
+            </div>
+
+            <div class="modal-body">
+                @* Trade Overview *@
+                <section class="detail-section">
+                    <h3>Trade Overview</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">Symbol</span>
+                            <span class="detail-value symbol">@Trade.Ticker</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Type</span>
+                            <span class="trade-type-badge @GetTypeBadgeClass(Trade.OptionTradeType)">
+                                @Trade.OptionTradeType
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Date</span>
+                            <span class="detail-value">@Trade.CreatedDate?.ToString("MM/dd/yyyy HH:mm")</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Entry Price</span>
+                            <span class="detail-value">$@Trade.EntryPrice.ToString("F2")</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Exit Price</span>
+                            <span class="detail-value">
+                                @(Trade.ExitPrice.HasValue ? $"${Trade.ExitPrice.Value:F2}" : "Open")
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Quantity</span>
+                            <span class="detail-value">@Trade.Quantity contracts</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">P&L</span>
+                            @{
+                                var pnl = Trade.CalculatePnL();
+                                if (pnl.HasValue)
+                                {
+                                    <span class="detail-value pnl @(pnl.Value >= 0 ? "positive" : "negative")">
+                                        @(pnl.Value >= 0 ? "+" : "")$@pnl.Value.ToString("F2")
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="detail-value">Open</span>
+                                }
+                            }
+                        </div>
+                    </div>
+                </section>
+
+                @* Options Details *@
+                <section class="detail-section">
+                    <h3>Options Details</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">Strike Price</span>
+                            <span class="detail-value">$@Trade.StrikePrice.ToString("F2")</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Expiration</span>
+                            <span class="detail-value">
+                                @(Trade.ExpirationDate?.ToString("MM/dd/yyyy") ?? "N/A")
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Contract Multiplier</span>
+                            <span class="detail-value">@Trade.ContractMultiplier</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Direction</span>
+                            <span class="detail-value">
+                                @(Trade.TradeDirection == GexVisor.Core.TradeLog.Type.Long ? "Long" : "Short")
+                            </span>
+                        </div>
+                    </div>
+                </section>
+
+                @* System Decision (placeholder for #108 integration) *@
+                @if (Decision != null)
+                {
+                    <section class="detail-section decision-section">
+                        <h3>System Decision</h3>
+                        <div class="decision-content">
+                            @if (Decision.ActivePatterns.Any())
+                            {
+                                <div class="detail-item">
+                                    <span class="detail-label">Active Patterns</span>
+                                    <div class="pattern-badges">
+                                        @foreach (var pattern in Decision.ActivePatterns)
+                                        {
+                                            <span class="pattern-badge @(pattern == Decision.PrimaryTrigger ? "primary" : "")">
+                                                @pattern
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(Decision.RegimeType))
+                            {
+                                <div class="detail-item">
+                                    <span class="detail-label">Regime</span>
+                                    <span class="detail-value">@Decision.RegimeType</span>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(Decision.DecisionRationale))
+                            {
+                                <div class="detail-item full-width">
+                                    <span class="detail-label">Rationale</span>
+                                    <p class="rationale-text">@Decision.DecisionRationale</p>
+                                </div>
+                            }
+                        </div>
+                    </section>
+                }
+
+                @* Notes & Analysis *@
+                @if (!string.IsNullOrEmpty(Trade.Notes) || !string.IsNullOrEmpty(Trade.Analysis))
+                {
+                    <section class="detail-section">
+                        <h3>Notes & Analysis</h3>
+                        @if (!string.IsNullOrEmpty(Trade.Notes))
+                        {
+                            <div class="detail-item full-width">
+                                <span class="detail-label">Notes</span>
+                                <p class="notes-text">@Trade.Notes</p>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(Trade.Analysis))
+                        {
+                            <div class="detail-item full-width">
+                                <span class="detail-label">Analysis</span>
+                                <p class="notes-text">@Trade.Analysis</p>
+                            </div>
+                        }
+                    </section>
+                }
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-secondary" @onclick="Close">Close</button>
+                <button class="btn-danger" @onclick="OnDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public OptionsLog? Trade { get; set; }
+
+    [Parameter]
+    public TradeDecision? Decision { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> OnDeleteTrade { get; set; }
+
+    private void Close()
+    {
+        OnClose.InvokeAsync();
+    }
+
+    private async Task OnDelete()
+    {
+        if (Trade != null)
+        {
+            await OnDeleteTrade.InvokeAsync(Trade.Id);
+        }
+    }
+
+    private static string GetTypeBadgeClass(OptionsLog.TradeType type)
+    {
+        return type switch
+        {
+            OptionsLog.TradeType.BTO => "bto",
+            OptionsLog.TradeType.STC => "stc",
+            OptionsLog.TradeType.STO => "sto",
+            OptionsLog.TradeType.BTC => "btc",
+            _ => ""
+        };
+    }
+}
+
+<style>
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 1rem;
+    }
+
+    .modal-content {
+        background: var(--surface-0);
+        border-radius: 8px;
+        max-width: 800px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        font-size: 1.5rem;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 2rem;
+        cursor: pointer;
+        color: var(--text-muted);
+        line-height: 1;
+        padding: 0;
+        width: 2rem;
+        height: 2rem;
+    }
+
+    .close-btn:hover {
+        color: var(--text-color);
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .detail-section {
+        margin-bottom: 2rem;
+    }
+
+    .detail-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .detail-section h3 {
+        margin: 0 0 1rem 0;
+        font-size: 1.1rem;
+        color: var(--text-color);
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .detail-item.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .detail-label {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    .detail-value {
+        font-size: 1rem;
+        color: var(--text-color);
+        font-weight: 500;
+    }
+
+    .detail-value.symbol {
+        font-family: monospace;
+        font-weight: 700;
+    }
+
+    .pnl.positive {
+        color: var(--green);
+    }
+
+    .pnl.negative {
+        color: var(--red);
+    }
+
+    .trade-type-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-align: center;
+        width: fit-content;
+    }
+
+    .trade-type-badge.bto {
+        background: #10b98120;
+        color: #10b981;
+    }
+
+    .trade-type-badge.stc {
+        background: #10b98120;
+        color: #10b981;
+    }
+
+    .trade-type-badge.sto {
+        background: #ef444420;
+        color: #ef4444;
+    }
+
+    .trade-type-badge.btc {
+        background: #ef444420;
+        color: #ef4444;
+    }
+
+    .decision-section {
+        background: var(--surface-1);
+        padding: 1rem;
+        border-radius: 6px;
+    }
+
+    .decision-content {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .pattern-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .pattern-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        background: var(--surface-2);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+    }
+
+    .pattern-badge.primary {
+        background: #3b82f620;
+        color: #3b82f6;
+        border-color: #3b82f6;
+        font-weight: 600;
+    }
+
+    .rationale-text,
+    .notes-text {
+        margin: 0.5rem 0 0 0;
+        line-height: 1.6;
+        color: var(--text-color);
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding: 1.5rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .btn-secondary,
+    .btn-danger {
+        padding: 0.5rem 1.25rem;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.15s;
+    }
+
+    .btn-secondary {
+        background: var(--surface-2);
+        color: var(--text-color);
+    }
+
+    .btn-secondary:hover {
+        background: var(--surface-3);
+    }
+
+    .btn-danger {
+        background: #ef4444;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #dc2626;
+    }
+</style>

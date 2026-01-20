@@ -1,0 +1,293 @@
+@using GexVisor.Core
+
+@* Filter and search controls for trade list *@
+
+<div class="filters-container">
+    <div class="filters-row">
+        @* Search *@
+        <div class="filter-group search-group">
+            <input type="text"
+                   class="search-input"
+                   placeholder="Search symbol, notes..."
+                   @bind="SearchQuery"
+                   @bind:event="oninput"
+                   @onkeyup="OnSearchChanged" />
+        </div>
+
+        @* Symbol Filter *@
+        @if (AvailableSymbols.Any())
+        {
+            <div class="filter-group">
+                <select class="filter-select" @bind="SelectedSymbol" @bind:after="OnFiltersChanged">
+                    <option value="">All Symbols</option>
+                    @foreach (var symbol in AvailableSymbols)
+                    {
+                        <option value="@symbol">@symbol</option>
+                    }
+                </select>
+            </div>
+        }
+
+        @* Trade Type Filter *@
+        <div class="filter-group">
+            <select class="filter-select" @bind="SelectedType" @bind:after="OnFiltersChanged">
+                <option value="">All Types</option>
+                <option value="@OptionsLog.TradeType.BTO">BTO</option>
+                <option value="@OptionsLog.TradeType.STC">STC</option>
+                <option value="@OptionsLog.TradeType.STO">STO</option>
+                <option value="@OptionsLog.TradeType.BTC">BTC</option>
+            </select>
+        </div>
+
+        @* Status Filter *@
+        <div class="filter-group">
+            <select class="filter-select" @bind="SelectedStatus" @bind:after="OnFiltersChanged">
+                <option value="">All Status</option>
+                <option value="open">Open</option>
+                <option value="closed">Closed</option>
+            </select>
+        </div>
+
+        @* Clear Filters *@
+        @if (HasActiveFilters)
+        {
+            <button class="btn-clear" @onclick="ClearFilters">
+                Clear Filters
+            </button>
+        }
+    </div>
+
+    @* Active Filter Chips *@
+    @if (HasActiveFilters)
+    {
+        <div class="active-filters">
+            @if (!string.IsNullOrEmpty(SearchQuery))
+            {
+                <span class="filter-chip">
+                    Search: "@SearchQuery"
+                    <button @onclick="() => { SearchQuery = string.Empty; OnFiltersChanged(); }">×</button>
+                </span>
+            }
+            @if (!string.IsNullOrEmpty(SelectedSymbol))
+            {
+                <span class="filter-chip">
+                    Symbol: @SelectedSymbol
+                    <button @onclick="() => { SelectedSymbol = string.Empty; OnFiltersChanged(); }">×</button>
+                </span>
+            }
+            @if (!string.IsNullOrEmpty(SelectedType))
+            {
+                <span class="filter-chip">
+                    Type: @SelectedType
+                    <button @onclick="() => { SelectedType = string.Empty; OnFiltersChanged(); }">×</button>
+                </span>
+            }
+            @if (!string.IsNullOrEmpty(SelectedStatus))
+            {
+                <span class="filter-chip">
+                    Status: @SelectedStatus
+                    <button @onclick="() => { SelectedStatus = string.Empty; OnFiltersChanged(); }">×</button>
+                </span>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public IEnumerable<string> AvailableSymbols { get; set; } = [];
+
+    [Parameter]
+    public EventCallback<FilterState> OnFiltersChanged { get; set; }
+
+    private string _searchQuery = string.Empty;
+    private string SearchQuery
+    {
+        get => _searchQuery;
+        set
+        {
+            if (_searchQuery != value)
+            {
+                _searchQuery = value;
+                _searchDebounceTimer?.Dispose();
+                _searchDebounceTimer = new System.Timers.Timer(300);
+                _searchDebounceTimer.Elapsed += (s, e) =>
+                {
+                    _searchDebounceTimer?.Dispose();
+                    InvokeAsync(() => OnFiltersChanged.InvokeAsync(GetCurrentState()));
+                };
+                _searchDebounceTimer.Start();
+            }
+        }
+    }
+
+    private string SelectedSymbol { get; set; } = string.Empty;
+    private string SelectedType { get; set; } = string.Empty;
+    private string SelectedStatus { get; set; } = string.Empty;
+
+    private System.Timers.Timer? _searchDebounceTimer;
+
+    private bool HasActiveFilters =>
+        !string.IsNullOrEmpty(SearchQuery) ||
+        !string.IsNullOrEmpty(SelectedSymbol) ||
+        !string.IsNullOrEmpty(SelectedType) ||
+        !string.IsNullOrEmpty(SelectedStatus);
+
+    private void OnSearchChanged()
+    {
+        // Debouncing handled in SearchQuery setter
+    }
+
+    private void OnFiltersChanged()
+    {
+        OnFiltersChanged.InvokeAsync(GetCurrentState());
+    }
+
+    private void ClearFilters()
+    {
+        SearchQuery = string.Empty;
+        SelectedSymbol = string.Empty;
+        SelectedType = string.Empty;
+        SelectedStatus = string.Empty;
+        OnFiltersChanged();
+    }
+
+    private FilterState GetCurrentState()
+    {
+        return new FilterState
+        {
+            SearchQuery = SearchQuery,
+            Symbol = SelectedSymbol,
+            Type = SelectedType,
+            Status = SelectedStatus
+        };
+    }
+
+    public void Dispose()
+    {
+        _searchDebounceTimer?.Dispose();
+    }
+}
+
+@code {
+    public class FilterState
+    {
+        public string SearchQuery { get; set; } = string.Empty;
+        public string Symbol { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+
+        public bool IsEmpty =>
+            string.IsNullOrEmpty(SearchQuery) &&
+            string.IsNullOrEmpty(Symbol) &&
+            string.IsNullOrEmpty(Type) &&
+            string.IsNullOrEmpty(Status);
+    }
+}
+
+<style>
+    .filters-container {
+        margin-bottom: 1.5rem;
+    }
+
+    .filters-row {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+    }
+
+    .search-group {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        background: var(--surface-1);
+        color: var(--text-color);
+        font-size: 0.9rem;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--accent);
+    }
+
+    .filter-select {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        background: var(--surface-1);
+        color: var(--text-color);
+        font-size: 0.9rem;
+        cursor: pointer;
+    }
+
+    .filter-select:focus {
+        outline: none;
+        border-color: var(--accent);
+    }
+
+    .btn-clear {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        background: var(--surface-1);
+        color: var(--text-color);
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .btn-clear:hover {
+        background: var(--surface-2);
+        border-color: var(--accent);
+    }
+
+    .active-filters {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.25rem 0.5rem;
+        background: var(--surface-2);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        font-size: 0.85rem;
+        color: var(--text-color);
+    }
+
+    .filter-chip button {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        font-size: 1.2rem;
+        line-height: 1;
+        padding: 0;
+        width: 1.2rem;
+        height: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .filter-chip button:hover {
+        color: var(--text-color);
+    }
+</style>
