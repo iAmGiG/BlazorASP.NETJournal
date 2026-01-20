@@ -73,6 +73,16 @@
     private bool _isDragging;
     private bool _jsInitialized;
 
+    // Memoization cache for bar calculations
+    private decimal _lastPrice;
+    private decimal _lastTilt;
+    private decimal _lastOpenInterest;
+    private decimal _lastXAxisScale;
+    private decimal _lastYAxisScale;
+    private decimal _lastStrikeStart;
+    private decimal _lastStrikeEnd;
+    private decimal _lastStrikeStep;
+
     private double PriceY => CalculatePriceY();
     private double ZeroGammaY => CalculateZeroGammaY();
 
@@ -104,6 +114,31 @@
     private void CalculateBars()
     {
         var state = StateService.State;
+
+        // Memoization: Skip recalculation if values haven't changed
+        if (GammaBars.Count > 0 &&
+            _lastPrice == state.Price &&
+            _lastTilt == state.Tilt &&
+            _lastOpenInterest == state.OpenInterest &&
+            _lastXAxisScale == state.XAxisScale &&
+            _lastYAxisScale == state.YAxisScale &&
+            _lastStrikeStart == state.StrikeStart &&
+            _lastStrikeEnd == state.StrikeEnd &&
+            _lastStrikeStep == state.StrikeStep)
+        {
+            return; // Use cached bars
+        }
+
+        // Cache current values for next comparison
+        _lastPrice = state.Price;
+        _lastTilt = state.Tilt;
+        _lastOpenInterest = state.OpenInterest;
+        _lastXAxisScale = state.XAxisScale;
+        _lastYAxisScale = state.YAxisScale;
+        _lastStrikeStart = state.StrikeStart;
+        _lastStrikeEnd = state.StrikeEnd;
+        _lastStrikeStep = state.StrikeStep;
+
         var bars = new List<GammaBar>();
 
         var strikeStart = state.StrikeStart;
