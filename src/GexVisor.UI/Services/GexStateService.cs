@@ -9,7 +9,7 @@ namespace GexVisor.UI.Services;
 /// Manages application state for the GEX visualizer.
 /// Provides reactive state updates via events.
 /// </summary>
-public class GexStateService : IDisposable
+public class GexStateService : IGexStateService
 {
     private readonly GexState _state = new();
     private List<GexDataPoint> _timeline = [];

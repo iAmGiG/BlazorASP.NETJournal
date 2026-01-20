@@ -297,7 +297,7 @@ Tracked in GitHub issues:
 
 ### Hard to Test (Requires Mocking)
 
-- `GexStateService` - No interface, timer-based simulation
+- `GexStateService` - Timer-based simulation, requires careful mocking
 - `BoardStateService` - Complex cache lifecycle
 - `GitHubAuthService` - Polling loop, external API
 
@@ -307,7 +307,7 @@ Tracked in GitHub issues:
 |---------|---------------|----------|
 | GexDataService | ✅ IGexDataService | Yes |
 | LocalStorageService | ✅ ILocalStorageService | Yes |
-| GexStateService | ❌ None | No (blocker) |
+| GexStateService | ✅ IGexStateService | Yes |
 | ComparisonAnalysisService | ❌ None | Yes (stateless) |
 
 ---
