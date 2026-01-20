@@ -15,6 +15,7 @@ New to GexVisor? Start here:
 |----------|-------------|
 | [getting-started.md](getting-started.md) | Prerequisites, build, run, and development workflow |
 | [github-integration.md](github-integration.md) | GitHub Projects v2 API integration for task board |
+| [state-diagrams.md](state-diagrams.md) | State machines and data flow diagrams |
 | [research-roadmap.md](research-roadmap.md) | Multi-phase research trajectory (Phases 1-5) |
 | [adr/](adr/) | Architecture Decision Records |
 
