@@ -1,0 +1,97 @@
+@* Display pattern trigger badge with optional primary indicator *@
+
+<span class="pattern-badge @(IsPrimary ? "primary" : "") @SizeClass">
+    @if (!string.IsNullOrEmpty(Icon))
+    {
+        <i class="fas @Icon"></i>
+    }
+    <span class="pattern-name">@PatternName</span>
+    @if (ShowStrength && SignalStrength.HasValue)
+    {
+        <span class="strength-indicator">@SignalStrength.Value.ToString("P0")</span>
+    }
+</span>
+
+@code {
+    [Parameter, EditorRequired]
+    public string PatternName { get; set; } = string.Empty;
+
+    [Parameter]
+    public bool IsPrimary { get; set; } = false;
+
+    [Parameter]
+    public decimal? SignalStrength { get; set; }
+
+    [Parameter]
+    public bool ShowStrength { get; set; } = false;
+
+    [Parameter]
+    public string? Icon { get; set; }
+
+    [Parameter]
+    public string Size { get; set; } = "medium"; // small, medium, large
+
+    private string SizeClass => Size switch
+    {
+        "small" => "size-sm",
+        "large" => "size-lg",
+        _ => "size-md"
+    };
+}
+
+<style>
+    .pattern-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.375rem 0.75rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        background: var(--surface-2);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        transition: all 0.15s;
+    }
+
+    .pattern-badge.size-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .pattern-badge.size-lg {
+        padding: 0.5rem 1rem;
+        font-size: 0.95rem;
+    }
+
+    .pattern-badge.primary {
+        background: #3b82f620;
+        color: #3b82f6;
+        border-color: #3b82f6;
+        font-weight: 600;
+        box-shadow: 0 0 0 2px #3b82f610;
+    }
+
+    .pattern-badge i {
+        font-size: 0.9em;
+        opacity: 0.9;
+    }
+
+    .pattern-name {
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    .strength-indicator {
+        margin-left: 0.25rem;
+        padding: 0.125rem 0.375rem;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 3px;
+        font-size: 0.75em;
+        font-weight: 600;
+    }
+
+    .pattern-badge.primary .strength-indicator {
+        background: rgba(59, 130, 246, 0.2);
+    }
+</style>

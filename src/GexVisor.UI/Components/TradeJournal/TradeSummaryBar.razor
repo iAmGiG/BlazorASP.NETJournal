@@ -1,0 +1,43 @@
+@* Summary statistics bar showing aggregate trade performance *@
+
+<div class="stats-bar">
+    <div class="stat-card">
+        <span class="stat-label">Total</span>
+        <span class="stat-value">@Summary.TotalTrades</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Win Rate</span>
+        <span class="stat-value @(Summary.WinRate >= 50 ? "positive" : "negative")">
+            @Summary.WinRate.ToString("F1")%
+        </span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Avg P&L</span>
+        <span class="stat-value @(Summary.AveragePnL >= 0 ? "positive" : "negative")">
+            @(Summary.AveragePnL >= 0 ? "+" : "")@Summary.AveragePnL.ToString("F2")
+        </span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Total P&L</span>
+        <span class="stat-value @(Summary.TotalPnL >= 0 ? "positive" : "negative")">
+            @(Summary.TotalPnL >= 0 ? "+" : "")@Summary.TotalPnL.ToString("F2")
+        </span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Open</span>
+        <span class="stat-value">@Summary.OpenTrades</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Best</span>
+        <span class="stat-value positive">+@Summary.BestTrade.ToString("F2")</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Worst</span>
+        <span class="stat-value negative">@Summary.WorstTrade.ToString("F2")</span>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public TradeLogSummary Summary { get; set; } = new();
+}

@@ -21,6 +21,8 @@ builder.Services.AddScoped<TaskPersistenceService>();
 builder.Services.AddScoped<TagService>();
 builder.Services.AddScoped<NotebookService>();
 builder.Services.AddScoped<PaperTradeService>();
+builder.Services.AddScoped<TradeLogService>();
+builder.Services.AddScoped<DecisionMetadataParser>();
 builder.Services.AddScoped<BacktestService>();
 builder.Services.AddScoped<ResearchTaskService>();
 

@@ -112,6 +112,7 @@ public static class StorageKeys
     // Journal features
     public const string NotebookEntries = "gexvisor.notebook";
     public const string PaperTrades = "gexvisor.paperTrades";
+    public const string TradeLogs = "gexvisor.tradeLogs";
     public const string Annotations = "gexvisor.annotations";
     public const string BacktestResults = "gexvisor.backtests";
     public const string TaskBoard = "gexvisor.tasks";

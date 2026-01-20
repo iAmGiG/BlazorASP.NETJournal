@@ -1,0 +1,305 @@
+@using GexVisor.Core
+
+@* Trade list grid with sortable columns *@
+
+@if (!Trades.Any())
+{
+    <div class="empty-state">
+        <div class="empty-icon">📊</div>
+        <div class="empty-text">No trades found</div>
+        <div class="empty-hint">Import autotrader logs to get started</div>
+    </div>
+}
+else
+{
+    <div class="trade-grid">
+        <table class="trade-table">
+            <thead>
+                <tr>
+                    <th @onclick="() => SortBy(nameof(OptionsLog.CreatedDate))">
+                        Date @SortIndicator(nameof(OptionsLog.CreatedDate))
+                    </th>
+                    <th @onclick="() => SortBy(nameof(OptionsLog.Ticker))">
+                        Symbol @SortIndicator(nameof(OptionsLog.Ticker))
+                    </th>
+                    <th>Type</th>
+                    <th class="text-right">Entry</th>
+                    <th class="text-right">Exit</th>
+                    <th class="text-right">Qty</th>
+                    <th class="text-right" @onclick='() => SortBy("PnL")'>
+                        P&L @SortIndicator("PnL")
+                    </th>
+                    <th class="text-center">Status</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var trade in GetSortedTrades())
+                {
+                    <tr @onclick="() => OnTradeClick.InvokeAsync(trade.Id)" class="trade-row">
+                        <td>@trade.CreatedDate?.ToString("MM/dd/yy")</td>
+                        <td class="symbol">@trade.Ticker</td>
+                        <td>
+                            <span class="trade-type-badge @GetTypeBadgeClass(trade.OptionTradeType)">
+                                @trade.OptionTradeType
+                            </span>
+                        </td>
+                        <td class="text-right">@trade.EntryPrice.ToString("F2")</td>
+                        <td class="text-right">
+                            @(trade.ExitPrice?.ToString("F2") ?? "-")
+                        </td>
+                        <td class="text-right">@trade.Quantity.ToString("F0")</td>
+                        <td class="text-right">
+                            @{
+                                var pnl = trade.CalculatePnL();
+                                if (pnl.HasValue)
+                                {
+                                    <span class="pnl @(pnl.Value >= 0 ? "positive" : "negative")">
+                                        @(pnl.Value >= 0 ? "+" : "")@pnl.Value.ToString("F2")
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="pnl-null">-</span>
+                                }
+                            }
+                        </td>
+                        <td class="text-center">
+                            @if (trade.ExitPrice.HasValue)
+                            {
+                                <span class="status-badge closed">Closed</span>
+                            }
+                            else
+                            {
+                                <span class="status-badge open">Open</span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <button class="action-btn" @onclick:stopPropagation="true"
+                                    @onclick="() => OnTradeClick.InvokeAsync(trade.Id)"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public IEnumerable<OptionsLog> Trades { get; set; } = [];
+
+    [Parameter]
+    public EventCallback<Guid> OnTradeClick { get; set; }
+
+    private string? _sortColumn;
+    private bool _sortAscending = false;
+
+    private void SortBy(string column)
+    {
+        if (_sortColumn == column)
+        {
+            _sortAscending = !_sortAscending;
+        }
+        else
+        {
+            _sortColumn = column;
+            _sortAscending = false;
+        }
+    }
+
+    private string SortIndicator(string column)
+    {
+        if (_sortColumn != column)
+            return "";
+
+        return _sortAscending ? "▲" : "▼";
+    }
+
+    private IEnumerable<OptionsLog> GetSortedTrades()
+    {
+        if (string.IsNullOrEmpty(_sortColumn))
+            return Trades;
+
+        return _sortColumn switch
+        {
+            nameof(OptionsLog.CreatedDate) => _sortAscending
+                ? Trades.OrderBy(t => t.CreatedDate)
+                : Trades.OrderByDescending(t => t.CreatedDate),
+            nameof(OptionsLog.Ticker) => _sortAscending
+                ? Trades.OrderBy(t => t.Ticker)
+                : Trades.OrderByDescending(t => t.Ticker),
+            "PnL" => _sortAscending
+                ? Trades.OrderBy(t => t.CalculatePnL() ?? decimal.MinValue)
+                : Trades.OrderByDescending(t => t.CalculatePnL() ?? decimal.MinValue),
+            _ => Trades
+        };
+    }
+
+    private static string GetTypeBadgeClass(OptionsLog.TradeType type)
+    {
+        return type switch
+        {
+            OptionsLog.TradeType.BTO => "bto",
+            OptionsLog.TradeType.STC => "stc",
+            OptionsLog.TradeType.STO => "sto",
+            OptionsLog.TradeType.BTC => "btc",
+            _ => ""
+        };
+    }
+}
+
+<style>
+    .trade-grid {
+        overflow-x: auto;
+    }
+
+    .trade-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+
+    .trade-table thead th {
+        background: var(--surface-1);
+        padding: 0.75rem 0.5rem;
+        text-align: left;
+        font-weight: 600;
+        border-bottom: 2px solid var(--border-color);
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .trade-table thead th:hover {
+        background: var(--surface-2);
+    }
+
+    .trade-table tbody td {
+        padding: 0.75rem 0.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .trade-row {
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .trade-row:hover {
+        background: var(--surface-1);
+    }
+
+    .symbol {
+        font-weight: 600;
+        font-family: monospace;
+    }
+
+    .trade-type-badge {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-align: center;
+        min-width: 3rem;
+    }
+
+    .trade-type-badge.bto {
+        background: #10b98120;
+        color: #10b981;
+    }
+
+    .trade-type-badge.stc {
+        background: #10b98120;
+        color: #10b981;
+    }
+
+    .trade-type-badge.sto {
+        background: #ef444420;
+        color: #ef4444;
+    }
+
+    .trade-type-badge.btc {
+        background: #ef444420;
+        color: #ef4444;
+    }
+
+    .pnl.positive {
+        color: var(--green);
+        font-weight: 600;
+    }
+
+    .pnl.negative {
+        color: var(--red);
+        font-weight: 600;
+    }
+
+    .pnl-null {
+        color: var(--text-muted);
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-badge.open {
+        background: #3b82f620;
+        color: #3b82f6;
+    }
+
+    .status-badge.closed {
+        background: var(--surface-2);
+        color: var(--text-muted);
+    }
+
+    .action-btn {
+        background: none;
+        border: 1px solid var(--border-color);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        color: var(--text-color);
+        transition: all 0.15s;
+    }
+
+    .action-btn:hover {
+        background: var(--surface-2);
+        border-color: var(--accent);
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--text-muted);
+    }
+
+    .empty-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .empty-text {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-hint {
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+</style>

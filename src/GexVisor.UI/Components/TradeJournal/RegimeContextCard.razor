@@ -1,0 +1,272 @@
+@using GexVisor.UI.Models
+
+@* Display market regime context at time of trade decision *@
+
+@if (Decision != null)
+{
+    <div class="regime-context-card">
+        <div class="card-header">
+            <i class="fas fa-chart-line"></i>
+            <h4>Market Regime Context</h4>
+        </div>
+
+        <div class="regime-metrics">
+            @if (!string.IsNullOrEmpty(Decision.RegimeType))
+            {
+                <div class="metric-item regime-type">
+                    <span class="metric-label">Regime</span>
+                    <span class="metric-value regime-badge @GetRegimeBadgeClass(Decision.RegimeType)">
+                        @Decision.RegimeType
+                    </span>
+                </div>
+            }
+
+            @if (Decision.GexLevel.HasValue)
+            {
+                <div class="metric-item">
+                    <span class="metric-label">GEX Level</span>
+                    <span class="metric-value @GetGexLevelClass(Decision.GexLevel.Value)">
+                        @FormatGexLevel(Decision.GexLevel.Value)
+                    </span>
+                </div>
+            }
+
+            @if (Decision.IvLevel.HasValue)
+            {
+                <div class="metric-item">
+                    <span class="metric-label">IV Level</span>
+                    <span class="metric-value">
+                        @Decision.IvLevel.Value.ToString("P1")
+                    </span>
+                </div>
+            }
+
+            @if (Decision.IsNegativeGamma.HasValue)
+            {
+                <div class="metric-item">
+                    <span class="metric-label">Gamma Environment</span>
+                    <span class="metric-value gamma-env @(Decision.IsNegativeGamma.Value ? "negative" : "positive")">
+                        @(Decision.IsNegativeGamma.Value ? "Negative Gamma" : "Positive Gamma")
+                    </span>
+                </div>
+            }
+
+            @if (Decision.ConfidenceScore > 0)
+            {
+                <div class="metric-item confidence">
+                    <span class="metric-label">System Confidence</span>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" style="width: @((Decision.ConfidenceScore * 100).ToString("F0"))%"></div>
+                        <span class="confidence-text">@Decision.ConfidenceScore.ToString("P0")</span>
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (!string.IsNullOrEmpty(Decision.RiskAssessment))
+        {
+            <div class="risk-assessment">
+                <span class="risk-label">
+                    <i class="fas fa-exclamation-triangle"></i> Risk Assessment
+                </span>
+                <p>@Decision.RiskAssessment</p>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter]
+    public TradeDecision? Decision { get; set; }
+
+    private static string GetRegimeBadgeClass(string regimeType)
+    {
+        return regimeType.ToLowerInvariant() switch
+        {
+            var r when r.Contains("bullish") || r.Contains("rally") => "bullish",
+            var r when r.Contains("bearish") || r.Contains("decline") => "bearish",
+            var r when r.Contains("volatile") || r.Contains("choppy") => "volatile",
+            var r when r.Contains("calm") || r.Contains("stable") => "calm",
+            _ => "neutral"
+        };
+    }
+
+    private static string GetGexLevelClass(decimal gexLevel)
+    {
+        return gexLevel switch
+        {
+            > 0.5m => "high",
+            < -0.5m => "low",
+            _ => "normal"
+        };
+    }
+
+    private static string FormatGexLevel(decimal gexLevel)
+    {
+        var formatted = gexLevel.ToString("F2");
+        return gexLevel > 0 ? $"+{formatted}B" : $"{formatted}B";
+    }
+}
+
+<style>
+    .regime-context-card {
+        background: var(--surface-1);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1.25rem;
+    }
+
+    .card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-header i {
+        color: var(--accent);
+        font-size: 1.1rem;
+    }
+
+    .card-header h4 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    .regime-metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .metric-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.375rem;
+    }
+
+    .metric-item.confidence {
+        grid-column: 1 / -1;
+    }
+
+    .metric-label {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    .metric-value {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    .regime-badge {
+        display: inline-block;
+        padding: 0.375rem 0.75rem;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+
+    .regime-badge.bullish {
+        background: #10b98120;
+        color: #10b981;
+    }
+
+    .regime-badge.bearish {
+        background: #ef444420;
+        color: #ef4444;
+    }
+
+    .regime-badge.volatile {
+        background: #f59e0b20;
+        color: #f59e0b;
+    }
+
+    .regime-badge.calm {
+        background: #3b82f620;
+        color: #3b82f6;
+    }
+
+    .regime-badge.neutral {
+        background: var(--surface-2);
+        color: var(--text-color);
+    }
+
+    .metric-value.high {
+        color: #10b981;
+    }
+
+    .metric-value.low {
+        color: #ef4444;
+    }
+
+    .gamma-env.negative {
+        color: #f59e0b;
+    }
+
+    .gamma-env.positive {
+        color: #3b82f6;
+    }
+
+    .confidence-bar {
+        position: relative;
+        height: 32px;
+        background: var(--surface-2);
+        border-radius: 4px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+    }
+
+    .confidence-fill {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        background: linear-gradient(90deg, #3b82f6, #10b981);
+        transition: width 0.3s ease;
+    }
+
+    .confidence-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--text-color);
+        z-index: 1;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .risk-assessment {
+        margin-top: 1rem;
+        padding: 0.875rem;
+        background: #f59e0b10;
+        border: 1px solid #f59e0b40;
+        border-radius: 6px;
+    }
+
+    .risk-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #f59e0b;
+        margin-bottom: 0.5rem;
+    }
+
+    .risk-assessment p {
+        margin: 0;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        color: var(--text-color);
+    }
+</style>

@@ -1,14 +1,687 @@
-﻿@page "/tradelogging"
+@page "/tradelogging"
 @using GexVisor.Core
+@using GexVisor.UI.Services
+@using GexVisor.UI.Models
+@using GexVisor.UI.Components.TradeJournal
+@using static GexVisor.UI.Components.TradeJournal.TradeFilters
+@using Microsoft.AspNetCore.Components.Forms
+@inject TradeLogService TradeService
+@inject DecisionMetadataParser Parser
+@inject IJSRuntime JS
+@implements IDisposable
 
-<h3>TradeLogging</h3>
+<PageTitle>Trade Journal</PageTitle>
 
-@*
-<form>
-	<label for="ticker">Ticker:</label>
-	<input id="ticker" @bind="myTradingLog.Ticker"/>
-</form>
-*@
+<div class="trade-journal-page">
+    <header class="journal-header">
+        <div class="header-left">
+            <a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Home</a>
+            <h1>Trade Journal</h1>
+        </div>
+        <div class="header-actions">
+            <button class="btn-primary" @onclick="ShowImportModal">
+                <i class="fas fa-upload"></i> Import Trades
+            </button>
+            <div class="export-dropdown">
+                <button class="btn-secondary" @onclick="() => _showExportMenu = !_showExportMenu">
+                    Export ▾
+                </button>
+                @if (_showExportMenu)
+                {
+                    <div class="dropdown-menu">
+                        <button @onclick="ExportJson">JSON</button>
+                        <button @onclick="ExportCsv">CSV</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </header>
+
+    @* Summary Stats *@
+    <TradeSummaryBar Summary="@_summary" />
+
+    @* Filters *@
+    <TradeFilters AvailableSymbols="@TradeService.GetAllSymbols()"
+                  OnFiltersChanged="@HandleFiltersChanged" />
+
+    @* Trade Grid *@
+    <TradeGrid Trades="@GetFilteredTrades()"
+               OnTradeClick="@ShowTradeDetail" />
+
+    @* Trade Detail Modal *@
+    <TradeDetailModal IsVisible="@_showDetailModal"
+                      Trade="@_selectedTrade"
+                      Decision="@_selectedDecision"
+                      OnClose="@CloseDetailModal"
+                      OnDeleteTrade="@DeleteTrade" />
+
+    @* Import Modal *@
+    @if (_showImportModal)
+    {
+        <div class="modal-backdrop" @onclick="CloseImportModal">
+            <div class="modal-content import-modal" @onclick:stopPropagation="true">
+                <div class="modal-header">
+                    <h2>Import Autotrader Logs</h2>
+                    <button class="close-btn" @onclick="CloseImportModal">×</button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(_importMessage))
+                    {
+                        <div class="import-message @_importStatus">
+                            <i class="fas @(_importStatus == "success" ? "fa-check-circle" : "fa-exclamation-circle")"></i>
+                            @_importMessage
+                        </div>
+                    }
+
+                    <div class="file-upload-section">
+                        <label class="file-upload-label">
+                            <i class="fas fa-file-upload"></i> Select Log File
+                        </label>
+                        <InputFile OnChange="@HandleFileSelected" accept=".json,.csv" class="file-input" />
+                        @if (_selectedFile != null)
+                        {
+                            <div class="file-info">
+                                <i class="fas fa-file"></i>
+                                <span class="file-name">@_selectedFile.Name</span>
+                                <span class="file-size">(@FormatFileSize(_selectedFile.Size))</span>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="format-info">
+                        <h4>Supported Formats:</h4>
+                        <div class="format-cards">
+                            <div class="format-card">
+                                <div class="format-header">
+                                    <i class="fas fa-code"></i> JSON
+                                </div>
+                                <p>Full decision metadata with patterns, regime context, and system reasoning</p>
+                            </div>
+                            <div class="format-card">
+                                <div class="format-header">
+                                    <i class="fas fa-table"></i> CSV
+                                </div>
+                                <p>Basic trade data with entry/exit prices and timestamps</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" @onclick="CloseImportModal" disabled="@_isImporting">
+                        Cancel
+                    </button>
+                    <button class="btn-primary" @onclick="ImportFile" disabled="@(_selectedFile == null || _isImporting)">
+                        @if (_isImporting)
+                        {
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Importing...</span>
+                        }
+                        else
+                        {
+                            <i class="fas fa-upload"></i>
+                            <span>Import</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
 @code {
-	private TradeLog myTradingLog = new();
+    private TradeLogSummary _summary = new();
+    private FilterState _currentFilters = new();
+    private bool _showExportMenu = false;
+    private bool _showImportModal = false;
+    private bool _showDetailModal = false;
+    private OptionsLog? _selectedTrade;
+    private TradeDecision? _selectedDecision;
+
+    // Import state
+    private IBrowserFile? _selectedFile;
+    private bool _isImporting = false;
+    private string _importStatus = string.Empty;
+    private string _importMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await TradeService.LoadAsync();
+        TradeService.OnTradesChanged += RefreshData;
+        RefreshData();
+    }
+
+    private void RefreshData()
+    {
+        _summary = TradeService.CalculateSummary();
+        StateHasChanged();
+    }
+
+    private IEnumerable<OptionsLog> GetFilteredTrades()
+    {
+        var trades = TradeService.GetAllTrades();
+
+        // Apply search
+        if (!string.IsNullOrEmpty(_currentFilters.SearchQuery))
+        {
+            trades = TradeService.Search(_currentFilters.SearchQuery);
+        }
+
+        // Apply symbol filter
+        if (!string.IsNullOrEmpty(_currentFilters.Symbol))
+        {
+            trades = trades.Where(t => t.Ticker != null &&
+                t.Ticker.Equals(_currentFilters.Symbol, StringComparison.OrdinalIgnoreCase));
+        }
+
+        // Apply type filter
+        if (!string.IsNullOrEmpty(_currentFilters.Type) &&
+            Enum.TryParse<OptionsLog.TradeType>(_currentFilters.Type, out var type))
+        {
+            trades = trades.Where(t => t.OptionTradeType == type);
+        }
+
+        // Apply status filter
+        if (!string.IsNullOrEmpty(_currentFilters.Status))
+        {
+            if (_currentFilters.Status == "open")
+                trades = trades.Where(t => !t.ExitPrice.HasValue);
+            else if (_currentFilters.Status == "closed")
+                trades = trades.Where(t => t.ExitPrice.HasValue);
+        }
+
+        return trades;
+    }
+
+    private void HandleFiltersChanged(FilterState filters)
+    {
+        _currentFilters = filters;
+        StateHasChanged();
+    }
+
+    private void ShowTradeDetail(Guid tradeId)
+    {
+        _selectedTrade = TradeService.GetById(tradeId);
+        // TODO: Load decision from DecisionService when implemented in #108
+        _selectedDecision = null;
+        _showDetailModal = true;
+    }
+
+    private void CloseDetailModal()
+    {
+        _showDetailModal = false;
+        _selectedTrade = null;
+        _selectedDecision = null;
+    }
+
+    private async Task DeleteTrade(Guid tradeId)
+    {
+        await TradeService.DeleteAsync(tradeId);
+        CloseDetailModal();
+    }
+
+    private void ShowImportModal()
+    {
+        _showImportModal = true;
+    }
+
+    private void CloseImportModal()
+    {
+        _showImportModal = false;
+        _selectedFile = null;
+        _importStatus = string.Empty;
+        _importMessage = string.Empty;
+        _isImporting = false;
+    }
+
+    private void HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        _selectedFile = e.File;
+        _importStatus = string.Empty;
+        _importMessage = string.Empty;
+    }
+
+    private async Task ImportFile()
+    {
+        if (_selectedFile == null)
+            return;
+
+        _isImporting = true;
+        _importStatus = string.Empty;
+        _importMessage = string.Empty;
+        StateHasChanged();
+
+        try
+        {
+            // Read file content
+            var maxFileSize = 10 * 1024 * 1024; // 10 MB limit
+            using var stream = _selectedFile.OpenReadStream(maxFileSize);
+            using var reader = new StreamReader(stream);
+            var content = await reader.ReadToEndAsync();
+
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                _importStatus = "error";
+                _importMessage = "File is empty";
+                return;
+            }
+
+            // Detect format and parse
+            List<OptionsLog> trades;
+            List<TradeDecision> decisions;
+
+            var extension = Path.GetExtension(_selectedFile.Name).ToLowerInvariant();
+            if (extension == ".json")
+            {
+                (trades, decisions) = Parser.ParseJsonLog(content);
+            }
+            else if (extension == ".csv")
+            {
+                (trades, decisions) = Parser.ParseCsvLog(content);
+            }
+            else
+            {
+                _importStatus = "error";
+                _importMessage = "Unsupported file format. Please use .json or .csv files.";
+                return;
+            }
+
+            // Import trades
+            if (trades.Count == 0)
+            {
+                _importStatus = "error";
+                _importMessage = "No valid trades found in file";
+                return;
+            }
+
+            await TradeService.AddRangeAsync(trades);
+
+            // Success message
+            _importStatus = "success";
+            _importMessage = $"Successfully imported {trades.Count} trade{(trades.Count != 1 ? "s" : "")} with {decisions.Count} decision record{(decisions.Count != 1 ? "s" : "")}";
+
+            // Auto-close after 2 seconds
+            await Task.Delay(2000);
+            if (_importStatus == "success") // Only close if still showing success
+            {
+                CloseImportModal();
+            }
+        }
+        catch (Exception ex)
+        {
+            _importStatus = "error";
+            _importMessage = $"Import failed: {ex.Message}";
+        }
+        finally
+        {
+            _isImporting = false;
+            StateHasChanged();
+        }
+    }
+
+    private static string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
+    }
+
+    private async Task ExportJson()
+    {
+        var trades = GetFilteredTrades();
+        var json = TradeService.ExportToJson(trades);
+        await DownloadFile("trades.json", json, "application/json");
+        _showExportMenu = false;
+    }
+
+    private async Task ExportCsv()
+    {
+        var trades = GetFilteredTrades();
+        var csv = TradeService.ExportToCsv(trades);
+        await DownloadFile("trades.csv", csv, "text/csv");
+        _showExportMenu = false;
+    }
+
+    private async Task DownloadFile(string filename, string content, string contentType)
+    {
+        await JS.InvokeVoidAsync("downloadFile", filename, content, contentType);
+    }
+
+    public void Dispose()
+    {
+        TradeService.OnTradesChanged -= RefreshData;
+    }
 }
+
+<style>
+    .trade-journal-page {
+        padding: 1rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .journal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .back-link {
+        color: var(--text-muted);
+        text-decoration: none;
+        transition: color 0.15s;
+    }
+
+    .back-link:hover {
+        color: var(--accent);
+    }
+
+    .journal-header h1 {
+        margin: 0;
+        font-size: 1.75rem;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.15s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-primary {
+        background: var(--accent);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        opacity: 0.9;
+    }
+
+    .btn-secondary {
+        background: var(--surface-2);
+        color: var(--text-color);
+    }
+
+    .btn-secondary:hover {
+        background: var(--surface-3);
+    }
+
+    .export-dropdown {
+        position: relative;
+    }
+
+    .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: 0.5rem;
+        background: var(--surface-1);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        min-width: 150px;
+        z-index: 100;
+    }
+
+    .dropdown-menu button {
+        display: block;
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: none;
+        background: none;
+        color: var(--text-color);
+        cursor: pointer;
+        text-align: left;
+        transition: background 0.15s;
+    }
+
+    .dropdown-menu button:hover {
+        background: var(--surface-2);
+    }
+
+    .dropdown-menu button:first-child {
+        border-radius: 6px 6px 0 0;
+    }
+
+    .dropdown-menu button:last-child {
+        border-radius: 0 0 6px 6px;
+    }
+
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 1rem;
+    }
+
+    .modal-content {
+        background: var(--surface-0);
+        border-radius: 8px;
+        max-width: 600px;
+        width: 100%;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        font-size: 1.5rem;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 2rem;
+        cursor: pointer;
+        color: var(--text-muted);
+        line-height: 1;
+        padding: 0;
+        width: 2rem;
+        height: 2rem;
+    }
+
+    .close-btn:hover {
+        color: var(--text-color);
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .modal-body ul {
+        margin: 0.5rem 0;
+        padding-left: 1.5rem;
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding: 1.5rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    /* Import Modal Specific Styles */
+    .import-modal .modal-content {
+        max-width: 650px;
+    }
+
+    .import-message {
+        padding: 1rem;
+        border-radius: 6px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 500;
+    }
+
+    .import-message.success {
+        background: #10b98120;
+        color: #10b981;
+        border: 1px solid #10b981;
+    }
+
+    .import-message.error {
+        background: #ef444420;
+        color: #ef4444;
+        border: 1px solid #ef4444;
+    }
+
+    .file-upload-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .file-upload-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: var(--text-color);
+        font-size: 0.95rem;
+    }
+
+    .file-upload-label i {
+        margin-right: 0.5rem;
+        color: var(--accent);
+    }
+
+    .file-input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px dashed var(--border-color);
+        border-radius: 6px;
+        background: var(--surface-1);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .file-input:hover {
+        border-color: var(--accent);
+        background: var(--surface-2);
+    }
+
+    .file-info {
+        margin-top: 0.75rem;
+        padding: 0.75rem;
+        background: var(--surface-1);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border: 1px solid var(--border-color);
+    }
+
+    .file-info i {
+        color: var(--accent);
+        font-size: 1.25rem;
+    }
+
+    .file-name {
+        font-weight: 600;
+        color: var(--text-color);
+        flex: 1;
+    }
+
+    .file-size {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    .format-info {
+        margin-top: 1.5rem;
+    }
+
+    .format-info h4 {
+        margin: 0 0 1rem 0;
+        font-size: 1rem;
+        color: var(--text-color);
+    }
+
+    .format-cards {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+
+    .format-card {
+        padding: 1rem;
+        background: var(--surface-1);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+    }
+
+    .format-header {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--text-color);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .format-header i {
+        color: var(--accent);
+    }
+
+    .format-card p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        line-height: 1.4;
+    }
+
+    .btn-primary:disabled,
+    .btn-secondary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .fa-spinner {
+        animation: spin 1s linear infinite;
+    }
+
+    @@keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
