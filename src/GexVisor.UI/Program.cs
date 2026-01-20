@@ -10,7 +10,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
 // GEX Visualizer Services
-builder.Services.AddSingleton<GexStateService>();
+builder.Services.AddSingleton<IGexStateService, GexStateService>();
 builder.Services.AddScoped<IGexDataService, GexDataService>();
 builder.Services.AddScoped<ILocalStorageService, LocalStorageService>();
 builder.Services.AddScoped<AnnotationService>();

@@ -300,7 +300,8 @@ All 20 services with their dependencies and coupling analysis.
 ```mermaid
 flowchart TB
     subgraph Singleton["Singleton (App-wide State)"]
-        GSS[GexStateService<br/>⚠️ No interface]
+        GSS[GexStateService]
+        IGSS{{IGexStateService}}
     end
 
     subgraph Core["Core Services"]
@@ -342,6 +343,7 @@ flowchart TB
         LS[(localStorage)]
     end
 
+    GSS -->|implements| IGSS
     GDS -->|implements| IGDS
     LSS -->|implements| ILSS
     GDS --> HTTP
@@ -362,7 +364,7 @@ flowchart TB
     CS --> IGDS
     TS --> ILSS
 
-    GSS -.->|tight coupling| GDS
+    GSS --> GDS
 ```
 
 ### Complete Data Flow

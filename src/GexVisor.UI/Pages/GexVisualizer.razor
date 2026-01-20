@@ -75,7 +75,7 @@
 <AnnotationPanel />
 
 @code {
-    [Inject] private GexStateService StateService { get; set; } = default!;
+    [Inject] private IGexStateService StateService { get; set; } = default!;
 
     private ElementReference _appRef;
     private bool _preventKeyDefault;
