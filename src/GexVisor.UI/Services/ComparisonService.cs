@@ -9,8 +9,10 @@ namespace GexVisor.UI.Services;
 public class ComparisonService
 {
     private readonly IGexDataService _dataService;
+    private readonly SemaphoreSlim _loadLock = new(1, 1);
     private List<string> _selectedSymbols = [];
     private Dictionary<string, AssetComparisonData> _loadedAssets = new();
+    private bool _isLoading;
 
     public event Action? OnSelectionChanged;
 
@@ -19,6 +21,7 @@ public class ComparisonService
 
     public int SelectionCount => _selectedSymbols.Count;
     public bool IsValidSelection => SelectionCount >= 2 && SelectionCount <= 4;
+    public bool IsLoading => _isLoading;
 
     public ComparisonService(IGexDataService dataService)
     {
@@ -28,6 +31,7 @@ public class ComparisonService
     /// <summary>
     /// Load multiple symbols in parallel.
     /// Returns true if at least 2 symbols loaded successfully.
+    /// Prevents concurrent loads to avoid race conditions.
     /// </summary>
     public async Task<bool> LoadSymbolsAsync(List<string> symbols)
     {
@@ -36,46 +40,62 @@ public class ComparisonService
             throw new ArgumentException("Must select between 2 and 4 symbols", nameof(symbols));
         }
 
-        _loadedAssets.Clear();
-
-        // Parallel loading
-        var tasks = symbols.Select(async symbol =>
+        // Prevent concurrent loading - if already loading, wait for current operation
+        await _loadLock.WaitAsync();
+        try
         {
-            try
+            _isLoading = true;
+
+            // Build results in temporary dictionary to avoid race conditions
+            var tempAssets = new Dictionary<string, AssetComparisonData>();
+
+            // Parallel loading
+            var tasks = symbols.Select(async symbol =>
             {
-                var timeline = await _dataService.LoadSymbolAsync(symbol);
-                if (timeline == null)
+                try
                 {
+                    var timeline = await _dataService.LoadSymbolAsync(symbol);
+                    if (timeline == null)
+                    {
+                        return (Symbol: symbol, Data: (AssetComparisonData?)null);
+                    }
+
+                    return (Symbol: symbol, Data: new AssetComparisonData
+                    {
+                        Symbol = symbol,
+                        Timeline = timeline,
+                        RegimeAnalysis = timeline.AnalyzeRegimes(),
+                        LoadedAt = DateTime.UtcNow
+                    });
+                }
+                catch (Exception)
+                {
+                    // Failed to load this symbol
                     return (Symbol: symbol, Data: (AssetComparisonData?)null);
                 }
+            });
 
-                return (Symbol: symbol, Data: new AssetComparisonData
-                {
-                    Symbol = symbol,
-                    Timeline = timeline,
-                    RegimeAnalysis = timeline.AnalyzeRegimes(),
-                    LoadedAt = DateTime.UtcNow
-                });
-            }
-            catch (Exception)
+            var results = await Task.WhenAll(tasks);
+
+            // Only add successfully loaded symbols to temp dictionary
+            foreach (var (symbol, data) in results.Where(r => r.Data != null))
             {
-                // Failed to load this symbol
-                return (Symbol: symbol, Data: (AssetComparisonData?)null);
+                tempAssets[symbol] = data!;
             }
-        });
 
-        var results = await Task.WhenAll(tasks);
+            // Atomic swap - replace entire dictionary at once
+            _loadedAssets = tempAssets;
+            _selectedSymbols = _loadedAssets.Keys.ToList();
 
-        // Only add successfully loaded symbols
-        foreach (var (symbol, data) in results.Where(r => r.Data != null))
-        {
-            _loadedAssets[symbol] = data!;
+            OnSelectionChanged?.Invoke();
+
+            return _loadedAssets.Count >= 2;
         }
-
-        _selectedSymbols = _loadedAssets.Keys.ToList();
-        OnSelectionChanged?.Invoke();
-
-        return _loadedAssets.Count >= 2;
+        finally
+        {
+            _isLoading = false;
+            _loadLock.Release();
+        }
     }
 
     /// <summary>
