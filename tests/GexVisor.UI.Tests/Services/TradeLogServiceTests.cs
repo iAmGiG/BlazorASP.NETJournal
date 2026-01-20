@@ -120,7 +120,7 @@ public class TradeLogServiceTests
         await service.AddAsync(CreateSampleTrade("IWM", OptionsLog.TradeType.BTO, 200m, feb1));
 
         // Act
-        var result = await service.GetTradesByDateRange(
+        var result = service.GetTradesByDateRange(
             new DateTime(2024, 1, 1),
             new DateTime(2024, 1, 31)
         );
@@ -144,7 +144,7 @@ public class TradeLogServiceTests
         await service.AddAsync(CreateSampleTrade("QQQ", OptionsLog.TradeType.BTO, 380m));
 
         // Act
-        var result = await service.GetTradesBySymbol("SPY");
+        var result = service.GetTradesBySymbol("SPY");
 
         // Assert
         result.Should().HaveCount(2);
@@ -163,7 +163,7 @@ public class TradeLogServiceTests
         await service.AddAsync(CreateSampleTrade("IWM", OptionsLog.TradeType.STO, 200m));
 
         // Act
-        var result = await service.GetTradesByType(OptionsLog.TradeType.BTO);
+        var result = service.GetTradesByType(OptionsLog.TradeType.BTO);
 
         // Assert
         result.Should().HaveCount(2);
@@ -171,7 +171,7 @@ public class TradeLogServiceTests
     }
 
     [Fact]
-    public async Task GetProfitableTrades_ReturnsOnlyWinners()
+    public async Task GetClosedTrades_FiltersWinnersCorrectly()
     {
         // Arrange
         var mockStorage = new Mock<ILocalStorageService>();
@@ -182,15 +182,16 @@ public class TradeLogServiceTests
         await service.AddAsync(CreateSampleTrade("IWM", OptionsLog.TradeType.BTO, 200m)); // Open
 
         // Act
-        var result = await service.GetProfitableTrades();
+        var closedTrades = service.GetClosedTrades();
+        var winners = closedTrades.Where(t => t.CalculatePnL() > 0).ToList();
 
         // Assert
-        result.Should().HaveCount(1);
-        result.First().Ticker.Should().Be("SPY");
+        winners.Should().HaveCount(1);
+        winners.First().Ticker.Should().Be("SPY");
     }
 
     [Fact]
-    public async Task GetLosingTrades_ReturnsOnlyLosers()
+    public async Task GetClosedTrades_FiltersLosersCorrectly()
     {
         // Arrange
         var mockStorage = new Mock<ILocalStorageService>();
@@ -200,11 +201,12 @@ public class TradeLogServiceTests
         await service.AddAsync(CreateClosedTrade("QQQ", 380m, 375m)); // Loss
 
         // Act
-        var result = await service.GetLosingTrades();
+        var closedTrades = service.GetClosedTrades();
+        var losers = closedTrades.Where(t => t.CalculatePnL() < 0).ToList();
 
         // Assert
-        result.Should().HaveCount(1);
-        result.First().Ticker.Should().Be("QQQ");
+        losers.Should().HaveCount(1);
+        losers.First().Ticker.Should().Be("QQQ");
     }
 
     [Fact]

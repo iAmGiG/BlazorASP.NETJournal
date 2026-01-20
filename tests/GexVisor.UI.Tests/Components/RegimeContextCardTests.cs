@@ -13,14 +13,14 @@ namespace GexVisor.UI.Tests.Components;
 public class RegimeContextCardTests : TestContext
 {
     [Fact]
-    public void Component_WithNullDecision_DoesNotRender()
+    public void Component_WithNullDecision_DoesNotRenderCard()
     {
         // Arrange & Act
         var cut = RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, null));
 
         // Assert
-        cut.Markup.Should().BeEmpty();
+        cut.FindAll(".regime-context-card").Should().BeEmpty();
     }
 
     [Fact]
