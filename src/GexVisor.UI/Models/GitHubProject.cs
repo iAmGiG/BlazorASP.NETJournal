@@ -54,4 +54,6 @@ public class GitHubProjectSettings
 {
     public List<GitHubProject>? Projects { get; set; }
     public string? SelectedProjectId { get; set; }
+    public string? EndCursor { get; set; }
+    public bool HasMoreProjects { get; set; }
 }

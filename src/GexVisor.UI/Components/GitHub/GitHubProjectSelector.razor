@@ -66,6 +66,25 @@
                     </div>
                 </div>
             }
+            @if (ProjectService.HasMoreProjects)
+            {
+                <div class="load-more-container">
+                    @if (_isLoadingMore)
+                    {
+                        <div class="loading-more">
+                            <span class="spinner"></span>
+                            <span>Loading more projects...</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <button class="btn-load-more" @onclick="LoadMoreProjects">
+                            <i class="fas fa-chevron-down"></i>
+                            Load More Projects
+                        </button>
+                    }
+                </div>
+            }
         </div>
     }
     else
@@ -81,6 +100,7 @@
 
 @code {
     private bool _isLoading;
+    private bool _isLoadingMore;
 
     protected override async Task OnInitializedAsync()
     {
@@ -153,6 +173,24 @@
     private async Task ChangeProject()
     {
         await ProjectService.ClearSelectionAsync();
+    }
+
+    private async Task LoadMoreProjects()
+    {
+        _isLoadingMore = true;
+        StateHasChanged();
+
+        try
+        {
+            await ProjectService.FetchMoreProjectsAsync();
+        }
+        catch
+        {
+            // Ignore fetch errors
+        }
+
+        _isLoadingMore = false;
+        StateHasChanged();
     }
 
     public void Dispose()

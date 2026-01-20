@@ -20,9 +20,12 @@ public class GitHubProjectService
 
     private List<GitHubProject> _projects = new();
     private GitHubProject? _selectedProject;
+    private string? _endCursor;
+    private bool _hasMoreProjects;
 
     public IReadOnlyList<GitHubProject> Projects => _projects;
     public GitHubProject? SelectedProject => _selectedProject;
+    public bool HasMoreProjects => _hasMoreProjects;
 
     public GitHubProjectService(HttpClient http, GitHubAuthService auth, LocalStorageService storage)
     {
@@ -41,23 +44,29 @@ public class GitHubProjectService
         {
             _projects = stored.Projects ?? new();
             _selectedProject = _projects.FirstOrDefault(p => p.Id == stored.SelectedProjectId);
+            _endCursor = stored.EndCursor;
+            _hasMoreProjects = stored.HasMoreProjects;
             OnProjectsChanged?.Invoke();
         }
     }
 
     /// <summary>
-    /// Fetch all projects the user has access to.
+    /// Fetch projects the user has access to. Pass afterCursor to fetch subsequent pages.
     /// </summary>
-    public async Task<List<GitHubProject>> FetchProjectsAsync()
+    public async Task<List<GitHubProject>> FetchProjectsAsync(string? afterCursor = null)
     {
         if (!_auth.IsAuthenticated)
             return new();
 
         var query = $$"""
-            query {
+            query($cursor: String) {
                 viewer {
                     login
-                    projectsV2(first: {{AppConstants.GitHub.MaxProjectsPerQuery}}) {
+                    projectsV2(first: {{AppConstants.GitHub.MaxProjectsPerQuery}}, after: $cursor) {
+                        pageInfo {
+                            endCursor
+                            hasNextPage
+                        }
                         nodes {
                             id
                             title
@@ -89,10 +98,18 @@ public class GitHubProjectService
             }
             """;
 
-        var response = await ExecuteGraphQLAsync<ViewerProjectsResponse>(query);
-        if (response?.Data?.Viewer?.ProjectsV2?.Nodes != null)
+        var variables = afterCursor != null ? new { cursor = afterCursor } : null;
+        var response = await ExecuteGraphQLAsync<ViewerProjectsResponse>(query, variables);
+
+        if (response?.Data?.Viewer?.ProjectsV2 != null)
         {
-            _projects = response.Data.Viewer.ProjectsV2.Nodes
+            var connection = response.Data.Viewer.ProjectsV2;
+
+            // Update pagination state
+            _endCursor = connection.PageInfo?.EndCursor;
+            _hasMoreProjects = connection.PageInfo?.HasNextPage ?? false;
+
+            var newProjects = connection.Nodes?
                 .Where(p => p != null && !p.Closed)
                 .Select(p => new GitHubProject
                 {
@@ -115,13 +132,37 @@ public class GitHubProjectService
                         })
                         .FirstOrDefault()
                 })
-                .ToList();
+                .ToList() ?? new();
+
+            // Fresh fetch replaces list, pagination appends
+            if (afterCursor == null)
+            {
+                _projects = newProjects;
+            }
+            else
+            {
+                // Dedupe by ID when appending
+                var existingIds = _projects.Select(p => p.Id).ToHashSet();
+                _projects.AddRange(newProjects.Where(p => !existingIds.Contains(p.Id)));
+            }
 
             await SaveAsync();
             OnProjectsChanged?.Invoke();
+            return newProjects;
         }
 
-        return _projects;
+        return new();
+    }
+
+    /// <summary>
+    /// Fetch the next page of projects using cursor-based pagination.
+    /// </summary>
+    public async Task<List<GitHubProject>> FetchMoreProjectsAsync()
+    {
+        if (!_auth.IsAuthenticated || !_hasMoreProjects || _endCursor == null)
+            return new();
+
+        return await FetchProjectsAsync(_endCursor);
     }
 
     /// <summary>
@@ -250,7 +291,9 @@ public class GitHubProjectService
         var settings = new GitHubProjectSettings
         {
             Projects = _projects,
-            SelectedProjectId = _selectedProject?.Id
+            SelectedProjectId = _selectedProject?.Id,
+            EndCursor = _endCursor,
+            HasMoreProjects = _hasMoreProjects
         };
         await _storage.SetAsync(StorageKeys.GitHubProjects, settings);
     }
@@ -282,6 +325,18 @@ internal class ProjectsV2Connection
 {
     [JsonPropertyName("nodes")]
     public List<ProjectV2Node>? Nodes { get; set; }
+
+    [JsonPropertyName("pageInfo")]
+    public PageInfo? PageInfo { get; set; }
+}
+
+internal class PageInfo
+{
+    [JsonPropertyName("endCursor")]
+    public string? EndCursor { get; set; }
+
+    [JsonPropertyName("hasNextPage")]
+    public bool HasNextPage { get; set; }
 }
 
 internal class ProjectV2Node

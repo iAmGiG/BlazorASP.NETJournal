@@ -295,7 +295,7 @@ The following diagrams provide comprehensive documentation of the system archite
 
 ### Service Dependency Graph (Complete)
 
-All 20 services with their dependencies and coupling analysis.
+All 22 services with their dependencies and coupling analysis.
 
 ```mermaid
 flowchart TB
