@@ -91,41 +91,39 @@
                     </div>
                 </section>
 
-                @* System Decision (placeholder for #108 integration) *@
+                @* System Decision Visualization *@
                 @if (Decision != null)
                 {
-                    <section class="detail-section decision-section">
-                        <h3>System Decision</h3>
-                        <div class="decision-content">
-                            @if (Decision.ActivePatterns.Any())
-                            {
-                                <div class="detail-item">
-                                    <span class="detail-label">Active Patterns</span>
-                                    <div class="pattern-badges">
-                                        @foreach (var pattern in Decision.ActivePatterns)
-                                        {
-                                            <span class="pattern-badge @(pattern == Decision.PrimaryTrigger ? "primary" : "")">
-                                                @pattern
-                                            </span>
-                                        }
-                                    </div>
+                    <section class="detail-section decision-visualization">
+                        <h3>
+                            <i class="fas fa-robot"></i> Autotrader Decision Analysis
+                        </h3>
+
+                        @* Active Patterns Display *@
+                        @if (Decision.ActivePatterns.Any())
+                        {
+                            <div class="patterns-display">
+                                <span class="section-label">Detected Patterns</span>
+                                <div class="pattern-badges">
+                                    @foreach (var pattern in Decision.ActivePatterns)
+                                    {
+                                        var strength = Decision.SignalStrengths.GetValueOrDefault(pattern, 0);
+                                        <PatternBadge
+                                            PatternName="@pattern"
+                                            IsPrimary="@(pattern == Decision.PrimaryTrigger)"
+                                            SignalStrength="@strength"
+                                            ShowStrength="@(strength > 0)"
+                                            Size="medium" />
+                                    }
                                 </div>
-                            }
-                            @if (!string.IsNullOrEmpty(Decision.RegimeType))
-                            {
-                                <div class="detail-item">
-                                    <span class="detail-label">Regime</span>
-                                    <span class="detail-value">@Decision.RegimeType</span>
-                                </div>
-                            }
-                            @if (!string.IsNullOrEmpty(Decision.DecisionRationale))
-                            {
-                                <div class="detail-item full-width">
-                                    <span class="detail-label">Rationale</span>
-                                    <p class="rationale-text">@Decision.DecisionRationale</p>
-                                </div>
-                            }
-                        </div>
+                            </div>
+                        }
+
+                        @* Regime Context Card *@
+                        <RegimeContextCard Decision="@Decision" />
+
+                        @* Decision Timeline *@
+                        <DecisionTimeline Decision="@Decision" />
                     </section>
                 }
 
@@ -345,16 +343,38 @@
         color: #ef4444;
     }
 
-    .decision-section {
-        background: var(--surface-1);
-        padding: 1rem;
-        border-radius: 6px;
+    .decision-visualization {
+        background: linear-gradient(135deg, var(--surface-0) 0%, var(--surface-1) 100%);
+        padding: 1.5rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
     }
 
-    .decision-content {
+    .decision-visualization h3 {
         display: flex;
-        flex-direction: column;
-        gap: 1rem;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0 0 1.5rem 0;
+        font-size: 1.15rem;
+        color: var(--text-color);
+    }
+
+    .decision-visualization h3 i {
+        color: var(--accent);
+    }
+
+    .patterns-display {
+        margin-bottom: 1.5rem;
+    }
+
+    .section-label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
 
     .pattern-badges {
@@ -363,20 +383,8 @@
         gap: 0.5rem;
     }
 
-    .pattern-badge {
-        padding: 0.25rem 0.75rem;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        background: var(--surface-2);
-        color: var(--text-color);
-        border: 1px solid var(--border-color);
-    }
-
-    .pattern-badge.primary {
-        background: #3b82f620;
-        color: #3b82f6;
-        border-color: #3b82f6;
-        font-weight: 600;
+    .decision-visualization > *:not(:last-child) {
+        margin-bottom: 1.25rem;
     }
 
     .rationale-text,
