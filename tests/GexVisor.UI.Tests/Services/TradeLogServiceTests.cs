@@ -70,14 +70,14 @@ public class TradeLogServiceTests
     }
 
     [Fact]
-    public void GetById_ReturnsCorrectTrade()
+    public async Task GetById_ReturnsCorrectTrade()
     {
         // Arrange
         var mockStorage = new Mock<ILocalStorageService>();
         var service = new TradeLogService(mockStorage.Object);
         var trade = CreateSampleTrade("SPY", OptionsLog.TradeType.BTO, 450m);
-        service.LoadAsync().Wait();
-        service.AddAsync(trade).Wait();
+        await service.LoadAsync();
+        await service.AddAsync(trade);
 
         // Act
         var result = service.GetById(trade.Id);
@@ -89,12 +89,12 @@ public class TradeLogServiceTests
     }
 
     [Fact]
-    public void GetById_WithNonexistentId_ReturnsNull()
+    public async Task GetById_WithNonexistentId_ReturnsNull()
     {
         // Arrange
         var mockStorage = new Mock<ILocalStorageService>();
         var service = new TradeLogService(mockStorage.Object);
-        service.LoadAsync().Wait();
+        await service.LoadAsync();
 
         // Act
         var result = service.GetById(Guid.NewGuid());
@@ -210,18 +210,18 @@ public class TradeLogServiceTests
     }
 
     [Fact]
-    public void Search_FindsMatchingTrades()
+    public async Task Search_FindsMatchingTrades()
     {
         // Arrange
         var mockStorage = new Mock<ILocalStorageService>();
         var service = new TradeLogService(mockStorage.Object);
-        service.LoadAsync().Wait();
+        await service.LoadAsync();
         var trade1 = CreateSampleTrade("SPY", OptionsLog.TradeType.BTO, 450m);
         trade1.Notes = "Bullish breakout pattern";
         var trade2 = CreateSampleTrade("QQQ", OptionsLog.TradeType.BTO, 380m);
         trade2.Notes = "Following downtrend";
-        service.AddAsync(trade1).Wait();
-        service.AddAsync(trade2).Wait();
+        await service.AddAsync(trade1);
+        await service.AddAsync(trade2);
 
         // Act
         var result = service.Search("bullish");
@@ -232,15 +232,15 @@ public class TradeLogServiceTests
     }
 
     [Fact]
-    public void Search_IsCaseInsensitive()
+    public async Task Search_IsCaseInsensitive()
     {
         // Arrange
         var mockStorage = new Mock<ILocalStorageService>();
         var service = new TradeLogService(mockStorage.Object);
-        service.LoadAsync().Wait();
+        await service.LoadAsync();
         var trade = CreateSampleTrade("SPY", OptionsLog.TradeType.BTO, 450m);
         trade.Notes = "IMPORTANT TRADE";
-        service.AddAsync(trade).Wait();
+        await service.AddAsync(trade);
 
         // Act
         var result = service.Search("important");
@@ -250,15 +250,15 @@ public class TradeLogServiceTests
     }
 
     [Fact]
-    public void GetAllSymbols_ReturnsUniqueSymbols()
+    public async Task GetAllSymbols_ReturnsUniqueSymbols()
     {
         // Arrange
         var mockStorage = new Mock<ILocalStorageService>();
         var service = new TradeLogService(mockStorage.Object);
-        service.LoadAsync().Wait();
-        service.AddAsync(CreateSampleTrade("SPY", OptionsLog.TradeType.BTO, 450m)).Wait();
-        service.AddAsync(CreateSampleTrade("SPY", OptionsLog.TradeType.STC, 455m)).Wait();
-        service.AddAsync(CreateSampleTrade("QQQ", OptionsLog.TradeType.BTO, 380m)).Wait();
+        await service.LoadAsync();
+        await service.AddAsync(CreateSampleTrade("SPY", OptionsLog.TradeType.BTO, 450m));
+        await service.AddAsync(CreateSampleTrade("SPY", OptionsLog.TradeType.STC, 455m));
+        await service.AddAsync(CreateSampleTrade("QQQ", OptionsLog.TradeType.BTO, 380m));
 
         // Act
         var result = service.GetAllSymbols();
@@ -270,12 +270,12 @@ public class TradeLogServiceTests
     }
 
     [Fact]
-    public void CalculateSummary_WithNoTrades_ReturnsZeros()
+    public async Task CalculateSummary_WithNoTrades_ReturnsZeros()
     {
         // Arrange
         var mockStorage = new Mock<ILocalStorageService>();
         var service = new TradeLogService(mockStorage.Object);
-        service.LoadAsync().Wait();
+        await service.LoadAsync();
 
         // Act
         var summary = service.CalculateSummary();
@@ -289,16 +289,16 @@ public class TradeLogServiceTests
     }
 
     [Fact]
-    public void CalculateSummary_WithMixedTrades_CalculatesCorrectly()
+    public async Task CalculateSummary_WithMixedTrades_CalculatesCorrectly()
     {
         // Arrange
         var mockStorage = new Mock<ILocalStorageService>();
         var service = new TradeLogService(mockStorage.Object);
-        service.LoadAsync().Wait();
-        service.AddAsync(CreateClosedTrade("SPY", 450m, 460m)).Wait(); // +$1000
-        service.AddAsync(CreateClosedTrade("QQQ", 380m, 375m)).Wait(); // -$500
-        service.AddAsync(CreateClosedTrade("IWM", 200m, 210m)).Wait(); // +$1000
-        service.AddAsync(CreateSampleTrade("TSLA", OptionsLog.TradeType.BTO, 250m)).Wait(); // Open
+        await service.LoadAsync();
+        await service.AddAsync(CreateClosedTrade("SPY", 450m, 460m)); // +$1000
+        await service.AddAsync(CreateClosedTrade("QQQ", 380m, 375m)); // -$500
+        await service.AddAsync(CreateClosedTrade("IWM", 200m, 210m)); // +$1000
+        await service.AddAsync(CreateSampleTrade("TSLA", OptionsLog.TradeType.BTO, 250m)); // Open
 
         // Act
         var summary = service.CalculateSummary();
@@ -315,14 +315,14 @@ public class TradeLogServiceTests
     }
 
     [Fact]
-    public void CalculateSummary_WithOnlyWinners_Has100PercentWinRate()
+    public async Task CalculateSummary_WithOnlyWinners_Has100PercentWinRate()
     {
         // Arrange
         var mockStorage = new Mock<ILocalStorageService>();
         var service = new TradeLogService(mockStorage.Object);
-        service.LoadAsync().Wait();
-        service.AddAsync(CreateClosedTrade("SPY", 450m, 460m)).Wait();
-        service.AddAsync(CreateClosedTrade("QQQ", 380m, 390m)).Wait();
+        await service.LoadAsync();
+        await service.AddAsync(CreateClosedTrade("SPY", 450m, 460m));
+        await service.AddAsync(CreateClosedTrade("QQQ", 380m, 390m));
 
         // Act
         var summary = service.CalculateSummary();
@@ -334,14 +334,14 @@ public class TradeLogServiceTests
     }
 
     [Fact]
-    public void ExportToJson_ProducesValidJson()
+    public async Task ExportToJson_ProducesValidJson()
     {
         // Arrange
         var mockStorage = new Mock<ILocalStorageService>();
         var service = new TradeLogService(mockStorage.Object);
-        service.LoadAsync().Wait();
+        await service.LoadAsync();
         var trade = CreateSampleTrade("SPY", OptionsLog.TradeType.BTO, 450m);
-        service.AddAsync(trade).Wait();
+        await service.AddAsync(trade);
 
         // Act
         var json = service.ExportToJson();
@@ -354,14 +354,14 @@ public class TradeLogServiceTests
     }
 
     [Fact]
-    public void ExportToCsv_ProducesValidCsv()
+    public async Task ExportToCsv_ProducesValidCsv()
     {
         // Arrange
         var mockStorage = new Mock<ILocalStorageService>();
         var service = new TradeLogService(mockStorage.Object);
-        service.LoadAsync().Wait();
+        await service.LoadAsync();
         var trade = CreateSampleTrade("SPY", OptionsLog.TradeType.BTO, 450m);
-        service.AddAsync(trade).Wait();
+        await service.AddAsync(trade);
 
         // Act
         var csv = service.ExportToCsv();
@@ -375,15 +375,15 @@ public class TradeLogServiceTests
     }
 
     [Fact]
-    public void ExportToCsv_EscapesCommasInNotes()
+    public async Task ExportToCsv_EscapesCommasInNotes()
     {
         // Arrange
         var mockStorage = new Mock<ILocalStorageService>();
         var service = new TradeLogService(mockStorage.Object);
-        service.LoadAsync().Wait();
+        await service.LoadAsync();
         var trade = CreateSampleTrade("SPY", OptionsLog.TradeType.BTO, 450m);
         trade.Notes = "This has a comma, and should be quoted";
-        service.AddAsync(trade).Wait();
+        await service.AddAsync(trade);
 
         // Act
         var csv = service.ExportToCsv();

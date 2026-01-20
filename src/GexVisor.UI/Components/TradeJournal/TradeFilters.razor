@@ -1,4 +1,5 @@
 @using GexVisor.Core
+@implements IDisposable
 
 @* Filter and search controls for trade list *@
 
@@ -109,14 +110,7 @@
             if (_searchQuery != value)
             {
                 _searchQuery = value;
-                _searchDebounceTimer?.Dispose();
-                _searchDebounceTimer = new System.Timers.Timer(300);
-                _searchDebounceTimer.Elapsed += (s, e) =>
-                {
-                    _searchDebounceTimer?.Dispose();
-                    InvokeAsync(() => OnFiltersChanged.InvokeAsync(GetCurrentState()));
-                };
-                _searchDebounceTimer.Start();
+                _ = DebounceSearchAsync();
             }
         }
     }
@@ -125,7 +119,27 @@
     private string SelectedType { get; set; } = string.Empty;
     private string SelectedStatus { get; set; } = string.Empty;
 
-    private System.Timers.Timer? _searchDebounceTimer;
+    private CancellationTokenSource? _debounceCts;
+
+    private async Task DebounceSearchAsync()
+    {
+        _debounceCts?.Cancel();
+        _debounceCts = new CancellationTokenSource();
+        var token = _debounceCts.Token;
+
+        try
+        {
+            await Task.Delay(300, token);
+            if (!token.IsCancellationRequested)
+            {
+                await OnFiltersChanged.InvokeAsync(GetCurrentState());
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            // Expected when user types again before delay completes
+        }
+    }
 
     private bool HasActiveFilters =>
         !string.IsNullOrEmpty(SearchQuery) ||
@@ -165,7 +179,8 @@
 
     public void Dispose()
     {
-        _searchDebounceTimer?.Dispose();
+        _debounceCts?.Cancel();
+        _debounceCts?.Dispose();
     }
 }
 
