@@ -68,20 +68,23 @@ public class GexStateService : IGexStateService
             CreateDemoPoint("2024-03-28", 523m, 9.0m, -0.20m, "Q1 Breakout"),
             CreateDemoPoint("2024-07-16", 565m, 9.5m, -0.25m, "Summer ATH"),
             CreateDemoPoint("2024-11-11", 600m, 10.0m, -0.30m, "Election Rally"),
-            // 2025 - Current
-            CreateDemoPoint("2025-12-20", 605m, 11.0m, -0.32m, "Current (Today)")
+            // Current - uses today's date to avoid staleness
+            CreateDemoPoint(DateOnly.FromDateTime(DateTime.Today), 605m, 11.0m, -0.32m, "Current (Today)")
         ];
         _timeline = [.. _demoTimeline];
     }
 
     private static GexDataPoint CreateDemoPoint(string date, decimal price, decimal oi, decimal tilt, string label)
+        => CreateDemoPoint(DateOnly.Parse(date, CultureInfo.InvariantCulture), price, oi, tilt, label);
+
+    private static GexDataPoint CreateDemoPoint(DateOnly date, decimal price, decimal oi, decimal tilt, string label)
     {
         var regime = tilt < -0.25m ? "NEGATIVE_GAMMA" : "POSITIVE_GAMMA";
         var zeroGamma = price * (1 + tilt * 0.1m);
 
         return new GexDataPoint
         {
-            Date = DateOnly.Parse(date, CultureInfo.InvariantCulture),
+            Date = date,
             Price = price,
             Gex = oi * (1 + tilt),
             CallGex = oi * 0.6m,
