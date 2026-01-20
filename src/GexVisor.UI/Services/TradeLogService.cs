@@ -249,7 +249,8 @@ public class TradeLogService
         var tradesToExport = trades ?? _trades;
         return JsonSerializer.Serialize(tradesToExport, new JsonSerializerOptions
         {
-            WriteIndented = true
+            WriteIndented = true,
+            Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
         });
     }
 
@@ -265,7 +266,7 @@ public class TradeLogService
         var csv = new StringBuilder();
 
         // Header
-        csv.AppendLine("Date,Symbol,Type,Entry,Exit,Quantity,Multiplier,Strike,Expiration,P&L,Notes,Analysis");
+        csv.AppendLine("Date,Ticker,Type,Entry,Exit,Quantity,Multiplier,Strike,Expiration,P&L,Notes,Analysis");
 
         // Rows
         foreach (var trade in tradesToExport.OrderBy(t => t.CreatedDate))

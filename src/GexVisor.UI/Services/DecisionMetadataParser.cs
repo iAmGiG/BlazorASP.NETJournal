@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using GexVisor.Core;
 using GexVisor.UI.Models;
 
@@ -20,7 +21,12 @@ public class DecisionMetadataParser
 
         try
         {
-            var logEntries = JsonSerializer.Deserialize<List<AutotraderLogEntry>>(jsonContent);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            var logEntries = JsonSerializer.Deserialize<List<AutotraderLogEntry>>(jsonContent, options);
             if (logEntries == null)
                 return (trades, decisions);
 
@@ -54,13 +60,17 @@ public class DecisionMetadataParser
         if (lines.Length < 2) // Must have header + at least one row
             return (trades, decisions);
 
-        var header = lines[0].Split(',');
+        var header = ParseCsvLine(lines[0]);
         var columnMap = MapCsvColumns(header);
 
         for (int i = 1; i < lines.Length; i++)
         {
             var values = ParseCsvLine(lines[i]);
             if (values.Length < header.Length)
+                continue;
+
+            // Skip rows with invalid required numeric fields
+            if (!IsValidCsvRow(values, columnMap))
                 continue;
 
             var trade = MapCsvToOptionsLog(values, columnMap);
@@ -144,8 +154,56 @@ public class DecisionMetadataParser
 
     private string[] ParseCsvLine(string line)
     {
-        // Simple CSV parser (doesn't handle quoted commas)
-        return line.Split(',').Select(v => v.Trim()).ToArray();
+        var values = new List<string>();
+        var currentValue = new System.Text.StringBuilder();
+        bool inQuotes = false;
+
+        for (int i = 0; i < line.Length; i++)
+        {
+            char c = line[i];
+
+            if (c == '"')
+            {
+                if (inQuotes && i + 1 < line.Length && line[i + 1] == '"')
+                {
+                    // Escaped quote - add single quote and skip next character
+                    currentValue.Append('"');
+                    i++;
+                }
+                else
+                {
+                    // Toggle quote mode
+                    inQuotes = !inQuotes;
+                }
+            }
+            else if (c == ',' && !inQuotes)
+            {
+                // End of field
+                values.Add(currentValue.ToString().Trim());
+                currentValue.Clear();
+            }
+            else
+            {
+                currentValue.Append(c);
+            }
+        }
+
+        // Add the last field
+        values.Add(currentValue.ToString().Trim());
+
+        return values.ToArray();
+    }
+
+    private bool IsValidCsvRow(string[] values, Dictionary<string, int> columns)
+    {
+        // Check if required numeric field EntryPrice is valid
+        var entryPriceStr = GetValue(values, columns, "EntryPrice") ?? GetValue(values, columns, "Entry");
+        if (!string.IsNullOrWhiteSpace(entryPriceStr) && !decimal.TryParse(entryPriceStr, out _))
+        {
+            return false; // Invalid EntryPrice, skip row
+        }
+
+        return true;
     }
 
     private OptionsLog MapCsvToOptionsLog(string[] values, Dictionary<string, int> columns)
@@ -153,15 +211,15 @@ public class DecisionMetadataParser
         return new OptionsLog
         {
             Id = Guid.NewGuid(),
-            CreatedDate = GetDateValue(values, columns, "Date"),
+            CreatedDate = GetDateValue(values, columns, "Timestamp") ?? GetDateValue(values, columns, "Date") ?? DateTime.UtcNow,
             Ticker = GetValue(values, columns, "Symbol"),
-            OptionTradeType = ParseTradeType(GetValue(values, columns, "Type")),
-            EntryPrice = GetDecimalValue(values, columns, "Entry") ?? 0,
-            ExitPrice = GetDecimalValue(values, columns, "Exit"),
+            OptionTradeType = ParseTradeType(GetValue(values, columns, "Action") ?? GetValue(values, columns, "Type")),
+            EntryPrice = GetDecimalValue(values, columns, "EntryPrice") ?? GetDecimalValue(values, columns, "Entry") ?? 0,
+            ExitPrice = GetDecimalValue(values, columns, "ExitPrice") ?? GetDecimalValue(values, columns, "Exit"),
             Quantity = GetDecimalValue(values, columns, "Quantity") ?? 1,
-            ContractMultiplier = GetDecimalValue(values, columns, "Multiplier") ?? 100m,
-            StrikePrice = GetDecimalValue(values, columns, "Strike") ?? 0,
-            ExpirationDate = GetDateValue(values, columns, "Expiration"),
+            ContractMultiplier = GetDecimalValue(values, columns, "ContractMultiplier") ?? GetDecimalValue(values, columns, "Multiplier") ?? 100m,
+            StrikePrice = GetDecimalValue(values, columns, "StrikePrice") ?? GetDecimalValue(values, columns, "Strike") ?? 0,
+            ExpirationDate = GetDateValue(values, columns, "Expiration") ?? GetDateValue(values, columns, "ExpirationDate"),
             Notes = GetValue(values, columns, "Notes"),
             Analysis = GetValue(values, columns, "Analysis")
         };
@@ -179,14 +237,14 @@ public class DecisionMetadataParser
             Id = Guid.NewGuid(),
             TradeId = tradeId,
             ActivePatterns = activePatterns,
-            PrimaryTrigger = GetValue(values, columns, "Trigger"),
-            ConfidenceScore = GetDecimalValue(values, columns, "Confidence") ?? 0,
-            RegimeType = GetValue(values, columns, "Regime"),
-            GexLevel = GetDecimalValue(values, columns, "GEX"),
-            IvLevel = GetDecimalValue(values, columns, "IV"),
-            SpotPrice = GetDecimalValue(values, columns, "Spot"),
-            DecisionRationale = GetValue(values, columns, "Rationale"),
-            DecisionTime = GetDateValue(values, columns, "Date") ?? DateTime.UtcNow,
+            PrimaryTrigger = GetValue(values, columns, "Trigger") ?? GetValue(values, columns, "PrimaryTrigger"),
+            ConfidenceScore = GetDecimalValue(values, columns, "Confidence") ?? GetDecimalValue(values, columns, "ConfidenceScore") ?? 0,
+            RegimeType = GetValue(values, columns, "Regime") ?? GetValue(values, columns, "RegimeType"),
+            GexLevel = GetDecimalValue(values, columns, "GEX") ?? GetDecimalValue(values, columns, "GexLevel"),
+            IvLevel = GetDecimalValue(values, columns, "IV") ?? GetDecimalValue(values, columns, "IvLevel"),
+            SpotPrice = GetDecimalValue(values, columns, "Spot") ?? GetDecimalValue(values, columns, "SpotPrice"),
+            DecisionRationale = GetValue(values, columns, "Rationale") ?? GetValue(values, columns, "DecisionRationale"),
+            DecisionTime = GetDateValue(values, columns, "Timestamp") ?? GetDateValue(values, columns, "Date") ?? DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
     }
@@ -232,7 +290,10 @@ public class AutotraderLogEntry
     public decimal? ExitPrice { get; set; }
     public decimal Quantity { get; set; }
     public decimal? ContractMultiplier { get; set; }
+
+    [JsonPropertyName("strikePrice")]
     public decimal Strike { get; set; }
+
     public DateTime? Expiration { get; set; }
     public string? Notes { get; set; }
     public string? Analysis { get; set; }
@@ -247,7 +308,10 @@ public class AutotraderLogEntry
     public decimal? IvLevel { get; set; }
     public bool? IsNegativeGamma { get; set; }
     public decimal? SpotPrice { get; set; }
+
+    [JsonPropertyName("rationale")]
     public string? Rationale { get; set; }
+
     public string? RiskAssessment { get; set; }
     public string? ProfitTarget { get; set; }
     public string? AdditionalContext { get; set; }
