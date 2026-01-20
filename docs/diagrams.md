@@ -289,6 +289,385 @@ flowchart TD
 
 ---
 
+## Architecture Deep Dive
+
+The following diagrams provide comprehensive documentation of the system architecture.
+
+### Service Dependency Graph (Complete)
+
+All 20 services with their dependencies and coupling analysis.
+
+```mermaid
+flowchart TB
+    subgraph Singleton["Singleton (App-wide State)"]
+        GSS[GexStateService<br/>⚠️ No interface]
+    end
+
+    subgraph Core["Core Services"]
+        GDS[GexDataService]
+        LSS[LocalStorageService]
+        IGDS{{IGexDataService}}
+        ILSS{{ILocalStorageService}}
+    end
+
+    subgraph Journal["Journal Services (Template Pattern)"]
+        BES[BaseEntryService&lt;T&gt;<br/>Abstract]
+        NS[NotebookService]
+        PTS[PaperTradeService]
+        BS[BacktestService]
+        AS[AnnotationService]
+        RTS[ResearchTaskService]
+    end
+
+    subgraph GitHub["GitHub Integration"]
+        GAS[GitHubAuthService]
+        GPS[GitHubProjectService]
+        BSS[BoardStateService<br/>5-min cache]
+        SM[StatusMapper]
+    end
+
+    subgraph CrossAsset["Cross-Asset Analysis"]
+        CS[ComparisonService]
+        CAS[ComparisonAnalysisService<br/>Stateless]
+    end
+
+    subgraph Utilities["Utilities"]
+        TS[TagService]
+        SS[SqliteService]
+    end
+
+    subgraph External["External Dependencies"]
+        HTTP[HttpClient]
+        JS[IJSRuntime]
+        LS[(localStorage)]
+    end
+
+    GDS -->|implements| IGDS
+    LSS -->|implements| ILSS
+    GDS --> HTTP
+    LSS --> JS
+    JS --> LS
+
+    NS & PTS & BS & AS & RTS --> BES
+    BES --> ILSS
+
+    GAS --> HTTP
+    GAS --> LSS
+    GPS --> HTTP
+    GPS --> GAS
+    BSS --> GPS
+    BSS --> LSS
+    SM --> ILSS
+
+    CS --> IGDS
+    TS --> ILSS
+
+    GSS -.->|tight coupling| GDS
+```
+
+### Complete Data Flow
+
+End-to-end data journey from sources to UI components.
+
+```mermaid
+flowchart LR
+    subgraph Sources["Data Sources"]
+        JSON[(wwwroot/data/*.json)]
+        GH[(GitHub GraphQL API)]
+        STORE[(Browser localStorage)]
+    end
+
+    subgraph Loading["Loading Layer"]
+        GDS[GexDataService]
+        GPS[GitHubProjectService]
+        LSS[LocalStorageService]
+    end
+
+    subgraph Transform["Transformation"]
+        TL[TransformTimeline<br/>String→DateOnly]
+        SM[StatusMapper<br/>Normalize status]
+    end
+
+    subgraph State["State Management"]
+        GSS[GexStateService<br/>OnStateChanged]
+        BSS[BoardStateService<br/>TTL cache]
+        BES[BaseEntryService<br/>OnEntriesChanged]
+    end
+
+    subgraph Analysis["Analysis Layer"]
+        RA[RegimeAnalysis<br/>Segments + Transitions]
+        CAS[ComparisonAnalysis<br/>Correlations]
+    end
+
+    subgraph UI["UI Components"]
+        GV[GexVisualizer]
+        CD[ComparisonDashboard]
+        KB[KanbanBoard]
+        JN[Journal Pages]
+    end
+
+    JSON --> GDS --> TL --> GSS --> GV
+    GSS --> RA --> GV
+    GSS --> CAS --> CD
+    GH --> GPS --> SM --> BSS --> KB
+    STORE --> LSS --> BES --> JN
+```
+
+### Event-Driven State Patterns
+
+How components react to state changes.
+
+```mermaid
+sequenceDiagram
+    participant UI as GexVisualizer
+    participant GSS as GexStateService
+    participant Timer as System.Timer
+    participant Chart as GexChart
+
+    Note over GSS: Pattern 1: Reactive Updates
+    UI->>GSS: SetCurrentIndex(5)
+    GSS->>GSS: Update _state
+    GSS->>GSS: NotifyStateChanged()
+    GSS-->>UI: OnStateChanged
+    GSS-->>Chart: OnStateChanged
+    Chart->>Chart: CalculateBars()
+    Chart->>Chart: Re-render SVG
+
+    Note over GSS,Timer: Pattern 2: Simulation Playback
+    UI->>GSS: ToggleSimulation()
+    GSS->>Timer: Start(interval)
+
+    loop Every Tick (500-2000ms)
+        Timer->>GSS: OnElapsed
+        GSS->>GSS: SetCurrentIndex(++i)
+        GSS-->>Chart: OnStateChanged
+        Chart->>Chart: CalculateBars() ⚠️ Recalc
+    end
+
+    UI->>GSS: ToggleSimulation()
+    GSS->>Timer: Stop()
+```
+
+### Component Hierarchy with Service Dependencies
+
+Which services each component depends on.
+
+```mermaid
+graph TB
+    subgraph GexVisualizerPage["GexVisualizer Page"]
+        GV[GexVisualizer.razor]
+        GH[GexHeader]
+        GS[GexSidebar]
+        GC1[GexChart<br/>Normalized]
+        GC2[GexChart<br/>Absolute]
+        RT[RegimeTimeline]
+        AP[AnnotationPanel]
+        KSO[KeyboardShortcutsOverlay]
+    end
+
+    subgraph ComparisonPage["ComparisonDashboard Page"]
+        CD[ComparisonDashboard.razor]
+        CM[CorrelationMatrix]
+        RDL[RegimeDivergenceList]
+        RTM[RegimeTimeline<br/>Compact]
+    end
+
+    subgraph TaskBoardPage["TaskBoard Page"]
+        TB[TaskBoard.razor]
+        UKB[UnifiedKanbanBoard]
+        GAP[GitHubAuthPanel]
+        GPS_UI[GitHubProjectSelector]
+    end
+
+    subgraph JournalPages["Journal Pages"]
+        RN[ResearchNotebook.razor]
+        PT[PaperTrading.razor]
+        BR[BacktestResults.razor]
+    end
+
+    GV --> GH & GS & GC1 & GC2 & RT & AP & KSO
+    CD --> CM & RDL & RTM
+    TB --> UKB & GAP & GPS_UI
+
+    GSS{{GexStateService}} -.-> GV & GC1 & GC2 & RT & GH & GS
+    COMP{{ComparisonService}} -.-> CD & CM
+    AUTH{{GitHubAuthService}} -.-> TB & GAP
+    BOARD{{BoardStateService}} -.-> UKB
+```
+
+### Entity Relationship Diagram
+
+Domain model relationships.
+
+```mermaid
+erDiagram
+    GexTimeline ||--o{ GexDataPoint : contains
+    GexTimeline ||--|| DateRange : has
+
+    GexDataPoint {
+        DateOnly Date PK
+        decimal Price
+        decimal Gex
+        decimal CallGex
+        decimal PutGex
+        decimal ZeroGamma
+        decimal MaxGamma
+        string Regime
+        int Contracts
+        decimal Quality
+    }
+
+    DateRange {
+        DateOnly Start
+        DateOnly End
+    }
+
+    IEntry ||--o{ BaseEntry : implements
+    BaseEntry ||--o{ ContextualEntry : extends
+    ContextualEntry ||--o{ NotebookEntry : extends
+    ContextualEntry ||--o{ PaperTrade : extends
+    ContextualEntry ||--o{ PatternAnnotation : extends
+    BaseEntry ||--o{ BacktestResult : extends
+    BaseEntry ||--o{ ResearchTask : extends
+
+    BaseEntry {
+        Guid Id PK
+        DateTime CreatedAt
+        DateTime UpdatedAt
+        List Tags
+    }
+
+    ContextualEntry {
+        string LinkedDate
+        decimal PriceAtCreation
+        decimal GexAtCreation
+        bool IsNegativeGammaAtCreation
+    }
+
+    CrossAssetSummary ||--o{ AssetComparisonData : contains
+    CrossAssetSummary ||--o{ CorrelationMetrics : contains
+    CrossAssetSummary ||--o{ RegimeDivergenceEvent : contains
+    CrossAssetSummary ||--|| DateRangeOverlap : has
+
+    RegimeAnalysisSummary ||--o{ RegimeSegment : contains
+    RegimeAnalysisSummary ||--o{ RegimeTransition : contains
+
+    CorrelationMetrics {
+        string Symbol1
+        string Symbol2
+        double PriceCorrelation
+        double GexCorrelation
+        double RegimeAlignment
+        double RegimeFlipCorrelation
+    }
+```
+
+### Caching Strategy (BoardStateService)
+
+TTL-based caching with concurrency guard.
+
+```mermaid
+flowchart TB
+    subgraph Request["Request Flow"]
+        REQ[GetItemsAsync called]
+        CHECK{Cache exists?<br/>TTL < 5min?}
+        HIT[Return cached items]
+        GUARD{_isLoading?}
+        WAIT[Return stale cache]
+        FETCH[Fetch from GitHub]
+    end
+
+    subgraph Update["Cache Update"]
+        SET[Update _itemsCache]
+        TS[Set _cacheTimestamp]
+        NOTIFY[Fire OnBoardStateChanged]
+    end
+
+    REQ --> CHECK
+    CHECK -->|Yes - Fresh| HIT
+    CHECK -->|No - Stale/Missing| GUARD
+    GUARD -->|Yes - In flight| WAIT
+    GUARD -->|No| FETCH
+    FETCH --> SET
+    SET --> TS
+    TS --> NOTIFY
+    NOTIFY --> HIT
+```
+
+### Journal Entry Lifecycle
+
+BaseEntryService template pattern.
+
+```mermaid
+sequenceDiagram
+    participant UI as Component
+    participant Svc as BaseEntryService&lt;T&gt;
+    participant LS as LocalStorageService
+    participant JS as Browser
+
+    Note over Svc: Template Method Pattern
+
+    UI->>Svc: LoadAsync()
+    Svc->>LS: GetAsync&lt;List&lt;T&gt;&gt;(key)
+    LS->>JS: localStorage.getItem
+    JS-->>LS: JSON string
+    LS-->>Svc: List&lt;T&gt; or default
+    Svc->>Svc: Entries = result
+    Svc-->>UI: OnEntriesChanged
+
+    UI->>Svc: AddAsync(entry)
+    Svc->>Svc: Entries.Insert(0, entry)
+    Svc->>Svc: SaveAsync()
+    Svc->>LS: SetAsync(key, Entries)
+    LS->>JS: localStorage.setItem
+    Note over JS: ⚠️ Silent failure possible
+    Svc-->>UI: OnEntriesChanged
+```
+
+### Cross-Asset Comparison Flow
+
+Multi-symbol loading and analysis.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant CD as ComparisonDashboard
+    participant CS as ComparisonService
+    participant GDS as GexDataService
+    participant CAS as ComparisonAnalysisService
+
+    User->>CD: Select SPY, QQQ, NVDA
+    User->>CD: Click "Compare"
+    CD->>CS: LoadSymbolsAsync([SPY, QQQ, NVDA])
+
+    Note over CS: ⚠️ Race condition risk
+    CS->>CS: _loadedAssets.Clear()
+
+    par Parallel Loading
+        CS->>GDS: LoadSymbolAsync("SPY")
+        CS->>GDS: LoadSymbolAsync("QQQ")
+        CS->>GDS: LoadSymbolAsync("NVDA")
+    end
+
+    GDS-->>CS: GexTimeline x3
+    CS->>CS: Build AssetComparisonData[]
+    CS-->>CD: OnSelectionChanged
+
+    CD->>CAS: GenerateSummary(assets)
+    Note over CAS: Pure stateless calculation
+
+    loop For each pair
+        CAS->>CAS: CalculateCorrelation()
+    end
+    CAS->>CAS: FindDivergenceEvents()
+    CAS-->>CD: CrossAssetSummary
+
+    CD->>CD: Render CorrelationMatrix
+    CD->>CD: Render RegimeDivergenceList
+```
+
+---
+
 ## Rendering Notes
 
 These diagrams render automatically in:
