@@ -38,50 +38,53 @@ public class GexStateService : IGexStateService
 
     /// <summary>
     /// Initialize the demo timeline with historical SPY data points.
+    /// Dates are generated dynamically relative to today to prevent staleness.
     /// </summary>
     private void InitializeDemoTimeline()
     {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+
         _demoTimeline =
         [
-            // 2020 - COVID Era
-            CreateDemoPoint("2020-03-23", 222m, 3.5m, -0.42m, "COVID Bottom"),
-            CreateDemoPoint("2020-06-08", 323m, 4.0m, -0.15m, "V-Shape Recovery"),
-            CreateDemoPoint("2020-09-02", 357m, 4.3m, -0.22m, "Tech Bubble Peak"),
-            CreateDemoPoint("2020-12-31", 373m, 4.5m, -0.12m, "Year End Rally"),
-            // 2021 - Bull Run
-            CreateDemoPoint("2021-02-12", 392m, 5.0m, -0.08m, "Meme Stock Era"),
-            CreateDemoPoint("2021-05-07", 422m, 5.3m, -0.14m, "Inflation Fears Begin"),
-            CreateDemoPoint("2021-09-02", 453m, 5.8m, -0.18m, "0DTE Growth Starts"),
-            CreateDemoPoint("2021-12-31", 476m, 6.0m, -0.15m, "ATH Year End"),
-            // 2022 - Bear Market
-            CreateDemoPoint("2022-01-24", 436m, 6.2m, -0.32m, "Fed Pivot Fears"),
-            CreateDemoPoint("2022-06-16", 366m, 6.5m, -0.45m, "Bear Market Low"),
-            CreateDemoPoint("2022-08-16", 429m, 6.8m, -0.25m, "Bear Rally"),
-            CreateDemoPoint("2022-10-12", 358m, 7.0m, -0.38m, "Retest Lows"),
-            CreateDemoPoint("2022-12-30", 384m, 7.2m, -0.28m, "Choppy Year End"),
-            // 2023 - Recovery
-            CreateDemoPoint("2023-02-02", 418m, 7.5m, -0.20m, "AI Rally Begins"),
-            CreateDemoPoint("2023-07-31", 457m, 8.0m, -0.22m, "Summer Melt-Up"),
-            CreateDemoPoint("2023-10-27", 411m, 8.2m, -0.35m, "Rate Spike Selloff"),
-            CreateDemoPoint("2023-12-28", 479m, 8.5m, -0.18m, "Santa Rally"),
-            // 2024 - New Highs
-            CreateDemoPoint("2024-03-28", 523m, 9.0m, -0.20m, "Q1 Breakout"),
-            CreateDemoPoint("2024-07-16", 565m, 9.5m, -0.25m, "Summer ATH"),
-            CreateDemoPoint("2024-11-11", 600m, 10.0m, -0.30m, "Election Rally"),
-            // 2025 - Current
-            CreateDemoPoint("2025-12-20", 605m, 11.0m, -0.32m, "Current (Today)")
+            // ~5 years ago - COVID Era
+            CreateDemoPoint(today.AddYears(-5).AddMonths(-9), 222m, 3.5m, -0.42m, "COVID Bottom"),
+            CreateDemoPoint(today.AddYears(-5).AddMonths(-6), 323m, 4.0m, -0.15m, "V-Shape Recovery"),
+            CreateDemoPoint(today.AddYears(-5).AddMonths(-3), 357m, 4.3m, -0.22m, "Tech Bubble Peak"),
+            CreateDemoPoint(today.AddYears(-5), 373m, 4.5m, -0.12m, "Year End Rally"),
+            // ~4 years ago - Bull Run
+            CreateDemoPoint(today.AddYears(-4).AddMonths(-10), 392m, 5.0m, -0.08m, "Meme Stock Era"),
+            CreateDemoPoint(today.AddYears(-4).AddMonths(-7), 422m, 5.3m, -0.14m, "Inflation Fears Begin"),
+            CreateDemoPoint(today.AddYears(-4).AddMonths(-3), 453m, 5.8m, -0.18m, "0DTE Growth Starts"),
+            CreateDemoPoint(today.AddYears(-4), 476m, 6.0m, -0.15m, "ATH Year End"),
+            // ~3 years ago - Bear Market
+            CreateDemoPoint(today.AddYears(-3).AddMonths(-11), 436m, 6.2m, -0.32m, "Fed Pivot Fears"),
+            CreateDemoPoint(today.AddYears(-3).AddMonths(-6), 366m, 6.5m, -0.45m, "Bear Market Low"),
+            CreateDemoPoint(today.AddYears(-3).AddMonths(-4), 429m, 6.8m, -0.25m, "Bear Rally"),
+            CreateDemoPoint(today.AddYears(-3).AddMonths(-2), 358m, 7.0m, -0.38m, "Retest Lows"),
+            CreateDemoPoint(today.AddYears(-3), 384m, 7.2m, -0.28m, "Choppy Year End"),
+            // ~2 years ago - Recovery
+            CreateDemoPoint(today.AddYears(-2).AddMonths(-10), 418m, 7.5m, -0.20m, "AI Rally Begins"),
+            CreateDemoPoint(today.AddYears(-2).AddMonths(-5), 457m, 8.0m, -0.22m, "Summer Melt-Up"),
+            CreateDemoPoint(today.AddYears(-2).AddMonths(-2), 411m, 8.2m, -0.35m, "Rate Spike Selloff"),
+            CreateDemoPoint(today.AddYears(-2), 479m, 8.5m, -0.18m, "Santa Rally"),
+            // ~1 year ago - New Highs
+            CreateDemoPoint(today.AddYears(-1).AddMonths(-9), 523m, 9.0m, -0.20m, "Q1 Breakout"),
+            CreateDemoPoint(today.AddYears(-1).AddMonths(-5), 565m, 9.5m, -0.25m, "Summer ATH"),
+            CreateDemoPoint(today.AddYears(-1).AddMonths(-2), 600m, 10.0m, -0.30m, "Election Rally"),
+            // Current
+            CreateDemoPoint(today, 605m, 11.0m, -0.32m, "Current (Today)")
         ];
         _timeline = [.. _demoTimeline];
     }
 
-    private static GexDataPoint CreateDemoPoint(string date, decimal price, decimal oi, decimal tilt, string label)
+    private static GexDataPoint CreateDemoPoint(DateOnly date, decimal price, decimal oi, decimal tilt, string label)
     {
         var regime = tilt < -0.25m ? "NEGATIVE_GAMMA" : "POSITIVE_GAMMA";
         var zeroGamma = price * (1 + tilt * 0.1m);
 
         return new GexDataPoint
         {
-            Date = DateOnly.Parse(date, CultureInfo.InvariantCulture),
+            Date = date,
             Price = price,
             Gex = oi * (1 + tilt),
             CallGex = oi * 0.6m,
