@@ -115,24 +115,32 @@
     stroke-dasharray: 2, 1;
 }
 
-.zero-marker {
-    fill: var(--accent-purple);
-    font-size: 3px;
-    font-weight: bold;
+/* Responsive marker overlays (HTML for clamp() support) */
+.marker-overlay {
+    position: absolute;
     font-family: 'JetBrains Mono', monospace;
+    font-weight: bold;
+    font-size: clamp(0.5rem, 1.5vw, 0.75rem);
+    pointer-events: none;
+    z-index: 10;
+    text-shadow: 0 0 3px var(--bg-dark);
+    transform: translateY(-50%);
+}
+
+.zero-gamma-marker {
+    right: 4%;
+    color: var(--accent-purple);
+}
+
+.price-marker-overlay {
+    left: 2%;
+    color: var(--accent-yellow);
 }
 
 /* Price line */
 .price-line {
     stroke: var(--accent-yellow);
     stroke-width: 0.4;
-}
-
-.price-marker {
-    fill: var(--accent-yellow);
-    font-size: 2.5px;
-    font-weight: bold;
-    font-family: 'JetBrains Mono', monospace;
 }
 
 /* Mode-specific styling */

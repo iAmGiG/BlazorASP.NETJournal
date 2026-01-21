@@ -31,8 +31,16 @@ public class TradeLogService
     /// </summary>
     public async Task LoadAsync()
     {
-        var stored = await _storage.GetAsync<List<OptionsLog>>(_storageKey);
-        _trades = stored ?? [];
+        try
+        {
+            var stored = await _storage.GetAsync<List<OptionsLog>>(_storageKey);
+            _trades = stored ?? [];
+        }
+        catch (JsonException)
+        {
+            // Corrupted data - reset to empty list
+            _trades = [];
+        }
         OnTradesChanged?.Invoke();
     }
 
@@ -41,7 +49,15 @@ public class TradeLogService
     /// </summary>
     private async Task SaveAsync()
     {
-        await _storage.SetAsync(_storageKey, _trades);
+        try
+        {
+            await _storage.SetAsync(_storageKey, _trades);
+        }
+        catch (Exception) when (!System.Diagnostics.Debugger.IsAttached)
+        {
+            // Storage failure - silently fail in production
+            // In debug mode, let it throw for visibility
+        }
         OnTradesChanged?.Invoke();
     }
 
@@ -164,15 +180,20 @@ public class TradeLogService
     /// </summary>
     public IEnumerable<OptionsLog> FilterByPnLRange(decimal? minPnL, decimal? maxPnL)
     {
-        var closedTrades = GetClosedTrades();
+        // Materialize to list to avoid multiple enumeration of source
+        var closedTrades = GetClosedTrades().ToList();
 
-        if (minPnL.HasValue)
-            closedTrades = closedTrades.Where(t => t.CalculatePnL() >= minPnL.Value);
+        if (!minPnL.HasValue && !maxPnL.HasValue)
+            return closedTrades;
 
-        if (maxPnL.HasValue)
-            closedTrades = closedTrades.Where(t => t.CalculatePnL() <= maxPnL.Value);
-
-        return closedTrades;
+        return closedTrades.Where(t =>
+        {
+            var pnl = t.CalculatePnL();
+            if (!pnl.HasValue) return false;
+            if (minPnL.HasValue && pnl.Value < minPnL.Value) return false;
+            if (maxPnL.HasValue && pnl.Value > maxPnL.Value) return false;
+            return true;
+        });
     }
 
     /// <summary>

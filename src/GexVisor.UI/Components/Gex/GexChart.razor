@@ -41,12 +41,13 @@
 
             <!-- Zero gamma line -->
             <line x1="0" y1="@ZeroGammaY" x2="100" y2="@ZeroGammaY" class="zero-gamma-line" />
-            <text x="92" y="@(ZeroGammaY - 1)" class="zero-marker">0γ</text>
 
             <!-- Price line -->
             <line x1="0" y1="@PriceY" x2="100" y2="@PriceY" class="price-line" />
-            <text x="2" y="@(PriceY - 1)" class="price-marker">SPOT</text>
         </svg>
+        <!-- Responsive marker overlays (HTML for clamp() support) -->
+        <div class="marker-overlay zero-gamma-marker" style="top: @(ZeroGammaY)%;">0γ</div>
+        <div class="marker-overlay price-marker-overlay" style="top: @(PriceY)%;">SPOT</div>
         <div class="x-axis @(_isDragging ? "dragging" : "")"
              @onwheel="OnXAxisWheel" @onwheel:preventDefault
              @ondblclick="OnXAxisDoubleClick"
