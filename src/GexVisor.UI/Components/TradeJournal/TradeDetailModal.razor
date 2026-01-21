@@ -1,5 +1,6 @@
 @using GexVisor.Core
 @using GexVisor.UI.Models
+@inject IJSRuntime JS
 
 @* Modal for viewing detailed trade information *@
 
@@ -183,7 +184,15 @@
     {
         if (Trade != null)
         {
-            await OnDeleteTrade.InvokeAsync(Trade.Id);
+            var confirmed = await JS.InvokeAsync<bool>(
+                "confirm",
+                "Are you sure you want to delete this trade? This action cannot be undone."
+            );
+
+            if (confirmed)
+            {
+                await OnDeleteTrade.InvokeAsync(Trade.Id);
+            }
         }
     }
 
