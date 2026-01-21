@@ -22,16 +22,17 @@ This document analyzes the current trading simulation features (PaperTrading and
 - **Service**: `BacktestService.cs`
 - **Model**: `BacktestResult.cs`
 
-### TradeLogging (`/tradelogging`) - To Be Built
+### TradeLogging (`/tradelogging`) - ✅ Implemented
+- **Status**: ✅ **Implemented** (Trade Journal feature)
 - **Purpose**: Real autotrader trade journal
 - **Use Case**: Visualize actual trades and system decisions
-- **File**: `Pages/TradeLogging.razor` (currently stub)
-- **Service**: To be created
-- **Model**: `OptionsLog.cs` (already exists in Core)
+- **File**: `Pages/TradeLogging.razor`
+- **Service**: `TradeLogService.cs`
+- **Model**: `TradeLog.cs`
 
 ## Feature Comparison Matrix
 
-| Feature | PaperTrading | BacktestResults | TradeLogging (Planned) |
+| Feature | PaperTrading | BacktestResults | TradeLogging (Implemented) |
 |---------|-------------|----------------|------------------------|
 | **Core Purpose** | Simulated forward trades | Historical analysis | Real trade history |
 | **Trade States** | Open/Closed | N/A (completed) | Open/Closed |

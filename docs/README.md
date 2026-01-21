@@ -27,7 +27,7 @@ New to GexVisor? Start here:
 |-------|-------------|
 | `/` | Home - module selection |
 | `/gex` | GEX Visualizer - interactive gamma exposure analysis |
-| `/arcade` | Research Arcade - visualization hub |
+| `/arcade` | Research Arcade - gateway to research visualizations |
 | `/research/pipeline` | Data pipeline state diagram |
 | `/research/patterns` | Pattern discovery (KDD process) |
 | `/research/complexity` | Research complexity map |
@@ -39,6 +39,10 @@ New to GexVisor? Start here:
 | `/notebook` | Research notebook |
 | `/tasks` | Task board (local + GitHub) |
 
+**Note:** Research visualizations are accessible via both:
+- `/arcade` - Arcade-style visualization launcher
+- `/research/*` - Direct routes to individual visualizations
+
 ## Research Context
 
 GexVisor supports the [GEX-LLM Patterns](https://github.com/iAmGiG/gex-llm-patterns)
@@ -46,9 +50,10 @@ research project.
 
 | Metric | Value |
 |--------|-------|
-| Detection Rate | 71.5% |
-| Predictive Accuracy | 91.2% |
-| Trading Days Analyzed | 242 |
+| Detection Rate | 71.5% (Phase 1, 2024) |
+| Predictive Accuracy | 91.2% (Phase 1, 2024) |
+| Trading Days Analyzed | 242 (Full year 2024) |
+| Source | arXiv:2512.17923 |
 
 ## Technology Stack
 

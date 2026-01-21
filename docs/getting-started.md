@@ -94,20 +94,60 @@ The project uses [GitVersion](https://gitversion.net/) for semantic versioning. 
 
 ### Data Files
 
-GEX data files are stored in `wwwroot/data/`. The application expects JSON files with the following structure:
+GEX data is stored in `wwwroot/data/` using the following structure:
+
+**Index file** (`wwwroot/data/index.json`):
 
 ```json
 {
-  "entries": [
+  "asset_classes": {
+    "equity": ["SPY", "QQQ"],
+    "etf": ["GLD", "TLT"]
+  },
+  "symbols": [
     {
-      "date": "2024-01-02",
-      "gexValue": 1234567890,
-      "price": 4750.25,
-      "regime": "positive"
+      "symbol": "SPY",
+      "asset_class": "equity",
+      "count": 1010,
+      "date_range": {
+        "start": "2021-12-07",
+        "end": "2025-12-15"
+      }
     }
   ]
 }
 ```
+
+**Symbol data files** (`wwwroot/data/SPY.json`):
+
+```json
+{
+  "symbol": "SPY",
+  "asset_class": "equity",
+  "date_range": {
+    "start": "2021-12-07",
+    "end": "2025-12-15"
+  },
+  "count": 1010,
+  "timeline": [
+    {
+      "date": "2021-12-07",
+      "price": 469.50,
+      "gex_value": 1234567890,
+      "call_gex": 800000000,
+      "put_gex": 434567890,
+      "total_volume": 50000
+    }
+  ]
+}
+```
+
+**C# Models:**
+- `GexIndex` - Index file with asset classes and symbol metadata
+- `SymbolInfo` - Symbol metadata with nested `DateRange`
+- `DateRange` - Start/end dates (DateOnly type)
+- `GexTimeline` - Full symbol dataset
+- `GexDataPoint` - Individual day's GEX data
 
 ### Local Storage
 

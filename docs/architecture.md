@@ -4,15 +4,20 @@ Detailed technical documentation of the GexVisor system architecture.
 
 ## Service Inventory
 
-GexVisor has 22 services organized into 5 functional domains.
+GexVisor has 20 services organized into 5 functional domains.
 
 ### Core Services (3)
 
 | Service | Lifetime | Interface | Responsibility |
 |---------|----------|-----------|----------------|
 | `GexStateService` | Singleton | ✅ `IGexStateService` | Central state container for visualization |
-| `GexDataService` | Scoped | `IGexDataService` | Load GEX data from JSON files |
-| `LocalStorageService` | Scoped | `ILocalStorageService` | Browser localStorage via JS interop |
+| `GexDataService` | Scoped | ✅ `IGexDataService` | Load GEX data from JSON, provide asset class queries |
+| `LocalStorageService` | Scoped | ✅ `ILocalStorageService` | Browser localStorage via JS interop |
+
+**IGexDataService Interface Methods:**
+- `GetAssetClasses()` - List unique asset classes from index
+- `GetSymbolsForClass(string assetClass)` - Get symbols for specific asset class
+- `GetSymbolInfo(string symbol)` - Get metadata for specific symbol
 
 ### Journal Services (7)
 
@@ -44,13 +49,14 @@ All inherit from `BaseEntryService<T>` using the Template Method pattern.
 | `ComparisonService` | Stateful | Symbol selection, parallel loading |
 | `ComparisonAnalysisService` | Stateless | Correlation calculations |
 
-### Utilities (3)
+### Utilities (4)
 
 | Service | Responsibility |
 |---------|----------------|
 | `TagService` | Autocomplete, predefined + custom tags |
 | `SqliteService` | WASM SQLite queries (sql.js) |
 | `DecisionMetadataParser` | Parse autotrader logs (JSON/CSV), extract decision metadata |
+| `TaskPersistenceService` | JSON file persistence for ToDo tasks |
 
 ---
 
@@ -279,11 +285,11 @@ All persistence uses browser localStorage via `LocalStorageService`.
 
 ### Known Hotspots
 
-| Location | Issue | Impact | Mitigation |
-|----------|-------|--------|------------|
-| `GexChart.CalculateBars()` | Runs every state change | CPU during playback | Memoization (#139) |
-| `ComparisonAnalysisService` | O(n²) pairwise correlation | Slow for many assets | Limited to 4 assets |
-| `StatusMapper.MapStatus()` | Called per item render | Hot path | Static compiled regex |
+| Location | Issue | Impact | Mitigation | Status |
+|----------|-------|--------|------------|--------|
+| `GexChart.CalculateBars()` | Runs every state change | CPU during playback | ✅ Memoization | Resolved |
+| `ComparisonAnalysisService` | O(n²) pairwise correlation | Slow for many assets | Limited to 4 assets | Open |
+| `StatusMapper.MapStatus()` | Called per item render | Hot path | Static compiled regex | Open |
 
 ### Caching Strategies
 
@@ -300,12 +306,13 @@ All persistence uses browser localStorage via `LocalStorageService`.
 
 ### Recently Resolved
 
-| Issue | Title | Resolution |
-|-------|-------|------------|
-| ✅ #138 | Demo data staleness | Fixed with dynamic date generation (commit 97251f7) |
-| ✅ #139 | GexChart performance | Added memoization to prevent unnecessary recalculations (commit 317fc25) |
-| ✅ #140 | Trade Journal implementation | Complete feature with import/export, 172 tests passing |
-| ✅ #141 | IGexStateService interface extraction | Interface created, enables component testing |
+| Issue | Title | Resolution | Commit |
+|-------|-------|------------|--------|
+| ✅ #135 | GitHub pagination | Cursor-based pagination implemented | 02a3ebd |
+| ✅ #138 | Demo data staleness | Fixed with dynamic date generation | 97251f7 |
+| ✅ #139 | GexChart performance | Added memoization to prevent unnecessary recalculations | 317fc25 |
+| ✅ #140 | Trade Journal implementation | Complete feature with import/export, 172 tests passing | - |
+| ✅ #141 | IGexStateService interface extraction | Interface created, enables component testing | - |
 
 ### Open Issues
 
@@ -313,7 +320,11 @@ Tracked in GitHub issues:
 
 | Issue | Title | Priority |
 |-------|-------|----------|
-| #135 | Add GitHub pagination | Low |
+| #144 | Restore radar visualization (Research Complexity Map) | Medium |
+| #143 | Trade Journal code quality improvements | High |
+| #111 | Simple Chart Viewer (Epic) | Medium |
+| #110 | Self-Tracking Metrics Dashboard (Epic) | Medium |
+| #100 | Research Visualizations migration (Epic) | Low |
 
 ---
 

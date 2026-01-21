@@ -168,6 +168,55 @@ query GetProjectItems($projectId: ID!) {
 }
 ```
 
+## Pagination
+
+GexVisor implements cursor-based pagination for GitHub Projects using GraphQL's `pageInfo` mechanism.
+
+### Implementation
+
+**Query Structure:**
+
+```graphql
+query GetProjectItems($projectId: ID!, $after: String) {
+  node(id: $projectId) {
+    ... on ProjectV2 {
+      items(first: 100, after: $after) {
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+        nodes {
+          # ... item fields
+        }
+      }
+    }
+  }
+}
+```
+
+**Key Features:**
+- Initial load fetches first 100 items
+- `pageInfo.endCursor` stored in `BoardStateService`
+- "Load More Projects" button calls `FetchMoreProjectsAsync(cursor)`
+- Deduplicates items by ID when appending
+- Pagination state persists to localStorage
+
+**UI Component:**
+`src/GexVisor.UI/Components/GitHubProjectSelector.razor` (lines 85-95)
+- Shows "Load More" button when `pageInfo.hasNextPage == true`
+- Loading state prevents duplicate requests
+- Automatically scrolls to newly loaded items
+
+**Service Methods:**
+- `BoardStateService.FetchProjectItemsAsync()` - Initial load
+- `BoardStateService.FetchMoreProjectsAsync(cursor)` - Paginated fetch
+
+### Testing
+
+Test with projects containing >100 items to verify pagination flow.
+
+---
+
 ### Rate Limits
 
 - **Primary Rate Limit**: 5,000 points per hour

@@ -38,8 +38,8 @@
             @if (_showExportMenu)
             {
                 <div class="export-menu" role="menu" aria-label="Export options">
-                    <button @onclick="ExportPractitioner" role="menuitem">Practitioner View</button>
-                    <button @onclick="ExportPaper2" role="menuitem">Paper 2 View</button>
+                    <button @onclick="ExportNormalized" role="menuitem">Normalized GEX</button>
+                    <button @onclick="ExportAbsolute" role="menuitem">Absolute GEX</button>
                     <button @onclick="ExportBoth" role="menuitem">Export Both</button>
                 </div>
             }
@@ -121,18 +121,18 @@
         return $"gex-{symbol}-{date}-{suffix}.png";
     }
 
-    private async Task ExportPractitioner()
+    private async Task ExportNormalized()
     {
         _showExportMenu = false;
         await JS.InvokeVoidAsync("GexInterop.exportChartAsPng",
-            ".chart-panel:first-child", GetFilename("practitioner"));
+            ".chart-panel:first-child", GetFilename("normalized"));
     }
 
-    private async Task ExportPaper2()
+    private async Task ExportAbsolute()
     {
         _showExportMenu = false;
         await JS.InvokeVoidAsync("GexInterop.exportChartAsPng",
-            ".chart-panel:last-child", GetFilename("paper2"));
+            ".chart-panel:last-child", GetFilename("absolute"));
     }
 
     private async Task ExportBoth()
