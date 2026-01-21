@@ -23,7 +23,7 @@ public class BoardStateService
     public bool IsLoading => _isLoading;
     public string? LastError => _lastError;
 
-    public BoardStateService(GitHubProjectService projectService, LocalStorageService storage)
+    public BoardStateService(GitHubProjectService projectService, ILocalStorageService storage)
     {
         _projectService = projectService;
         _storage = storage;

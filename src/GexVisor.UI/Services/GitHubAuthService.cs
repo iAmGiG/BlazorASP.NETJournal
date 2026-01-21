@@ -27,7 +27,7 @@ public class GitHubAuthService
     public bool IsAuthenticated => _state.IsAuthenticated && !_state.IsExpired;
     public string? Username => _state.Username;
 
-    public GitHubAuthService(HttpClient http, LocalStorageService storage)
+    public GitHubAuthService(HttpClient http, ILocalStorageService storage)
     {
         _http = http;
         _storage = storage;

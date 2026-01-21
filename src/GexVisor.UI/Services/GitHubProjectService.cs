@@ -27,7 +27,7 @@ public class GitHubProjectService
     public GitHubProject? SelectedProject => _selectedProject;
     public bool HasMoreProjects => _hasMoreProjects;
 
-    public GitHubProjectService(HttpClient http, GitHubAuthService auth, LocalStorageService storage)
+    public GitHubProjectService(HttpClient http, GitHubAuthService auth, ILocalStorageService storage)
     {
         _http = http;
         _auth = auth;
