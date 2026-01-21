@@ -284,7 +284,7 @@ public class TradeLogService
             var notes = EscapeCsv(trade.Notes ?? "");
             var analysis = EscapeCsv(trade.Analysis ?? "");
 
-            csv.AppendLine($"{date},{symbol},{type},{entry},{exit},{quantity},{multiplier},{strike},{expiration},{pnl},{notes},{analysis}");
+            csv.AppendLine(CultureInfo.InvariantCulture, $"{date},{symbol},{type},{entry},{exit},{quantity},{multiplier},{strike},{expiration},{pnl},{notes},{analysis}");
         }
 
         return csv.ToString();
