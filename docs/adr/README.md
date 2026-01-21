@@ -39,6 +39,11 @@ What other options were evaluated? Why were they rejected?
 | ADR | Title | Status | Date |
 |-----|-------|--------|------|
 | [0001](0001-sqlite-wasm-selection.md) | SQLite WASM Library Selection | Accepted | 2026-01-17 |
+| [0002](0002-blazor-wasm-choice.md) | Blazor WebAssembly Architecture Choice | Accepted | 2021-12 |
+| [0003](0003-localstorage-persistence.md) | LocalStorage vs. IndexedDB for Persistence | Accepted | 2021-12 |
+| [0004](0004-service-layer-patterns.md) | Service Layer Design Patterns | Accepted | 2022-06 |
+| [0005](0005-testing-strategy.md) | Testing Strategy (xUnit, Moq, bUnit) | Accepted | 2022-06 |
+| [0006](0006-state-management.md) | State Management (Event-Driven vs. Redux) | Accepted | 2022-06 |
 
 ## Creating a New ADR
 
