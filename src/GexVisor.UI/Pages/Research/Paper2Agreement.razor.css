@@ -1,4 +1,4 @@
-.paper2-page {
+.regime-page {
     display: flex;
     flex-direction: column;
     height: 100vh;
@@ -6,7 +6,7 @@
 }
 
 /* Header */
-.paper2-header {
+.regime-header {
     padding: 15px 25px;
     border-bottom: 1px solid var(--border-color);
     background: var(--bg-panel);
@@ -24,7 +24,7 @@
     gap: 4px;
 }
 
-.paper2-header h1 {
+.regime-header h1 {
     margin: 0;
     font-size: 1.1rem;
     letter-spacing: 1px;

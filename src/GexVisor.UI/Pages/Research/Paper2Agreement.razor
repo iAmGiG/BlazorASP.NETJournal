@@ -1,18 +1,18 @@
-@page "/research/paper2"
+@page "/research/regime-evolution"
 @using GexVisor.UI.Models
 @implements IDisposable
 
-<PageTitle>Paper 2: Structural Agreement - GexVisor</PageTitle>
+<PageTitle>Regime Evolution - GexVisor</PageTitle>
 
-<div class="paper2-page">
-    <header class="paper2-header">
+<div class="regime-page">
+    <header class="regime-header">
         <div class="header-left">
             <a href="/arcade" class="back-link">
                 <i class="fas fa-arrow-left"></i> Research Arcade
             </a>
             <div class="title-group">
-                <h1>RESEARCH VISUALIZER <span class="tag">FORMULA AGREEMENT TEST</span></h1>
-                <span class="subtitle">Paper 2: Gradual Adoption &amp; Structural Truth</span>
+                <h1>REGIME EVOLUTION <span class="tag">30-DAY DETECTION</span></h1>
+                <span class="subtitle">0DTE Regime Emergence (2020-2025)</span>
             </div>
         </div>
     </header>
@@ -21,9 +21,9 @@
     <div class="timeline-container">
         <div class="year-display">@_currentYear</div>
         <div class="timeline-track">
-            @foreach (var year in Paper2Timeline.Years)
+            @foreach (var year in RegimeEvolution.Years)
             {
-                var data = Paper2Timeline.GetYearData(year);
+                var data = RegimeEvolution.GetYearData(year);
                 var isActive = year == _currentYear;
                 var barClass = year switch
                 {
@@ -49,7 +49,7 @@
         <div class="chart-panel">
             <div class="panel-label">
                 <span>Absolute GEX ($S²)</span>
-                <span class="method-tag abs">Paper 2 Method</span>
+                <span class="method-tag abs">Absolute</span>
             </div>
             <div class="viz-box">
                 <div class="bar-container">
@@ -145,7 +145,7 @@
     private void SetYear(int year)
     {
         _currentYear = year;
-        var data = Paper2Timeline.GetYearData(year);
+        var data = RegimeEvolution.GetYearData(year);
         RenderBars(data);
         UpdateDetectors(data);
         StateHasChanged();

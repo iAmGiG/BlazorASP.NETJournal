@@ -135,6 +135,13 @@ window.GexInterop = {
         }
     },
 
+    // Click an element (for triggering file inputs)
+    clickElement: function (element) {
+        if (element) {
+            element.click();
+        }
+    },
+
     // Download file utility
     downloadFile: function (filename, content, mimeType) {
         const blob = new Blob([content], { type: mimeType });

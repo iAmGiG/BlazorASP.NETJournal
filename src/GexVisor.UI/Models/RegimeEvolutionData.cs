@@ -1,7 +1,7 @@
 namespace GexVisor.UI.Models;
 
 /// <summary>
-/// Year-by-year data for Paper 2's "Gradual Adoption" findings.
+/// Year-by-year data for 30-day regime detection findings.
 /// Tracks the evolution from fragmented (2020) to structural regime (2024+).
 /// Note: Data through 2025 is based on historical observations.
 /// 2026 data pending full-year analysis completion.
@@ -15,7 +15,7 @@ public record YearData(
     string Description       // Fragmented/Borderline/Adoption/Turbulence/Regime/Sustained
 );
 
-public static class Paper2Timeline
+public static class RegimeEvolution
 {
     /// <summary>
     /// Historical research data from 2020-2025.
