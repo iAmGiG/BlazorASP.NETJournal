@@ -1,8 +1,25 @@
 using System.Net.Http.Headers;
+using GexVisor.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// API Configuration Service (loads API keys from config/config.json + environment)
+builder.Services.AddSingleton<IApiConfigService, ApiConfigService>();
+
+// Cache Service (SQLite-based, stores market data locally)
+builder.Services.AddSingleton<ICacheService>(sp =>
+{
+    var logger = sp.GetService<ILogger<SqliteCacheService>>();
+    return new SqliteCacheService(".cache/gexvisor.db", logger);
+});
+builder.Services.AddSingleton<MarketDataCacheService>();
+
+// Market Data Service
+builder.Services.AddSingleton<IMarketDataService, MarketDataService>();
+
 // Add services
+builder.Services.AddHttpClient(); // Generic HttpClient for market data APIs
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -194,6 +211,97 @@ github.MapGet("/debug/projects", async (HttpContext ctx, IHttpClientFactory http
     ctx.Response.ContentType = "application/json";
     ctx.Response.StatusCode = (int)response.StatusCode;
     await ctx.Response.WriteAsync(json);
+});
+
+// API Configuration status endpoint
+var config = app.MapGroup("/api/config");
+
+config.MapGet("/status", (IApiConfigService configService) =>
+{
+    var cfg = configService.Configuration;
+    return Results.Ok(new
+    {
+        isConfigured = configService.IsConfigured,
+        providers = new
+        {
+            alphaVantage = cfg.HasAlphaVantage,
+            finnhub = cfg.HasFinnhub,
+            alpaca = cfg.HasAlpaca,
+            polygon = cfg.HasPolygon,
+            fred = cfg.HasFred
+        },
+        errors = configService.ValidationErrors
+    });
+});
+
+// Market Data API endpoints
+var market = app.MapGroup("/api/market");
+
+// Get quote for a single symbol
+market.MapGet("/quote/{symbol}", async (string symbol, IMarketDataService marketService) =>
+{
+    var result = await marketService.GetQuoteAsync(symbol.ToUpperInvariant());
+    return result.Success
+        ? Results.Ok(result.Data)
+        : Results.NotFound(new { error = result.Error });
+});
+
+// Get quotes for multiple symbols (comma-separated)
+market.MapGet("/quotes", async (string symbols, IMarketDataService marketService) =>
+{
+    var symbolList = symbols.ToUpperInvariant().Split(',', StringSplitOptions.RemoveEmptyEntries);
+    var result = await marketService.GetMultipleQuotesAsync(symbolList);
+    return result.Success
+        ? Results.Ok(result.Data)
+        : Results.NotFound(new { error = result.Error });
+});
+
+// Get OHLCV bars for a symbol
+market.MapGet("/bars/{symbol}", async (
+    string symbol,
+    string? timeframe,
+    int? limit,
+    IMarketDataService marketService) =>
+{
+    var tf = timeframe?.ToLowerInvariant() switch
+    {
+        "1m" or "1min" => GexVisor.Core.BarTimeframe.Minute1,
+        "5m" or "5min" => GexVisor.Core.BarTimeframe.Minute5,
+        "15m" or "15min" => GexVisor.Core.BarTimeframe.Minute15,
+        "30m" or "30min" => GexVisor.Core.BarTimeframe.Minute30,
+        "1h" or "1hour" => GexVisor.Core.BarTimeframe.Hour1,
+        "4h" or "4hour" => GexVisor.Core.BarTimeframe.Hour4,
+        "1d" or "day" or null => GexVisor.Core.BarTimeframe.Day,
+        "1w" or "week" => GexVisor.Core.BarTimeframe.Week,
+        "1mo" or "month" => GexVisor.Core.BarTimeframe.Month,
+        _ => GexVisor.Core.BarTimeframe.Day
+    };
+
+    var result = await marketService.GetBarsAsync(symbol.ToUpperInvariant(), tf, limit ?? 100);
+    return result.Success
+        ? Results.Ok(result.Data)
+        : Results.NotFound(new { error = result.Error });
+});
+
+// Cache Management API endpoints
+var cache = app.MapGroup("/api/cache");
+
+cache.MapGet("/stats", async (ICacheService cacheService) =>
+{
+    var stats = await cacheService.GetStatsAsync();
+    return Results.Ok(stats);
+});
+
+cache.MapPost("/cleanup", async (ICacheService cacheService) =>
+{
+    var deleted = await cacheService.CleanupExpiredAsync();
+    return Results.Ok(new { deletedEntries = deleted });
+});
+
+cache.MapPost("/invalidate", async (string pattern, ICacheService cacheService) =>
+{
+    var deleted = await cacheService.InvalidateAsync(pattern);
+    return Results.Ok(new { deletedEntries = deleted, pattern });
 });
 
 // Serve Blazor WASM static files
