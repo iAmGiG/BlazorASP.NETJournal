@@ -133,6 +133,9 @@ public record GexTimeline
 
 public record DateRange
 {
+    [System.Text.Json.Serialization.JsonPropertyName("start")]
     public required DateOnly Start { get; init; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("end")]
     public required DateOnly End { get; init; }
 }

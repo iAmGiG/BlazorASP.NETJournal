@@ -22,4 +22,19 @@ public interface IGexDataService
     /// Load timeline data for a specific symbol.
     /// </summary>
     Task<GexTimeline?> LoadSymbolAsync(string symbol);
+
+    /// <summary>
+    /// Gets a list of unique asset classes from the index.
+    /// </summary>
+    IEnumerable<string> GetAssetClasses();
+
+    /// <summary>
+    /// Gets all symbols for a specific asset class.
+    /// </summary>
+    IEnumerable<string> GetSymbolsForClass(string assetClass);
+
+    /// <summary>
+    /// Gets symbol information for a specific symbol.
+    /// </summary>
+    SymbolInfo? GetSymbolInfo(string symbol);
 }

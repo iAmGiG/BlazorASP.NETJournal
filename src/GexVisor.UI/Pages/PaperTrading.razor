@@ -1,7 +1,9 @@
 @page "/trading"
+@using System.IO
 @using GexVisor.UI.Models
 @using GexVisor.UI.Services
 @using GexVisor.UI.Components.Shared
+@using Microsoft.AspNetCore.Components.Forms
 @inject PaperTradeService TradeService
 @inject TagService TagService
 @inject IJSRuntime JS
@@ -17,6 +19,8 @@
         </div>
         <div class="header-actions">
             <button class="btn-primary" @onclick="ShowAddModal">+ New Trade</button>
+            <InputFile @ref="_fileInput" OnChange="HandleFileUpload" style="display:none" accept=".json,.csv" />
+            <button class="btn-secondary" @onclick="TriggerImport">Import</button>
             <div class="export-dropdown">
                 <button class="btn-secondary" @onclick="() => _showExportMenu = !_showExportMenu">
                     Export ▾
@@ -385,6 +389,7 @@
     private bool _showCloseModal;
     private bool _showExportMenu;
     private string _activeTab = "open";
+    private InputFile? _fileInput;
 
     // New trade form
     private string _direction = "Long";
@@ -501,6 +506,25 @@
         var csv = TradeService.ExportAsCsv();
         await JS.InvokeVoidAsync("GexInterop.downloadFile", "paper-trades.csv", csv, "text/csv");
         _showExportMenu = false;
+    }
+
+    private async Task TriggerImport()
+    {
+        if (_fileInput?.Element != null)
+            await JS.InvokeVoidAsync("HTMLElement.prototype.click.call", _fileInput.Element);
+    }
+
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null) return;
+
+        using var reader = new StreamReader(file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024));
+        var content = await reader.ReadToEndAsync();
+
+        var count = await TradeService.ImportFromJsonAsync(content);
+        if (count > 0)
+            await JS.InvokeVoidAsync("alert", $"Imported {count} trade(s)");
     }
 
     private static string FormatGex(decimal gex)
