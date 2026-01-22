@@ -15,9 +15,11 @@ New to GexVisor? Start here:
 |----------|-------------|
 | [getting-started.md](getting-started.md) | Prerequisites, build, run, and development workflow |
 | [architecture.md](architecture.md) | Service inventory, state patterns, data flow |
+| [live-data.md](live-data.md) | Live GEX data: setup, usage, and troubleshooting |
 | [diagrams.md](diagrams.md) | Mermaid diagrams (renders in GitHub) |
 | [state-diagrams.md](state-diagrams.md) | ASCII state machines (universal) |
 | [github-integration.md](github-integration.md) | GitHub Projects v2 API integration for task board |
+| [paper-trading.md](paper-trading.md) | Paper trading module and import formats |
 | [research-roadmap.md](research-roadmap.md) | Multi-phase research trajectory (Phases 1-5) |
 | [adr/](adr/) | Architecture Decision Records |
 

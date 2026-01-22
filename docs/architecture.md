@@ -70,6 +70,8 @@ All inherit from `BaseEntryService<T>` using the Template Method pattern.
 | `MarketDataCacheService` | Singleton | - | Quote/bar caching with TTL |
 | `OptionsChainCacheService` | Singleton | - | Options chain caching with TTL |
 
+**User Guide:** See [live-data.md](live-data.md) for setup, usage, and troubleshooting.
+
 **Provider Fallback Strategy:**
 
 1. `MarketDataService` tries providers in order: Alpaca → Finnhub → Polygon
