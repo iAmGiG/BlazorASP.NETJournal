@@ -78,6 +78,15 @@
     private const int BarCount = 40;
     private const double Sigma = 12.0;
 
+    // Chart grid and axis configuration
+    private static class ChartConfiguration
+    {
+        public static readonly double[] HorizontalGridLines = { 20.0, 40.0, 60.0, 80.0 };
+        public static readonly double[] VerticalGridLines = { 25.0, 75.0 };
+        public const double MaxGammaValue = 50.0;
+        public const double MidGammaValue = 25.0;
+    }
+
     private List<GammaBar> GammaBars { get; set; } = new();
     private List<GridLine> GridLines { get; set; } = new();
     private DotNetObjectReference<GexChart>? _dotNetRef;
@@ -127,8 +136,8 @@
     {
         var lines = new List<GridLine>();
 
-        // Horizontal lines (price levels) at 20%, 40%, 60%, 80%
-        foreach (var y in new[] { 20.0, 40.0, 60.0, 80.0 })
+        // Horizontal lines (price levels)
+        foreach (var y in ChartConfiguration.HorizontalGridLines)
         {
             lines.Add(new GridLine
             {
@@ -140,9 +149,9 @@
             });
         }
 
-        // Vertical lines (gamma values) at 25%, 75%
+        // Vertical lines (gamma values)
         // (50% is the center line, already rendered separately)
-        foreach (var x in new[] { 25.0, 75.0 })
+        foreach (var x in ChartConfiguration.VerticalGridLines)
         {
             lines.Add(new GridLine
             {
@@ -334,13 +343,16 @@
 
     private IEnumerable<string> CalculateXAxisLabels()
     {
+        var max = ChartConfiguration.MaxGammaValue;
+        var mid = ChartConfiguration.MidGammaValue;
+
         if (IsAbsolute)
         {
             // Absolute mode: show dollar amounts
-            return new[] { "-$50B", "-$25B", "0 (γ)", "+$25B", "+$50B" };
+            return new[] { $"-${max}B", $"-${mid}B", "0 (γ)", $"+${mid}B", $"+${max}B" };
         }
         // Normalized mode: show raw gamma values
-        return new[] { "-50", "-25", "0 (γ)", "+25", "+50" };
+        return new[] { $"-{max}", $"-{mid}", "0 (γ)", $"+{mid}", $"+{max}" };
     }
 
     // --- Interactive Controls (Wheel) ---

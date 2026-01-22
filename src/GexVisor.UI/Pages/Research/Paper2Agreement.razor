@@ -53,7 +53,7 @@
             </div>
             <div class="viz-box">
                 <div class="bar-container">
-                    @for (int i = 0; i < 15; i++)
+                    @for (int i = 0; i < BarCount; i++)
                     {
                         var height = _absBarHeights[i];
                         var color = _absBarColors[i];
@@ -95,7 +95,7 @@
             </div>
             <div class="viz-box">
                 <div class="bar-container">
-                    @for (int i = 0; i < 15; i++)
+                    @for (int i = 0; i < BarCount; i++)
                     {
                         var height = _normBarHeights[i];
                         var color = _normBarColors[i];
@@ -119,16 +119,18 @@
 </div>
 
 @code {
+    private const int BarCount = 15;
+
     private int _currentYear = 2020;
     private Timer? _simTimer;
     private bool _isPlaying;
     private Random _random = new();
 
     // Bar data
-    private double[] _absBarHeights = new double[15];
-    private string[] _absBarColors = new string[15];
-    private double[] _normBarHeights = new double[15];
-    private string[] _normBarColors = new string[15];
+    private double[] _absBarHeights = new double[BarCount];
+    private string[] _absBarColors = new string[BarCount];
+    private double[] _normBarHeights = new double[BarCount];
+    private string[] _normBarColors = new string[BarCount];
 
     // Detector states
     private bool _absActive;
@@ -155,7 +157,7 @@
     {
         double magnitude = data.Magnitude / 23.0; // Normalize to max (2025)
 
-        for (int i = 0; i < 15; i++)
+        for (int i = 0; i < BarCount; i++)
         {
             // Random variation based on persistence
             bool isFlawed = _random.NextDouble() > data.Persistence;
