@@ -147,7 +147,34 @@ public interface IGexStateService : IDisposable
     GexCalculationResult? LiveGexData { get; }
 
     /// <summary>
+    /// Whether live data is currently being fetched.
+    /// </summary>
+    bool IsLoadingLiveData { get; }
+
+    /// <summary>
+    /// Error message from the last failed live data refresh, or null if successful.
+    /// </summary>
+    string? LiveDataError { get; }
+
+    /// <summary>
+    /// Timestamp of the last successful live data refresh.
+    /// </summary>
+    DateTime? LastLiveDataRefresh { get; }
+
+    /// <summary>
     /// Refresh live GEX data from API for the given symbol.
     /// </summary>
     Task RefreshLiveDataAsync(string symbol);
+
+    /// <summary>
+    /// Start periodic polling for live GEX data.
+    /// </summary>
+    /// <param name="symbol">Symbol to poll for.</param>
+    /// <param name="intervalMs">Polling interval in milliseconds (default: 30000).</param>
+    void StartLiveDataPolling(string symbol, int intervalMs = 30000);
+
+    /// <summary>
+    /// Stop periodic polling for live GEX data.
+    /// </summary>
+    void StopLiveDataPolling();
 }

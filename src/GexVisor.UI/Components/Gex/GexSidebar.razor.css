@@ -87,6 +87,68 @@
     text-align: center;
 }
 
+/* Live Data Controls */
+.live-data-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    background: var(--bg-card);
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+.live-toggle {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg-darker);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.live-toggle:hover {
+    background: var(--bg-panel);
+    color: var(--text-primary);
+}
+
+.live-toggle.active {
+    background: rgba(0, 200, 100, 0.15);
+    border-color: #00c864;
+    color: #00c864;
+    box-shadow: 0 0 8px rgba(0, 200, 100, 0.3);
+}
+
+.live-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.7rem;
+}
+
+.loading-indicator {
+    color: var(--accent-yellow);
+    animation: pulse-text 1s infinite;
+}
+
+.last-refresh {
+    color: var(--text-muted);
+}
+
+.live-error {
+    color: var(--accent-red);
+    cursor: help;
+}
+
+@keyframes pulse-text {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
 /* Simulation Controls */
 .sim-controls {
     display: flex;

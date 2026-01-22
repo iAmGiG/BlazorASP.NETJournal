@@ -92,6 +92,22 @@
     color: var(--accent-red);
 }
 
+/* Live data indicator */
+.metric-card.live {
+    border-color: #00c864;
+    box-shadow: 0 0 10px rgba(0, 200, 100, 0.2);
+    animation: live-pulse 2s infinite;
+}
+
+.metric-card.live .metric-label {
+    color: #00c864;
+}
+
+@keyframes live-pulse {
+    0%, 100% { box-shadow: 0 0 10px rgba(0, 200, 100, 0.2); }
+    50% { box-shadow: 0 0 15px rgba(0, 200, 100, 0.35); }
+}
+
 .header-right {
     display: flex;
     align-items: center;

@@ -17,9 +17,9 @@
     </div>
 
     <div class="header-center" role="region" aria-label="Current market metrics">
-        <div class="metric-card" aria-live="polite">
-            <div class="metric-label">@SymbolLabel Price</div>
-            <div class="metric-value price-value">$@Price.ToString("F2")</div>
+        <div class="metric-card @(UseLiveData ? "live" : "")" aria-live="polite">
+            <div class="metric-label">@SymbolLabel Price @(UseLiveData ? "●" : "")</div>
+            <div class="metric-value price-value">$@DisplayPrice.ToString("F2")</div>
         </div>
         <div class="metric-card" aria-live="polite">
             <div class="metric-label">S² Factor</div>
@@ -27,7 +27,7 @@
         </div>
         <div class="metric-card" aria-live="polite">
             <div class="metric-label">Total GEX</div>
-            <div class="metric-value gex-value">@FormatGex(TotalGex)</div>
+            <div class="metric-value gex-value">@FormatGex(DisplayTotalGex)</div>
         </div>
     </div>
 
@@ -88,6 +88,16 @@
     private decimal TotalGex => StateService.State.CurrentDataPoint?.Gex ?? 0;
     private bool HasData => StateService.State.CurrentDataPoint != null;
     private bool IsNegativeGamma => StateService.State.CurrentDataPoint?.IsNegativeGamma ?? false;
+    private bool UseLiveData => StateService.UseLiveData;
+
+    // Display values: use live data when available, fall back to simulation
+    private decimal DisplayPrice => UseLiveData && StateService.LiveGexData != null
+        ? StateService.LiveGexData.SpotPrice
+        : Price;
+
+    private decimal DisplayTotalGex => UseLiveData && StateService.LiveGexData != null
+        ? StateService.LiveGexData.TotalGex
+        : TotalGex;
 
     private string SymbolLabel => StateService.State.CurrentSymbol ?? "SPY";
 

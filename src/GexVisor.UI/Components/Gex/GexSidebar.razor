@@ -40,6 +40,33 @@
                     <div class="data-info">@SymbolInfo.Count data points (@SymbolInfo.Start to @SymbolInfo.End)</div>
                 }
             </div>
+
+            <!-- Live Data Toggle -->
+            @if (!string.IsNullOrEmpty(SelectedSymbol))
+            {
+                <div class="live-data-controls">
+                    <button class="live-toggle @(UseLiveData ? "active" : "")" @onclick="ToggleLiveData" aria-pressed="@UseLiveData">
+                        @(UseLiveData ? "● LIVE" : "○ SIM")
+                    </button>
+                    @if (UseLiveData)
+                    {
+                        <div class="live-status">
+                            @if (IsLoadingLiveData)
+                            {
+                                <span class="loading-indicator">Fetching...</span>
+                            }
+                            else if (LastLiveDataRefresh.HasValue)
+                            {
+                                <span class="last-refresh">Updated @LastLiveDataRefresh.Value.ToString("HH:mm:ss")</span>
+                            }
+                            @if (!string.IsNullOrEmpty(LiveDataError))
+                            {
+                                <span class="live-error" title="@LiveDataError">⚠ Error</span>
+                            }
+                        </div>
+                    }
+                </div>
+            }
         }
     </div>
 
@@ -232,6 +259,10 @@
     private bool IsDemo => StateService.State.Mode == DataMode.Demo;
     private bool IsSimulating => StateService.State.IsSimulating;
     private int PlaybackSpeed => StateService.State.PlaybackSpeed;
+    private bool UseLiveData => StateService.UseLiveData;
+    private bool IsLoadingLiveData => StateService.IsLoadingLiveData;
+    private string? LiveDataError => StateService.LiveDataError;
+    private DateTime? LastLiveDataRefresh => StateService.LastLiveDataRefresh;
     private int CurrentIndex => StateService.State.CurrentIndex;
     private int MaxIndex => Math.Max(0, StateService.Timeline.Count - 1);
     private decimal Price => StateService.State.Price;
@@ -376,6 +407,20 @@
 
         if (prevIndex.Point != null)
             StateService.SetCurrentIndex(prevIndex.Index);
+    }
+
+    private void ToggleLiveData()
+    {
+        StateService.UseLiveData = !StateService.UseLiveData;
+
+        if (StateService.UseLiveData && !string.IsNullOrEmpty(SelectedSymbol))
+        {
+            StateService.StartLiveDataPolling(SelectedSymbol);
+        }
+        else
+        {
+            StateService.StopLiveDataPolling();
+        }
     }
 
     public void Dispose()

@@ -18,8 +18,13 @@ public class GexStateService : IGexStateService
     private List<GexDataPoint> _timeline = [];
     private List<GexDataPoint> _demoTimeline = [];
     private System.Timers.Timer? _simulationTimer;
+    private System.Timers.Timer? _liveDataTimer;
     private GexCalculationResult? _liveGexData;
     private bool _useLiveData;
+    private bool _isLoadingLiveData;
+    private string? _liveDataError;
+    private DateTime? _lastLiveDataRefresh;
+    private string? _liveDataPollingSymbol;
 
     public event Action? OnStateChanged;
     public event Action? OnSettingsChanged;
@@ -28,6 +33,9 @@ public class GexStateService : IGexStateService
     public IReadOnlyList<GexDataPoint> Timeline => _timeline;
     public IReadOnlyList<GexDataPoint> DemoTimeline => _demoTimeline;
     public GexCalculationResult? LiveGexData => _liveGexData;
+    public bool IsLoadingLiveData => _isLoadingLiveData;
+    public string? LiveDataError => _liveDataError;
+    public DateTime? LastLiveDataRefresh => _lastLiveDataRefresh;
 
     public bool UseLiveData
     {
@@ -422,19 +430,74 @@ public class GexStateService : IGexStateService
     /// </summary>
     public async Task RefreshLiveDataAsync(string symbol)
     {
+        _isLoadingLiveData = true;
+        _liveDataError = null;
+        NotifyStateChanged();
+
         try
         {
             var response = await _httpClient.GetAsync($"api/gex/{symbol}");
             if (response.IsSuccessStatusCode)
             {
                 _liveGexData = await response.Content.ReadFromJsonAsync<GexCalculationResult>();
-                NotifyStateChanged();
+                _lastLiveDataRefresh = DateTime.Now;
+                _liveDataError = null;
+            }
+            else
+            {
+                _liveDataError = $"API returned {(int)response.StatusCode}";
             }
         }
-        catch
+        catch (HttpRequestException ex)
         {
-            // Silently fail - chart will use simulation data
+            _liveDataError = $"Network error: {ex.Message}";
             _liveGexData = null;
+        }
+        catch (Exception ex)
+        {
+            _liveDataError = $"Error: {ex.Message}";
+            _liveGexData = null;
+        }
+        finally
+        {
+            _isLoadingLiveData = false;
+            NotifyStateChanged();
+        }
+    }
+
+    /// <summary>
+    /// Start periodic polling for live GEX data.
+    /// </summary>
+    public void StartLiveDataPolling(string symbol, int intervalMs = 30000)
+    {
+        StopLiveDataPolling();
+
+        _liveDataPollingSymbol = symbol;
+        _liveDataTimer = new System.Timers.Timer(intervalMs);
+        _liveDataTimer.Elapsed += OnLiveDataTimerTick;
+        _liveDataTimer.AutoReset = true;
+        _liveDataTimer.Start();
+
+        // Trigger immediate refresh
+        _ = RefreshLiveDataAsync(symbol);
+    }
+
+    /// <summary>
+    /// Stop periodic polling for live GEX data.
+    /// </summary>
+    public void StopLiveDataPolling()
+    {
+        _liveDataTimer?.Stop();
+        _liveDataTimer?.Dispose();
+        _liveDataTimer = null;
+        _liveDataPollingSymbol = null;
+    }
+
+    private async void OnLiveDataTimerTick(object? sender, ElapsedEventArgs e)
+    {
+        if (!string.IsNullOrEmpty(_liveDataPollingSymbol))
+        {
+            await RefreshLiveDataAsync(_liveDataPollingSymbol);
         }
     }
 
@@ -442,5 +505,6 @@ public class GexStateService : IGexStateService
     {
         _simulationTimer?.Stop();
         _simulationTimer?.Dispose();
+        StopLiveDataPolling();
     }
 }
