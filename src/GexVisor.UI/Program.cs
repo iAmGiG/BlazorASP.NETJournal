@@ -12,6 +12,7 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 // GEX Visualizer Services
 builder.Services.AddScoped<IGexStateService, GexStateService>();
 builder.Services.AddScoped<IGexDataService, GexDataService>();
+builder.Services.AddScoped<IGexExportService, GexExportService>();
 builder.Services.AddScoped<ILocalStorageService, LocalStorageService>();
 builder.Services.AddScoped<AnnotationService>();
 builder.Services.AddScoped<SqliteService>();

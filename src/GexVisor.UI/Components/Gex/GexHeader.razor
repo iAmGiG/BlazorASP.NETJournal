@@ -2,6 +2,7 @@
 @using GexVisor.UI.Models
 @using GexVisor.UI.Services
 @inject IGexStateService StateService
+@inject IGexExportService ExportService
 @inject IJSRuntime JS
 @implements IDisposable
 
@@ -32,15 +33,25 @@
 
     <div class="header-right">
         <div class="export-dropdown">
-            <button class="export-btn" @onclick="ToggleExportMenu" title="Export Chart as PNG" aria-label="Export chart as PNG" aria-expanded="@_showExportMenu" aria-haspopup="menu">
-                <i class="fas fa-camera" aria-hidden="true"></i>
+            <button class="export-btn" @onclick="ToggleExportMenu" title="Export Data" aria-label="Export data" aria-expanded="@_showExportMenu" aria-haspopup="menu">
+                <i class="fas fa-download" aria-hidden="true"></i>
             </button>
             @if (_showExportMenu)
             {
                 <div class="export-menu" role="menu" aria-label="Export options">
-                    <button @onclick="ExportNormalized" role="menuitem">Normalized GEX</button>
-                    <button @onclick="ExportAbsolute" role="menuitem">Absolute GEX</button>
-                    <button @onclick="ExportBoth" role="menuitem">Export Both</button>
+                    <div class="export-section">Charts</div>
+                    <button @onclick="ExportNormalized" role="menuitem">Normalized (PNG)</button>
+                    <button @onclick="ExportAbsolute" role="menuitem">Absolute (PNG)</button>
+                    <button @onclick="ExportBoth" role="menuitem">Both Charts (PNG)</button>
+                    <div class="export-section">Timeline Data</div>
+                    <button @onclick="ExportTimelineCsv" role="menuitem">Timeline (CSV)</button>
+                    <button @onclick="ExportTimelineJson" role="menuitem">Timeline (JSON)</button>
+                    @if (StateService.UseLiveData && StateService.LiveGexData != null)
+                    {
+                        <div class="export-section">Live Strikes</div>
+                        <button @onclick="ExportStrikesCsv" role="menuitem">Strikes (CSV)</button>
+                        <button @onclick="ExportStrikesJson" role="menuitem">Strikes (JSON)</button>
+                    }
                 </div>
             }
         </div>
@@ -114,11 +125,11 @@
 
     private void ToggleExportMenu() => _showExportMenu = !_showExportMenu;
 
-    private string GetFilename(string suffix)
+    private string GetFilename(string suffix, string extension = "png")
     {
         var symbol = SymbolLabel;
-        var date = StateService.State.CurrentDataPoint?.Date.ToString(AppConstants.DataFormat.DateFormat) ?? "unknown";
-        return $"gex-{symbol}-{date}-{suffix}.png";
+        var date = StateService.State.CurrentDataPoint?.Date.ToString(AppConstants.DataFormat.DateFormat) ?? DateTime.Today.ToString("yyyy-MM-dd");
+        return $"gex-{symbol}-{date}-{suffix}.{extension}";
     }
 
     private async Task ExportNormalized()
@@ -140,6 +151,44 @@
         _showExportMenu = false;
         await JS.InvokeVoidAsync("GexInterop.exportBothChartsAsPng",
             GetFilename("combined"));
+    }
+
+    private async Task ExportTimelineCsv()
+    {
+        _showExportMenu = false;
+        var csv = ExportService.ExportTimelineToCsv(StateService.Timeline, SymbolLabel);
+        await JS.InvokeVoidAsync("GexInterop.downloadFile",
+            GetFilename("timeline", "csv"), csv, "text/csv");
+    }
+
+    private async Task ExportTimelineJson()
+    {
+        _showExportMenu = false;
+        var json = ExportService.ExportTimelineToJson(StateService.Timeline, SymbolLabel);
+        await JS.InvokeVoidAsync("GexInterop.downloadFile",
+            GetFilename("timeline", "json"), json, "application/json");
+    }
+
+    private async Task ExportStrikesCsv()
+    {
+        _showExportMenu = false;
+        var liveData = StateService.LiveGexData;
+        if (liveData == null) return;
+
+        var csv = ExportService.ExportStrikeGammasToCsv(liveData.StrikeGammas, liveData.Symbol, liveData.SpotPrice);
+        await JS.InvokeVoidAsync("GexInterop.downloadFile",
+            GetFilename("strikes", "csv"), csv, "text/csv");
+    }
+
+    private async Task ExportStrikesJson()
+    {
+        _showExportMenu = false;
+        var liveData = StateService.LiveGexData;
+        if (liveData == null) return;
+
+        var json = ExportService.ExportStrikeGammasToJson(liveData.StrikeGammas, liveData.Symbol, liveData.SpotPrice);
+        await JS.InvokeVoidAsync("GexInterop.downloadFile",
+            GetFilename("strikes", "json"), json, "application/json");
     }
 
     protected override void OnInitialized()
