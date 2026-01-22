@@ -75,3 +75,150 @@ public record MarketDataResult<T>
     public static MarketDataResult<T> Fail(string error) =>
         new() { Success = false, Error = error };
 }
+
+/// <summary>
+/// Option contract type (call or put).
+/// </summary>
+public enum OptionType
+{
+    Call,
+    Put
+}
+
+/// <summary>
+/// Single option contract with pricing and Greeks.
+/// </summary>
+public record OptionContract
+{
+    // Identification
+    public required string Symbol { get; init; }              // Underlying symbol (SPY)
+    public required string ContractSymbol { get; init; }      // Full contract ID (SPY240119C00425000)
+    public required decimal StrikePrice { get; init; }
+    public required OptionType Type { get; init; }
+    public required DateTime ExpirationDate { get; init; }
+    public required DateTime TradingDate { get; init; }       // Date of quote
+
+    // Pricing
+    public decimal? Bid { get; init; }
+    public decimal? Ask { get; init; }
+    public decimal? Last { get; init; }
+    public decimal? Mark { get; init; }
+    public int? BidSize { get; init; }
+    public int? AskSize { get; init; }
+
+    // Volume & Interest
+    public long? Volume { get; init; }
+    public long? OpenInterest { get; init; }
+
+    // Greeks (critical for GEX calculation)
+    public decimal? Delta { get; init; }         // [-1, 1] for puts, [0, 1] for calls
+    public decimal? Gamma { get; init; }         // [0, ∞) - always non-negative
+    public decimal? Theta { get; init; }         // Usually negative (time decay)
+    public decimal? Vega { get; init; }          // [0, ∞) - always non-negative
+    public decimal? Rho { get; init; }           // Interest rate sensitivity
+    public decimal? ImpliedVolatility { get; init; }  // [0.01, 5.0] typical range
+
+    // Derived fields
+    public decimal? MidPrice { get; init; }      // (Bid + Ask) / 2
+    public decimal? BidAskSpread { get; init; }  // Ask - Bid
+
+    // Metadata
+    public MarketDataProvider? Source { get; init; }
+    public DateTime Timestamp { get; init; }
+    public decimal DataQualityScore { get; init; } = 1.0m;
+}
+
+/// <summary>
+/// Collection of option contracts for a symbol.
+/// </summary>
+public record OptionsChain
+{
+    public required string Symbol { get; init; }
+    public DateTime? ExpirationDate { get; init; }      // Null = all expirations
+    public required List<OptionContract> Contracts { get; init; }
+    public DateTime Timestamp { get; init; }
+    public MarketDataProvider? Source { get; init; }
+
+    // Summary statistics
+    public int TotalContracts => Contracts.Count;
+    public int CallsCount => Contracts.Count(c => c.Type == OptionType.Call);
+    public int PutsCount => Contracts.Count(c => c.Type == OptionType.Put);
+    public List<DateTime> ExpirationDates => Contracts
+        .Select(c => c.ExpirationDate.Date)
+        .Distinct()
+        .OrderBy(d => d)
+        .ToList();
+}
+
+/// <summary>
+/// Result wrapper for options chain operations.
+/// </summary>
+public record OptionsChainResult<T>
+{
+    public bool Success { get; init; }
+    public T? Data { get; init; }
+    public string? Error { get; init; }
+    public MarketDataProvider? Source { get; init; }
+
+    public static OptionsChainResult<T> Ok(T data, MarketDataProvider source) =>
+        new() { Success = true, Data = data, Source = source };
+
+    public static OptionsChainResult<T> Fail(string error) =>
+        new() { Success = false, Error = error };
+}
+
+/// <summary>
+/// GEX regime classification based on net gamma exposure.
+/// </summary>
+public enum GexRegime
+{
+    /// <summary>Dealers short gamma - hedging dampens volatility.</summary>
+    LongGamma,
+    /// <summary>Dealers long gamma - hedging amplifies volatility.</summary>
+    ShortGamma,
+    /// <summary>Balanced gamma exposure.</summary>
+    Neutral
+}
+
+/// <summary>
+/// Gamma exposure at a single strike price.
+/// </summary>
+public record StrikeGamma
+{
+    public required decimal StrikePrice { get; init; }
+    public required decimal CallGex { get; init; }
+    public required decimal PutGex { get; init; }
+    public decimal NetGex => CallGex - PutGex;
+
+    // For visualization
+    public int ContractsCount { get; init; }
+    public decimal TotalOpenInterest { get; init; }
+}
+
+/// <summary>
+/// Complete GEX calculation result for a symbol.
+/// </summary>
+public record GexCalculationResult
+{
+    public required string Symbol { get; init; }
+    public required decimal SpotPrice { get; init; }
+    public required decimal TotalGex { get; init; }
+    public decimal CallGex { get; init; }
+    public decimal PutGex { get; init; }
+
+    /// <summary>Flip point where net GEX = 0.</summary>
+    public decimal? ZeroGammaLevel { get; init; }
+
+    public required GexRegime Regime { get; init; }
+    public required List<StrikeGamma> StrikeGammas { get; init; }
+
+    // Metadata
+    public DateTime Timestamp { get; init; }
+    public MarketDataProvider? Source { get; init; }
+
+    // Summary statistics
+    public int TotalContracts => StrikeGammas.Sum(s => s.ContractsCount);
+    public decimal AvgStrikeSpacing => StrikeGammas.Count > 1
+        ? (StrikeGammas.Max(s => s.StrikePrice) - StrikeGammas.Min(s => s.StrikePrice)) / (StrikeGammas.Count - 1)
+        : 0m;
+}

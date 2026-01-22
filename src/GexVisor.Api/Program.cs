@@ -17,6 +17,13 @@ builder.Services.AddSingleton<MarketDataCacheService>();
 // Market Data Service
 builder.Services.AddSingleton<IMarketDataService, MarketDataService>();
 
+// Options Chain Services
+builder.Services.AddSingleton<OptionsChainCacheService>();
+builder.Services.AddSingleton<IOptionsChainService, OptionsChainService>();
+
+// GEX Calculation Service
+builder.Services.AddSingleton<IGexCalculationService, GexCalculationService>();
+
 // Add services
 builder.Services.AddHttpClient(); // Generic HttpClient for market data APIs
 
@@ -278,6 +285,118 @@ market.MapGet("/bars/{symbol}", async (
     };
 
     var result = await marketService.GetBarsAsync(symbol.ToUpperInvariant(), tf, limit ?? 100);
+    return result.Success
+        ? Results.Ok(result.Data)
+        : Results.NotFound(new { error = result.Error });
+});
+
+// Options Chain API endpoints
+var options = app.MapGroup("/api/options");
+
+// Get full options chain for a symbol (all expirations or specific date)
+options.MapGet("/chain/{symbol}", async (
+    string symbol,
+    string? expiration,
+    IOptionsChainService optionsService) =>
+{
+    DateTime? expirationDate = null;
+    if (!string.IsNullOrEmpty(expiration))
+    {
+        if (!DateTime.TryParse(expiration, out var parsed))
+        {
+            return Results.BadRequest(new { error = "Invalid expiration date format. Use yyyy-MM-dd" });
+        }
+        expirationDate = parsed;
+    }
+
+    var result = await optionsService.GetChainAsync(symbol.ToUpperInvariant(), expirationDate);
+    return result.Success
+        ? Results.Ok(result)
+        : Results.NotFound(new { error = result.Error });
+});
+
+// Get specific option contract
+options.MapGet("/contract/{symbol}", async (
+    string symbol,
+    decimal strike,
+    string type,
+    string expiration,
+    IOptionsChainService optionsService) =>
+{
+    if (!DateTime.TryParse(expiration, out var expirationDate))
+    {
+        return Results.BadRequest(new { error = "Invalid expiration date format. Use yyyy-MM-dd" });
+    }
+
+    var optionType = type.ToLowerInvariant() switch
+    {
+        "call" or "c" => GexVisor.Core.OptionType.Call,
+        "put" or "p" => GexVisor.Core.OptionType.Put,
+        _ => (GexVisor.Core.OptionType?)null
+    };
+
+    if (optionType == null)
+    {
+        return Results.BadRequest(new { error = "Invalid option type. Use 'call' or 'put'" });
+    }
+
+    var result = await optionsService.GetContractAsync(
+        symbol.ToUpperInvariant(),
+        strike,
+        optionType.Value,
+        expirationDate);
+
+    return result.Success
+        ? Results.Ok(result)
+        : Results.NotFound(new { error = result.Error });
+});
+
+// Get available expiration dates for a symbol
+options.MapGet("/expirations/{symbol}", async (
+    string symbol,
+    IOptionsChainService optionsService) =>
+{
+    var result = await optionsService.GetExpirationDatesAsync(symbol.ToUpperInvariant());
+    return result.Success
+        ? Results.Ok(result)
+        : Results.NotFound(new { error = result.Error });
+});
+
+// Invalidate cached options data for a symbol
+options.MapPost("/cache/invalidate/{symbol}", async (
+    string symbol,
+    OptionsChainCacheService cacheService) =>
+{
+    await cacheService.InvalidateSymbolAsync(symbol.ToUpperInvariant());
+    return Results.Ok(new { message = $"Cache invalidated for {symbol}" });
+});
+
+// GEX Calculation API endpoints
+var gex = app.MapGroup("/api/gex");
+
+// Calculate GEX metrics for a symbol (auto-fetches spot price)
+gex.MapGet("/{symbol}", async (
+    string symbol,
+    IGexCalculationService gexService) =>
+{
+    var result = await gexService.CalculateGexAsync(symbol.ToUpperInvariant());
+    return result.Success
+        ? Results.Ok(result.Data)
+        : Results.NotFound(new { error = result.Error });
+});
+
+// Calculate GEX metrics with explicit spot price
+gex.MapGet("/{symbol}/at/{spotPrice:decimal}", async (
+    string symbol,
+    decimal spotPrice,
+    IGexCalculationService gexService) =>
+{
+    if (spotPrice <= 0)
+    {
+        return Results.BadRequest(new { error = "Spot price must be positive" });
+    }
+
+    var result = await gexService.CalculateGexAsync(symbol.ToUpperInvariant(), spotPrice);
     return result.Success
         ? Results.Ok(result.Data)
         : Results.NotFound(new { error = result.Error });
