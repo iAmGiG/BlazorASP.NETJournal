@@ -4,7 +4,7 @@ Detailed technical documentation of the GexVisor system architecture.
 
 ## Service Inventory
 
-GexVisor has 20 services organized into 5 functional domains.
+GexVisor has 27 services organized into 6 functional domains.
 
 ### Core Services (3)
 
@@ -57,6 +57,32 @@ All inherit from `BaseEntryService<T>` using the Template Method pattern.
 | `SqliteService` | WASM SQLite queries (sql.js) |
 | `DecisionMetadataParser` | Parse autotrader logs (JSON/CSV), extract decision metadata |
 | `TaskPersistenceService` | JSON file persistence for ToDo tasks |
+
+### Live Data Services (7)
+
+| Service | Lifetime | Interface | Responsibility |
+|---------|----------|-----------|----------------|
+| `ApiConfigService` | Singleton | ✅ `IApiConfigService` | API key management (config.json + env vars) |
+| `MarketDataService` | Singleton | ✅ `IMarketDataService` | Quote/bar fetching with provider fallback |
+| `OptionsChainService` | Singleton | ✅ `IOptionsChainService` | Options chain fetching from Alpha Vantage |
+| `GexCalculationService` | Singleton | ✅ `IGexCalculationService` | GEX calculation engine |
+| `SqliteCacheService` | Singleton | ✅ `ICacheService` | SQLite-based persistent cache |
+| `MarketDataCacheService` | Singleton | - | Quote/bar caching with TTL |
+| `OptionsChainCacheService` | Singleton | - | Options chain caching with TTL |
+
+**Provider Fallback Strategy:**
+
+1. `MarketDataService` tries providers in order: Alpaca → Finnhub → Polygon
+2. Returns first successful response with provider attribution
+3. Rate limiting: Alpha Vantage = 5 calls/min, others = 60 calls/min
+
+**GEX Calculation Formula:**
+
+```
+GEX = gamma × OI × 100 × S²
+```
+
+Where S = spot price. Net GEX = Call GEX - Put GEX.
 
 ---
 
