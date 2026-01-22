@@ -1,0 +1,113 @@
+.mini-radar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.mini-radar-svg {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+}
+
+/* Quadrant backgrounds */
+.quadrant-bg {
+    opacity: 0.08;
+}
+
+/* Concentric rings */
+.ring-circle {
+    fill: none;
+    stroke: var(--border-color, rgba(255, 255, 255, 0.2));
+    stroke-width: 1;
+    opacity: 0.5;
+}
+
+/* Quadrant dividing lines */
+.quadrant-line {
+    stroke: var(--border-color, rgba(255, 255, 255, 0.2));
+    stroke-width: 1;
+    stroke-dasharray: 4 4;
+    opacity: 0.4;
+}
+
+/* Center */
+.center-bg {
+    fill: rgba(46, 204, 113, 0.15);
+    stroke: rgba(46, 204, 113, 0.4);
+    stroke-width: 2;
+}
+
+::deep .center-label {
+    fill: #2ecc71;
+    font-size: 11px;
+    font-weight: 700;
+    text-anchor: middle;
+    font-family: inherit;
+}
+
+::deep .center-sublabel {
+    fill: var(--text-muted, #888);
+    font-size: 7px;
+    text-anchor: middle;
+    font-family: inherit;
+    letter-spacing: 1px;
+}
+
+/* Research nodes */
+.research-node {
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+.research-node:hover {
+    transform: scale(1.15);
+}
+
+.research-node:hover .node-circle {
+    filter: brightness(1.2);
+}
+
+.research-node.selected .node-circle {
+    stroke: white;
+    stroke-width: 3px;
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.5));
+}
+
+.node-circle {
+    stroke: rgba(0, 0, 0, 0.25);
+    stroke-width: 1.5px;
+    transition: filter 0.2s, stroke 0.2s;
+}
+
+::deep .node-label {
+    fill: #000;
+    font-size: 8px;
+    font-weight: 600;
+    text-anchor: middle;
+    font-family: inherit;
+    pointer-events: none;
+}
+
+/* Legend */
+.mini-radar-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    font-size: 0.7rem;
+    color: var(--text-muted, #888);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}

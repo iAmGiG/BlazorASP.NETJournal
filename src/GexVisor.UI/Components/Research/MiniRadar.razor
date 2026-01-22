@@ -1,0 +1,110 @@
+@using GexVisor.UI.Models
+
+<div class="mini-radar" style="width: @(Size)px; height: @(Size)px;">
+    <svg viewBox="-350 -350 700 700" class="mini-radar-svg" preserveAspectRatio="xMidYMid meet">
+        <!-- Quadrant backgrounds -->
+        @foreach (var q in ResearchPathData.Quadrants.Where(x => x.Key != "none"))
+        {
+            var angles = QuadrantAngles[q.Key];
+            var startRad = (angles.Start - 90) * Math.PI / 180;
+            var endRad = (angles.End - 90) * Math.PI / 180;
+            var outerR = RingRadii[^1];
+            var x1 = outerR * Math.Cos(startRad);
+            var y1 = outerR * Math.Sin(startRad);
+            var x2 = outerR * Math.Cos(endRad);
+            var y2 = outerR * Math.Sin(endRad);
+            <path d="M 0 0 L @F(x1) @F(y1) A @outerR @outerR 0 0 1 @F(x2) @F(y2) Z"
+                  fill="@q.Value.Color"
+                  class="quadrant-bg" />
+        }
+
+        <!-- Concentric rings -->
+        @for (int i = 1; i < RingRadii.Length; i++)
+        {
+            <circle cx="0" cy="0" r="@RingRadii[i]" class="ring-circle" />
+        }
+
+        <!-- Quadrant dividing lines -->
+        @foreach (var q in ResearchPathData.Quadrants.Where(x => x.Key != "none"))
+        {
+            var angles = QuadrantAngles[q.Key];
+            var rad = (angles.Start - 90) * Math.PI / 180;
+            var outerR = RingRadii[^1];
+            <line x1="0" y1="0" x2="@F(outerR * Math.Cos(rad))" y2="@F(outerR * Math.Sin(rad))"
+                  class="quadrant-line" />
+        }
+
+        <!-- Center -->
+        <g class="center-pulse">
+            <circle cx="0" cy="0" r="40" class="center-bg" />
+            @SvgText("0", "-5", "center-label", RadarConstants.FoundationStats.DetectionRate)
+            @SvgText("0", "10", "center-sublabel", "VALIDATED")
+        </g>
+
+        <!-- Research nodes -->
+        @foreach (var path in ResearchPathData.Paths)
+        {
+            var (x, y) = GetNodePosition(path);
+            var statusColor = ResearchPathData.StatusColors.GetValueOrDefault(path.Status, "#888");
+            var radius = path.Ring == 0 ? 18 : 14;
+            <g class="research-node @(SelectedPathId == path.Id ? "selected" : "")"
+               transform="translate(@F(x), @F(y))"
+               @onclick="@(() => HandleNodeClick(path))"
+               @onclick:stopPropagation="true">
+                <circle cx="0" cy="0" r="@radius" fill="@statusColor" class="node-circle">
+                    <title>@path.Title - @path.Status</title>
+                </circle>
+                @SvgText("0", "4", "node-label", path.Label)
+            </g>
+        }
+    </svg>
+
+    @if (ShowLegend)
+    {
+        <div class="mini-radar-legend">
+            @foreach (var status in ResearchPathData.StatusColors.Take(3))
+            {
+                <span class="legend-item">
+                    <span class="legend-dot" style="background: @status.Value"></span>
+                    @status.Key
+                </span>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int Size { get; set; } = 300;
+    [Parameter] public bool ShowLegend { get; set; } = true;
+    [Parameter] public string? SelectedPathId { get; set; }
+    [Parameter] public EventCallback<ResearchPath> OnNodeClick { get; set; }
+
+    private static int[] RingRadii => RadarConstants.RingRadii;
+    private static Dictionary<string, (int Start, int End)> QuadrantAngles => RadarConstants.QuadrantAngles;
+
+    private (double X, double Y) GetNodePosition(ResearchPath path)
+    {
+        var angles = QuadrantAngles.GetValueOrDefault(path.Quadrant, (Start: 0, End: 90));
+        var angleRange = angles.End - angles.Start;
+        var normalizedAngle = angles.Start + (path.Angle / 180.0) * angleRange;
+        var rad = (normalizedAngle - 90) * Math.PI / 180;
+        var innerR = RingRadii[path.Ring];
+        var outerR = path.Ring + 1 < RingRadii.Length ? RingRadii[path.Ring + 1] : RingRadii[path.Ring] + 50;
+        var r = (innerR + outerR) / 2.0;
+        return (r * Math.Cos(rad), r * Math.Sin(rad));
+    }
+
+    private string F(double value) =>
+        value.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+
+    private MarkupString SvgText(string x, string y, string className, string content) =>
+        new($"<text x=\"{x}\" y=\"{y}\" class=\"{className}\">{System.Web.HttpUtility.HtmlEncode(content)}</text>");
+
+    private async Task HandleNodeClick(ResearchPath path)
+    {
+        if (OnNodeClick.HasDelegate)
+        {
+            await OnNodeClick.InvokeAsync(path);
+        }
+    }
+}
