@@ -1,5 +1,7 @@
 using System.Globalization;
+using System.Net.Http.Json;
 using System.Timers;
+using GexVisor.Core;
 using GexVisor.UI.Configuration;
 using GexVisor.UI.Models;
 
@@ -12,9 +14,12 @@ namespace GexVisor.UI.Services;
 public class GexStateService : IGexStateService
 {
     private readonly GexState _state = new();
+    private readonly HttpClient _httpClient;
     private List<GexDataPoint> _timeline = [];
     private List<GexDataPoint> _demoTimeline = [];
     private System.Timers.Timer? _simulationTimer;
+    private GexCalculationResult? _liveGexData;
+    private bool _useLiveData;
 
     public event Action? OnStateChanged;
     public event Action? OnSettingsChanged;
@@ -22,9 +27,22 @@ public class GexStateService : IGexStateService
     public GexState State => _state;
     public IReadOnlyList<GexDataPoint> Timeline => _timeline;
     public IReadOnlyList<GexDataPoint> DemoTimeline => _demoTimeline;
+    public GexCalculationResult? LiveGexData => _liveGexData;
 
-    public GexStateService()
+    public bool UseLiveData
     {
+        get => _useLiveData;
+        set
+        {
+            _useLiveData = value;
+            NotifyStateChanged();
+        }
+    }
+
+    public GexStateService(HttpClient httpClient)
+    {
+        _httpClient = httpClient;
+
         InitializeDemoTimeline();
         // Start at the first data point so charts render on load
         if (_timeline.Count > 0)
@@ -397,6 +415,27 @@ public class GexStateService : IGexStateService
         };
 
         return timeline.AnalyzeRegimes();
+    }
+
+    /// <summary>
+    /// Refresh live GEX data from API for the given symbol.
+    /// </summary>
+    public async Task RefreshLiveDataAsync(string symbol)
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync($"api/gex/{symbol}");
+            if (response.IsSuccessStatusCode)
+            {
+                _liveGexData = await response.Content.ReadFromJsonAsync<GexCalculationResult>();
+                NotifyStateChanged();
+            }
+        }
+        catch
+        {
+            // Silently fail - chart will use simulation data
+            _liveGexData = null;
+        }
     }
 
     public void Dispose()

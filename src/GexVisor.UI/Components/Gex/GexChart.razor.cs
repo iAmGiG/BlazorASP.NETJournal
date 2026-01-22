@@ -1,3 +1,4 @@
+using GexVisor.Core;
 using GexVisor.UI.Models;
 using GexVisor.UI.Services;
 using Microsoft.AspNetCore.Components;
@@ -91,6 +92,8 @@ public partial class GexChart : IAsyncDisposable
     private decimal _lastStrikeStart;
     private decimal _lastStrikeEnd;
     private decimal _lastStrikeStep;
+    private bool _lastUseLiveData;
+    private GexCalculationResult? _lastLiveGexData;
 
     private double PriceY => CalculatePriceY();
     private double ZeroGammaY => CalculateZeroGammaY();
@@ -155,6 +158,8 @@ public partial class GexChart : IAsyncDisposable
     private void CalculateBars()
     {
         var state = StateService.State;
+        var useLiveData = StateService.UseLiveData;
+        var liveGexData = StateService.LiveGexData;
 
         // Memoization: Skip recalculation if values haven't changed
         if (GammaBars.Count > 0 &&
@@ -165,7 +170,9 @@ public partial class GexChart : IAsyncDisposable
             _lastYAxisScale == state.YAxisScale &&
             _lastStrikeStart == state.StrikeStart &&
             _lastStrikeEnd == state.StrikeEnd &&
-            _lastStrikeStep == state.StrikeStep)
+            _lastStrikeStep == state.StrikeStep &&
+            _lastUseLiveData == useLiveData &&
+            _lastLiveGexData == liveGexData)
         {
             return;
         }
@@ -179,7 +186,95 @@ public partial class GexChart : IAsyncDisposable
         _lastStrikeStart = state.StrikeStart;
         _lastStrikeEnd = state.StrikeEnd;
         _lastStrikeStep = state.StrikeStep;
+        _lastUseLiveData = useLiveData;
+        _lastLiveGexData = liveGexData;
 
+        // Use live data from API if available
+        if (useLiveData && liveGexData != null && liveGexData.StrikeGammas.Count > 0)
+        {
+            GammaBars = CalculateBarsFromLiveData(liveGexData, state);
+        }
+        else
+        {
+            GammaBars = CalculateBarsFromSimulation(state);
+        }
+    }
+
+    private List<GammaBar> CalculateBarsFromLiveData(GexCalculationResult gexData, GexState state)
+    {
+        var bars = new List<GammaBar>();
+
+        var strikeGammas = gexData.StrikeGammas.OrderBy(s => s.StrikePrice).ToList();
+        var minStrike = strikeGammas.First().StrikePrice;
+        var maxStrike = strikeGammas.Last().StrikePrice;
+        var strikeRange = maxStrike - minStrike;
+
+        if (strikeRange <= 0) return bars;
+
+        // Find max absolute GEX for normalization
+        var maxAbsGex = strikeGammas.Max(s => Math.Abs(s.NetGex));
+        if (maxAbsGex == 0) maxAbsGex = 1;
+
+        // Calculate center position (spot price)
+        var spotPosition = (gexData.SpotPrice - minStrike) / strikeRange;
+        var centerYPercent = 100.0 - (double)spotPosition * 100.0;
+
+        foreach (var sg in strikeGammas)
+        {
+            // Calculate Y position based on strike price
+            var strikePosition = (sg.StrikePrice - minStrike) / strikeRange;
+            var baseY = 100.0 - (double)strikePosition * 100.0;
+            var scaledY = centerYPercent + (baseY - centerYPercent) * (double)state.YAxisScale;
+
+            // Calculate bar width from GEX value
+            double val;
+            if (IsAbsolute)
+            {
+                // Scale to billions (divide by 1B) and map to chart units
+                val = (double)(sg.NetGex / 1_000_000_000m) * ChartConstants.GammaScaleFactor;
+            }
+            else
+            {
+                // Normalized: percentage of max GEX
+                val = (double)(sg.NetGex / maxAbsGex) * ChartConstants.GammaScaleFactor;
+            }
+
+            var scaledVal = val * (double)state.XAxisScale;
+            var width = Math.Min(Math.Abs(scaledVal), ChartConstants.MaxBarWidth);
+
+            var x = val < 0 ? 50 - width : 50;
+            var colorClass = val < 0 ? "bar-negative" : "bar-positive";
+
+            // Saturation warning
+            if (IsAbsolute && Math.Abs(val) > ChartConstants.SaturationThreshold / (double)state.XAxisScale)
+            {
+                colorClass = "bar-saturated";
+            }
+
+            // Off-screen culling
+            var opacity = (scaledY < ChartConstants.OffScreenMinY || scaledY > ChartConstants.OffScreenMaxY)
+                ? 0.0
+                : ChartConstants.DefaultBarOpacity;
+
+            var barHeight = Math.Max(ChartConstants.MinBarHeight,
+                (ChartConstants.BarHeightBase / strikeGammas.Count) * (double)state.YAxisScale);
+
+            bars.Add(new GammaBar
+            {
+                X = x,
+                Y = scaledY,
+                Width = width,
+                Height = barHeight,
+                ColorClass = colorClass,
+                Opacity = opacity
+            });
+        }
+
+        return bars;
+    }
+
+    private List<GammaBar> CalculateBarsFromSimulation(GexState state)
+    {
         var bars = new List<GammaBar>();
 
         var strikeStart = state.StrikeStart;
@@ -194,12 +289,6 @@ public partial class GexChart : IAsyncDisposable
         var centerIndex = priceRange > 0
             ? (int)((state.Price - strikeStart) / priceRange * strikeCount)
             : strikeCount / 2;
-
-        // Zero gamma level using named constant
-        var zeroGamma = state.Price * (1 + Math.Abs(state.Tilt) * ChartConstants.ZeroGammaTiltMultiplier);
-        var zeroIndex = priceRange > 0
-            ? (int)((zeroGamma - strikeStart) / priceRange * strikeCount)
-            : centerIndex;
 
         var centerYPercent = 100.0 - ((double)centerIndex / strikeCount) * 100.0;
 
@@ -262,7 +351,7 @@ public partial class GexChart : IAsyncDisposable
             });
         }
 
-        GammaBars = bars;
+        return bars;
     }
 
     private double CalculatePriceY()

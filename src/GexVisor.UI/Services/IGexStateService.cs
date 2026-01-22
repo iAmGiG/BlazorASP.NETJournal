@@ -1,3 +1,4 @@
+using GexVisor.Core;
 using GexVisor.UI.Configuration;
 using GexVisor.UI.Models;
 
@@ -134,4 +135,19 @@ public interface IGexStateService : IDisposable
     /// Get regime analysis for the current timeline.
     /// </summary>
     RegimeAnalysisSummary? GetRegimeAnalysis();
+
+    /// <summary>
+    /// Whether to use live GEX data from API instead of simulation.
+    /// </summary>
+    bool UseLiveData { get; set; }
+
+    /// <summary>
+    /// Current live GEX calculation result from API.
+    /// </summary>
+    GexCalculationResult? LiveGexData { get; }
+
+    /// <summary>
+    /// Refresh live GEX data from API for the given symbol.
+    /// </summary>
+    Task RefreshLiveDataAsync(string symbol);
 }
