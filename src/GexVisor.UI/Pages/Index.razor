@@ -1,4 +1,7 @@
 @page "/"
+@using GexVisor.UI.Components.Research
+@using GexVisor.UI.Models
+@inject NavigationManager Navigation
 
 <PageTitle>GexVisor</PageTitle>
 
@@ -8,20 +11,51 @@
         <p class="tagline">Options Flow Analysis & Research Tools</p>
     </header>
 
-    <nav class="app-grid" aria-label="Application modules">
-        <a href="/gex" class="app-card featured" aria-label="GEX Visualizer - Interactive gamma exposure visualization">
-            <div class="app-icon" aria-hidden="true">
-                <i class="fas fa-chart-bar"></i>
+    <!-- Dashboard Section -->
+    <section class="dashboard-section" aria-label="Quick access dashboard">
+        <div class="dashboard-panel radar-panel">
+            <div class="panel-header">
+                <h2>Research Progress</h2>
+                <a href="/research/complexity" class="panel-link">Full Map <i class="fas fa-arrow-right"></i></a>
             </div>
-            <div class="app-info">
-                <h2>GEX Visualizer</h2>
-                <p>Interactive gamma exposure visualization with dual-view analysis (Normalized & Absolute GEX methods)</p>
-                <div class="app-status ready" aria-label="Status: Ready">
-                    <i class="fas fa-check-circle" aria-hidden="true"></i> Ready
+            <MiniRadar Size="280" ShowLegend="true" OnNodeClick="HandleRadarClick" />
+        </div>
+
+        <div class="dashboard-panel gex-panel">
+            <div class="panel-header">
+                <h2>GEX Analysis</h2>
+            </div>
+            <div class="quick-launch-grid">
+                <a href="/gex" class="quick-card featured">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>GEX Visualizer</span>
+                    <small>Dual-view analysis</small>
+                </a>
+                <a href="/comparison" class="quick-card">
+                    <i class="fas fa-columns"></i>
+                    <span>Comparator</span>
+                    <small>Multi-asset</small>
+                </a>
+            </div>
+            <div class="gex-stats">
+                <div class="stat">
+                    <span class="stat-value">@RadarConstants.FoundationStats.DetectionRate</span>
+                    <span class="stat-label">Detection</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">@RadarConstants.FoundationStats.Accuracy</span>
+                    <span class="stat-label">Accuracy</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">@RadarConstants.FoundationStats.TradingDays</span>
+                    <span class="stat-label">Days</span>
                 </div>
             </div>
-        </a>
+        </div>
+    </section>
 
+    <!-- Module Navigation -->
+    <nav class="app-grid" aria-label="Application modules">
         <a href="/arcade" class="app-card" aria-label="Research Arcade - Pattern discovery and experimental tools">
             <div class="app-icon arcade" aria-hidden="true">
                 <i class="fas fa-flask"></i>
@@ -35,19 +69,6 @@
             </div>
         </a>
 
-        <a href="/notebook" class="app-card" aria-label="Research Notebook - Document observations and findings">
-            <div class="app-icon notebook" aria-hidden="true">
-                <i class="fas fa-book"></i>
-            </div>
-            <div class="app-info">
-                <h2>Research Notebook</h2>
-                <p>Document observations, hypotheses, and findings while exploring GEX regimes</p>
-                <div class="app-status ready" aria-label="Status: Ready">
-                    <i class="fas fa-check-circle" aria-hidden="true"></i> Ready
-                </div>
-            </div>
-        </a>
-
         <a href="/trading" class="app-card" aria-label="Paper Trading - Log hypothetical trades and track P&L">
             <div class="app-icon trading" aria-hidden="true">
                 <i class="fas fa-chart-line"></i>
@@ -55,6 +76,19 @@
             <div class="app-info">
                 <h2>Paper Trading</h2>
                 <p>Log hypothetical trades based on GEX signals and track theoretical P&L</p>
+                <div class="app-status ready" aria-label="Status: Ready">
+                    <i class="fas fa-check-circle" aria-hidden="true"></i> Ready
+                </div>
+            </div>
+        </a>
+
+        <a href="/notebook" class="app-card" aria-label="Research Notebook - Document observations and findings">
+            <div class="app-icon notebook" aria-hidden="true">
+                <i class="fas fa-book"></i>
+            </div>
+            <div class="app-info">
+                <h2>Research Notebook</h2>
+                <p>Document observations, hypotheses, and findings while exploring GEX regimes</p>
                 <div class="app-status ready" aria-label="Status: Ready">
                     <i class="fas fa-check-circle" aria-hidden="true"></i> Ready
                 </div>
@@ -86,22 +120,16 @@
                 </div>
             </div>
         </a>
-
-        <a href="/comparison" class="app-card" aria-label="Cross-Asset Comparison - Compare multiple assets">
-            <div class="app-icon comparison" aria-hidden="true">
-                <i class="fas fa-chart-line"></i>
-            </div>
-            <div class="app-info">
-                <h2>Cross-Asset Comparison</h2>
-                <p>Compare GEX profiles, regime patterns, and correlations across 2-4 assets simultaneously</p>
-                <div class="app-status ready" aria-label="Status: Ready">
-                    <i class="fas fa-check-circle" aria-hidden="true"></i> Ready
-                </div>
-            </div>
-        </a>
     </nav>
 
     <footer class="landing-footer" role="contentinfo">
         <p class="footer-text">Select a module to get started</p>
     </footer>
 </main>
+
+@code {
+    private void HandleRadarClick(ResearchPath path)
+    {
+        Navigation.NavigateTo($"/research/complexity?path={path.Id}");
+    }
+}

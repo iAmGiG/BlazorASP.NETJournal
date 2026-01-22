@@ -5,14 +5,143 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     padding: 2rem;
     background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-panel) 100%);
 }
 
 .landing-header {
     text-align: center;
-    margin-bottom: 3rem;
+    margin-bottom: 2rem;
+}
+
+/* Dashboard Section */
+.dashboard-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    max-width: 900px;
+    width: 100%;
+    margin-bottom: 2rem;
+}
+
+.dashboard-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.25rem;
+}
+
+.radar-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.panel-header h2 {
+    font-size: 1rem;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.panel-link {
+    font-size: 0.8rem;
+    color: var(--accent-cyan);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.panel-link:hover {
+    text-decoration: underline;
+}
+
+/* GEX Panel */
+.gex-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.quick-launch-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.quick-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: all 0.2s;
+}
+
+.quick-card:hover {
+    border-color: var(--accent-cyan);
+    transform: translateY(-2px);
+}
+
+.quick-card.featured {
+    border-color: var(--accent-cyan);
+    background: linear-gradient(135deg, rgba(0, 229, 255, 0.1) 0%, rgba(0, 229, 255, 0.05) 100%);
+}
+
+.quick-card i {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--accent-cyan);
+}
+
+.quick-card span {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.quick-card small {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.gex-stats {
+    display: flex;
+    justify-content: space-around;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--accent-green);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.stat-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .landing-header h1 {
@@ -169,7 +298,7 @@
     }
 
     .landing-header {
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
     }
 
     .landing-header h1 {
@@ -178,6 +307,44 @@
 
     .tagline {
         font-size: 0.95rem;
+    }
+
+    .dashboard-section {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .dashboard-panel {
+        padding: 1rem;
+    }
+
+    .radar-panel ::deep .mini-radar {
+        width: 240px !important;
+        height: 240px !important;
+    }
+
+    .quick-launch-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .quick-card {
+        padding: 0.75rem;
+    }
+
+    .quick-card i {
+        font-size: 1.25rem;
+    }
+
+    .quick-card span {
+        font-size: 0.8rem;
+    }
+
+    .gex-stats {
+        gap: 0.5rem;
+    }
+
+    .stat-value {
+        font-size: 1rem;
     }
 
     .app-grid {
