@@ -176,10 +176,10 @@
     <!-- Legend Section -->
     <div class="section-title">Legend</div>
     <div class="legend">
-        <div class="legend-item"><div class="legend-dot dot-red"></div>Short Gamma</div>
-        <div class="legend-item"><div class="legend-dot dot-cyan"></div>Long Gamma</div>
-        <div class="legend-item"><div class="legend-dot dot-yellow"></div>Spot Price</div>
-        <div class="legend-item"><div class="legend-dot dot-purple"></div>Zero Gamma</div>
+        @foreach (var item in LegendItems)
+        {
+            <div class="legend-item"><div class="legend-dot @item.CssClass"></div>@item.Label</div>
+        }
     </div>
 
     <!-- Terminology Section -->
@@ -219,6 +219,15 @@
 </div>
 
 @code {
+    // Chart legend configuration
+    private static readonly (string CssClass, string Label)[] LegendItems =
+    {
+        ("dot-red", "Short Gamma"),
+        ("dot-cyan", "Long Gamma"),
+        ("dot-yellow", "Spot Price"),
+        ("dot-purple", "Zero Gamma")
+    };
+
     private bool IsDemo => StateService.State.Mode == DataMode.Demo;
     private bool IsSimulating => StateService.State.IsSimulating;
     private int PlaybackSpeed => StateService.State.PlaybackSpeed;
