@@ -25,6 +25,34 @@ public class ResearchPath
     public List<string> Related { get; init; } = [];
 }
 
+/// <summary>
+/// Radar visualization constants for SVG rendering.
+/// </summary>
+public static class RadarConstants
+{
+    /// <summary>Ring radii for concentric circles (ring 0 center, ring 5 outermost).</summary>
+    public static readonly int[] RingRadii = [0, 55, 105, 155, 210, 265, 315];
+
+    /// <summary>Angle ranges for each quadrant in degrees (clockwise from top).</summary>
+    public static readonly Dictionary<string, (int Start, int End)> QuadrantAngles = new()
+    {
+        ["data"] = (Start: 0, End: 90),
+        ["knowledge"] = (Start: 90, End: 180),
+        ["scope"] = (Start: 180, End: 270),
+        ["methodology"] = (Start: 270, End: 360),
+        ["compute"] = (Start: 315, End: 360),  // Shares space with methodology
+        ["none"] = (Start: 0, End: 90)
+    };
+
+    /// <summary>Foundation stats from the validated core research.</summary>
+    public static class FoundationStats
+    {
+        public const string DetectionRate = "71.5%";
+        public const string Accuracy = "91.2%";
+        public const int TradingDays = 242;
+    }
+}
+
 public static class ResearchPathData
 {
     public static readonly string[] RingNames =

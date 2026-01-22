@@ -177,4 +177,29 @@ public interface IGexStateService : IDisposable
     /// Stop periodic polling for live GEX data.
     /// </summary>
     void StopLiveDataPolling();
+
+    /// <summary>
+    /// Whether the current live data was loaded from cache (vs fresh API response).
+    /// </summary>
+    bool IsLiveDataFromCache { get; }
+
+    /// <summary>
+    /// Whether the current live data is stale (exceeds TTL based on market hours).
+    /// </summary>
+    bool IsLiveDataStale { get; }
+
+    /// <summary>
+    /// When the current live data was originally fetched from API (UTC).
+    /// </summary>
+    DateTime? LiveDataFetchedAt { get; }
+
+    /// <summary>
+    /// Load cached GEX data from localStorage for a symbol.
+    /// </summary>
+    Task<CachedGexData?> LoadCachedGexDataAsync(string symbol);
+
+    /// <summary>
+    /// Clear cached GEX data for a symbol (or all symbols if null).
+    /// </summary>
+    Task ClearCachedGexDataAsync(string? symbol = null);
 }

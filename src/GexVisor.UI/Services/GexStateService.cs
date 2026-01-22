@@ -15,6 +15,7 @@ public class GexStateService : IGexStateService
 {
     private readonly GexState _state = new();
     private readonly HttpClient _httpClient;
+    private readonly ILocalStorageService _localStorage;
     private List<GexDataPoint> _timeline = [];
     private List<GexDataPoint> _demoTimeline = [];
     private System.Timers.Timer? _simulationTimer;
@@ -25,6 +26,9 @@ public class GexStateService : IGexStateService
     private string? _liveDataError;
     private DateTime? _lastLiveDataRefresh;
     private string? _liveDataPollingSymbol;
+    private bool _isLiveDataFromCache;
+    private bool _isLiveDataStale;
+    private DateTime? _liveDataFetchedAt;
 
     public event Action? OnStateChanged;
     public event Action? OnSettingsChanged;
@@ -36,6 +40,9 @@ public class GexStateService : IGexStateService
     public bool IsLoadingLiveData => _isLoadingLiveData;
     public string? LiveDataError => _liveDataError;
     public DateTime? LastLiveDataRefresh => _lastLiveDataRefresh;
+    public bool IsLiveDataFromCache => _isLiveDataFromCache;
+    public bool IsLiveDataStale => _isLiveDataStale;
+    public DateTime? LiveDataFetchedAt => _liveDataFetchedAt;
 
     public bool UseLiveData
     {
@@ -47,9 +54,10 @@ public class GexStateService : IGexStateService
         }
     }
 
-    public GexStateService(HttpClient httpClient)
+    public GexStateService(HttpClient httpClient, ILocalStorageService localStorage)
     {
         _httpClient = httpClient;
+        _localStorage = localStorage;
 
         InitializeDemoTimeline();
         // Start at the first data point so charts render on load
@@ -427,6 +435,7 @@ public class GexStateService : IGexStateService
 
     /// <summary>
     /// Refresh live GEX data from API for the given symbol.
+    /// Falls back to cached data on failure.
     /// </summary>
     public async Task RefreshLiveDataAsync(string symbol)
     {
@@ -441,27 +450,67 @@ public class GexStateService : IGexStateService
             {
                 _liveGexData = await response.Content.ReadFromJsonAsync<GexCalculationResult>();
                 _lastLiveDataRefresh = DateTime.Now;
+                _liveDataFetchedAt = DateTime.UtcNow;
                 _liveDataError = null;
+                _isLiveDataFromCache = false;
+                _isLiveDataStale = false;
+
+                // Cache the fresh data
+                var cacheEntry = new CachedGexData
+                {
+                    Data = _liveGexData!,
+                    Symbol = symbol.ToUpperInvariant(),
+                    CachedAt = DateTime.UtcNow,
+                    FetchedAt = DateTime.UtcNow,
+                    IsCached = false
+                };
+                await _localStorage.SetAsync(StorageKeys.LiveGex(symbol), cacheEntry);
             }
             else
             {
                 _liveDataError = $"API returned {(int)response.StatusCode}";
+                await TryFallbackToCacheAsync(symbol);
             }
         }
         catch (HttpRequestException ex)
         {
             _liveDataError = $"Network error: {ex.Message}";
-            _liveGexData = null;
+            await TryFallbackToCacheAsync(symbol);
         }
         catch (Exception ex)
         {
             _liveDataError = $"Error: {ex.Message}";
-            _liveGexData = null;
+            await TryFallbackToCacheAsync(symbol);
         }
         finally
         {
             _isLoadingLiveData = false;
             NotifyStateChanged();
+        }
+    }
+
+    /// <summary>
+    /// Attempt to load cached data when API fails.
+    /// </summary>
+    private async Task TryFallbackToCacheAsync(string symbol)
+    {
+        var cached = await LoadCachedGexDataAsync(symbol);
+        if (cached != null)
+        {
+            _liveGexData = cached.Data;
+            _liveDataFetchedAt = cached.FetchedAt;
+            _isLiveDataFromCache = true;
+            _isLiveDataStale = cached.IsStale;
+            _lastLiveDataRefresh = DateTime.Now;
+            // Append cache info to error message
+            _liveDataError = _liveDataError + " (using cached data)";
+        }
+        else
+        {
+            _liveGexData = null;
+            _liveDataFetchedAt = null;
+            _isLiveDataFromCache = false;
+            _isLiveDataStale = false;
         }
     }
 
@@ -499,6 +548,44 @@ public class GexStateService : IGexStateService
         {
             await RefreshLiveDataAsync(_liveDataPollingSymbol);
         }
+    }
+
+    /// <summary>
+    /// Load cached GEX data from localStorage for a symbol.
+    /// </summary>
+    public async Task<CachedGexData?> LoadCachedGexDataAsync(string symbol)
+    {
+        var cached = await _localStorage.GetAsync<CachedGexData>(StorageKeys.LiveGex(symbol));
+        if (cached == null)
+            return null;
+
+        // Return with IsCached = true to indicate it came from cache
+        return cached with { IsCached = true };
+    }
+
+    /// <summary>
+    /// Clear cached GEX data for a symbol (or all symbols if null).
+    /// </summary>
+    public async Task ClearCachedGexDataAsync(string? symbol = null)
+    {
+        if (symbol != null)
+        {
+            await _localStorage.RemoveAsync(StorageKeys.LiveGex(symbol));
+        }
+        else
+        {
+            // Clear all cached GEX data by finding keys with the prefix
+            var keys = await _localStorage.GetKeysAsync();
+            foreach (var key in keys.Where(k => k.StartsWith(StorageKeys.LiveGexPrefix)))
+            {
+                await _localStorage.RemoveAsync(key);
+            }
+        }
+
+        // Reset cache-related state if we cleared the current symbol's cache
+        _isLiveDataFromCache = false;
+        _isLiveDataStale = false;
+        NotifyStateChanged();
     }
 
     public void Dispose()

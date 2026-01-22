@@ -230,4 +230,12 @@ public static class StorageKeys
     // GitHub integration
     public const string GitHubAuth = "gexvisor.github.auth";
     public const string GitHubProjects = "gexvisor.github.projects";
+
+    // Live data cache
+    public const string LiveGexPrefix = "gexvisor.liveGex.";
+
+    /// <summary>
+    /// Get storage key for a symbol's cached live GEX data.
+    /// </summary>
+    public static string LiveGex(string symbol) => $"{LiveGexPrefix}{symbol.ToUpperInvariant()}";
 }

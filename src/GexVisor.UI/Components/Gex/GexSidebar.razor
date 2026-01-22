@@ -59,9 +59,15 @@
                             {
                                 <span class="last-refresh">Updated @LastLiveDataRefresh.Value.ToString("HH:mm:ss")</span>
                             }
-                            @if (!string.IsNullOrEmpty(LiveDataError))
+                            @if (IsLiveDataFromCache)
                             {
-                                <span class="live-error" title="@LiveDataError">⚠ Error</span>
+                                <span class="cache-indicator @(IsLiveDataStale ? "stale" : "fresh")" title="@CacheTooltip">
+                                    @(IsLiveDataStale ? "STALE" : "CACHED")
+                                </span>
+                            }
+                            @if (!string.IsNullOrEmpty(LiveDataError) && !IsLiveDataFromCache)
+                            {
+                                <span class="live-error" title="@LiveDataError">Error</span>
                             }
                         </div>
                     }
@@ -263,6 +269,23 @@
     private bool IsLoadingLiveData => StateService.IsLoadingLiveData;
     private string? LiveDataError => StateService.LiveDataError;
     private DateTime? LastLiveDataRefresh => StateService.LastLiveDataRefresh;
+    private bool IsLiveDataFromCache => StateService.IsLiveDataFromCache;
+    private bool IsLiveDataStale => StateService.IsLiveDataStale;
+    private DateTime? LiveDataFetchedAt => StateService.LiveDataFetchedAt;
+
+    private string CacheTooltip
+    {
+        get
+        {
+            if (!LiveDataFetchedAt.HasValue) return "Cached data";
+            var age = DateTime.UtcNow - LiveDataFetchedAt.Value;
+            if (age.TotalHours >= 1)
+                return $"Data from {age.Hours}h {age.Minutes}m ago";
+            if (age.TotalMinutes >= 1)
+                return $"Data from {age.Minutes}m ago";
+            return "Data from just now";
+        }
+    }
     private int CurrentIndex => StateService.State.CurrentIndex;
     private int MaxIndex => Math.Max(0, StateService.Timeline.Count - 1);
     private decimal Price => StateService.State.Price;

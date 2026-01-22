@@ -25,4 +25,9 @@ public interface ILocalStorageService
     /// Clears all values from localStorage.
     /// </summary>
     Task ClearAsync();
+
+    /// <summary>
+    /// Gets all keys in localStorage.
+    /// </summary>
+    Task<string[]> GetKeysAsync();
 }

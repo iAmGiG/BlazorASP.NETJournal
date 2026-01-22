@@ -6,12 +6,57 @@
     padding: 20px;
     border-bottom: 1px solid var(--border-color);
     background: var(--bg-panel);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
 }
 
 .header-left {
     display: flex;
     align-items: center;
     gap: 20px;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* View Toggle */
+.view-toggle {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 4px;
+}
+
+.view-btn {
+    background: transparent;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.view-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.view-btn.active {
+    background: var(--accent-blue);
+    color: white;
 }
 
 .title-group {
@@ -503,4 +548,134 @@
     .ring-legend {
         display: none;
     }
+
+    /* Hide radar view toggle on mobile - force cards */
+    .view-toggle {
+        display: none;
+    }
+}
+
+/* ===========================================
+   RADAR VISUALIZATION STYLES
+   =========================================== */
+
+.radar-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background: var(--bg-panel);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    min-height: 500px;
+}
+
+.radar-svg {
+    width: 100%;
+    max-width: 700px;
+    height: auto;
+    aspect-ratio: 1;
+}
+
+/* Quadrant backgrounds */
+.quadrant-bg {
+    opacity: 0.08;
+}
+
+/* Concentric rings */
+.ring-circle {
+    fill: none;
+    stroke: var(--border-color);
+    stroke-width: 1;
+    opacity: 0.6;
+}
+
+/* Quadrant dividing lines */
+.quadrant-line {
+    stroke: var(--border-color);
+    stroke-width: 1;
+    stroke-dasharray: 5 5;
+    opacity: 0.5;
+}
+
+/* Ring labels */
+.ring-label-text {
+    fill: var(--text-muted);
+    font-size: 8px;
+    font-family: inherit;
+}
+
+/* Quadrant labels */
+.quadrant-label-text {
+    font-size: 9px;
+    font-weight: 600;
+    text-anchor: middle;
+    font-family: inherit;
+    letter-spacing: 1px;
+}
+
+/* Center pulse */
+.center-bg {
+    fill: rgba(46, 204, 113, 0.12);
+    stroke: rgba(46, 204, 113, 0.4);
+    stroke-width: 2;
+}
+
+.center-label {
+    fill: #2ecc71;
+    font-size: 7px;
+    font-weight: 600;
+    text-anchor: middle;
+    font-family: inherit;
+    letter-spacing: 1px;
+}
+
+.center-sublabel {
+    fill: var(--text-muted);
+    font-size: 8px;
+    text-anchor: middle;
+    font-family: inherit;
+}
+
+/* Research nodes */
+.research-node {
+    cursor: pointer;
+    transition: opacity 0.3s;
+}
+
+.research-node:hover .node-circle {
+    filter: brightness(1.2);
+}
+
+.research-node.selected .node-circle {
+    stroke: white;
+    stroke-width: 3px;
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
+}
+
+.research-node.dimmed {
+    opacity: 0.2;
+}
+
+.node-circle {
+    stroke: rgba(0, 0, 0, 0.3);
+    stroke-width: 2px;
+    transition: filter 0.2s, stroke 0.2s;
+}
+
+.node-label {
+    fill: #000;
+    font-size: 7px;
+    font-weight: 600;
+    text-anchor: middle;
+    font-family: inherit;
+    pointer-events: none;
+}
+
+.node-label-long {
+    fill: rgba(0, 0, 0, 0.8);
+    font-size: 6px;
+    text-anchor: middle;
+    font-family: inherit;
+    pointer-events: none;
 }
