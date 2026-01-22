@@ -165,6 +165,100 @@ builder.Services.AddScoped<StatusMapper>();
 builder.Services.AddScoped<SqliteService>();
 builder.Services.AddScoped<TradeLogService>();
 builder.Services.AddScoped<DecisionMetadataParser>();
+
+// Live market data services (Epic #145)
+builder.Services.AddSingleton<IApiConfigService, ApiConfigService>();
+builder.Services.AddSingleton<ICacheService>(sp => new SqliteCacheService(".cache/gexvisor.db"));
+builder.Services.AddSingleton<IMarketDataService, MarketDataService>();
+builder.Services.AddSingleton<IOptionsChainService, OptionsChainService>();
+builder.Services.AddSingleton<IGexCalculationService, GexCalculationService>();
+```
+
+---
+
+## GEX Calculation Pipeline
+
+### Overview
+
+The GEX (Gamma Exposure) calculation service converts raw options chain data into actionable market metrics.
+
+### Architecture
+
+```text
+OptionsChainService → GexCalculationService → GexChart UI
+         ↓                     ↓                    ↓
+   Alpha Vantage          Formulas              Visualization
+   (Greeks, OI)        (Σ gamma × OI × S²)      (Strike bars)
+```
+
+### Core Formula
+
+```
+GEX_strike = gamma × open_interest × 100 × spot_price²
+Total_GEX = Σ(call_GEX) - Σ(put_GEX)
+```
+
+### Regime Classification
+
+- **Long Gamma**: Net GEX > +10% (dealers short gamma, dampens volatility)
+- **Short Gamma**: Net GEX < -10% (dealers long gamma, amplifies volatility)
+- **Neutral**: Net GEX within ±10%
+
+### Zero-Gamma Level
+
+Interpolated strike price where net GEX crosses zero. Acts as pivot point for dealer hedging behavior.
+
+### Implementation
+
+- **Service**: `IGexCalculationService` in `GexVisor.Api/Services/`
+- **Models**: `GexData.cs` (GexRegime, StrikeGamma, GexCalculationResult)
+- **API Endpoint**: `GET /api/gex/{symbol}`
+- **Reference**: Ported from `autogen-trader` Python implementation
+
+### Code-Behind Pattern (Blazor)
+
+**Magic Numbers Refactoring**: Complex components like GexChart.razor now use code-behind pattern:
+
+```
+GexChart.razor         (Markup only)
+GexChart.razor.cs      (Logic + Constants)
+GexChart.razor.css     (Styles)
+```
+
+**Benefits**:
+- Testable calculation logic
+- Named constants instead of magic numbers
+- Better IntelliSense/navigation
+- Separation of concerns
+
+**See**: [ADR 0007](adr/0007-blazor-code-behind-pattern.md) for decision rationale
+
+### AppConstants Centralization
+
+Magic numbers and configuration values are centralized in `Configuration/AppConstants.cs`:
+
+| Nested Class | Purpose | Example Constants |
+|--------------|---------|-------------------|
+| `GitHub` | API limits | MaxProjectsPerQuery, MaxItemsPerProject |
+| `Cache` | TTL durations | BoardStateCacheMinutes |
+| `UI` | Display limits | MaxTagSuggestions |
+| `Validation` | Pattern thresholds | MinimumSampleSize, MinimumWinRatePercent |
+| `Finance` | Trading constants | TradingDaysPerYear, DefaultContractMultiplier |
+| `Correlation` | Analysis thresholds | StrongCorrelationThreshold |
+| `DataFormat` | Parsing formats | DateFormat ("yyyy-MM-dd") |
+| `Keyboard` | UI shortcuts | Sections[], SidebarShortcuts[] |
+
+**Keyboard Shortcuts Pattern**:
+```csharp
+// Two collections for different display contexts
+public static class Keyboard
+{
+    // Detailed overlay (11 items in 3 sections)
+    public static readonly ShortcutSection[] Sections = [...];
+
+    // Compact sidebar (6 grouped rows)
+    public static readonly (string Keys, string Action)[] SidebarShortcuts = [...];
+}
 ```
 
 ---
@@ -320,11 +414,23 @@ Tracked in GitHub issues:
 
 | Issue | Title | Priority |
 |-------|-------|----------|
+| #149 | GEX Calculation Engine | High |
+| #147 | Market Data Service (Alpaca/Finnhub) | High |
+| #146 | API Key Configuration Service | High |
 | #144 | Restore radar visualization (Research Complexity Map) | Medium |
-| #143 | Trade Journal code quality improvements | High |
 | #111 | Simple Chart Viewer (Epic) | Medium |
 | #110 | Self-Tracking Metrics Dashboard (Epic) | Medium |
-| #100 | Research Visualizations migration (Epic) | Low |
+
+### Recently Closed (Session 19)
+
+| Issue | Title | Resolution |
+|-------|-------|------------|
+| #165 | Extract keyboard shortcuts to shared collection | AppConstants.Keyboard class |
+| #166 | Extract GEX chart legend to C# collection | LegendItems tuple array |
+| #167 | Extract GexChart magic numbers to constants | ChartConfiguration nested class |
+| #168 | Extract Paper2Agreement bar count to constant | BarCount constant |
+| #153 | Responsive font sizing with CSS clamp() | clamp() on axis labels |
+| #143 | Trade Journal code quality improvements | Exception handling, delete confirmation |
 
 ---
 
