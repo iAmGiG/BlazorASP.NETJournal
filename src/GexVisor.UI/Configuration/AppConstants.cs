@@ -167,4 +167,60 @@ public static class AppConstants
         /// </summary>
         public const string DateFormat = "yyyy-MM-dd";
     }
+
+    /// <summary>
+    /// Keyboard shortcut definitions for UI components.
+    /// Centralized to ensure consistency between sidebar and help overlay.
+    /// </summary>
+    public static class Keyboard
+    {
+        /// <summary>
+        /// Represents a single keyboard shortcut with descriptions for different contexts.
+        /// </summary>
+        public record ShortcutItem(string Key, string ShortDesc, string LongDesc);
+
+        /// <summary>
+        /// Represents a section of related keyboard shortcuts.
+        /// </summary>
+        public record ShortcutSection(string Title, ShortcutItem[] Items);
+
+        /// <summary>
+        /// Detailed shortcut data organized by section (for help overlay).
+        /// </summary>
+        public static readonly ShortcutSection[] Sections =
+        [
+            new("Playback",
+            [
+                new("Space", "Play/Pause", "Play / Pause simulation"),
+                new("←", "Step", "Step backward one data point"),
+                new("→", "Step", "Step forward one data point"),
+            ]),
+            new("Navigation",
+            [
+                new("↑", "Jump Year", "Jump to next year"),
+                new("↓", "Jump Year", "Jump to previous year"),
+                new("Home", "Start/End", "Jump to start of timeline"),
+                new("End", "Start/End", "Jump to end of timeline"),
+            ]),
+            new("View",
+            [
+                new("R", "Reset Zoom", "Reset axis zoom to default"),
+                new("F", "Fullscreen", "Toggle fullscreen mode"),
+                new("?", "Help", "Show this help overlay"),
+            ])
+        ];
+
+        /// <summary>
+        /// Compact shortcut data with grouped keys (for sidebar display).
+        /// </summary>
+        public static readonly (string Keys, string Action)[] SidebarShortcuts =
+        [
+            ("Space", "Play/Pause"),
+            ("← →", "Step"),
+            ("↑ ↓", "Jump Year"),
+            ("Home/End", "Start/End"),
+            ("R", "Reset Zoom"),
+            ("F", "Fullscreen")
+        ];
+    }
 }

@@ -1,4 +1,5 @@
 @namespace GexVisor.UI.Components.Gex
+@using GexVisor.UI.Configuration
 
 <div class="shortcuts-overlay @(IsVisible ? "visible" : "")" @onclick="Close" @onclick:stopPropagation="true">
     <div class="shortcuts-modal" @onclick:stopPropagation="true">
@@ -8,57 +9,19 @@
         </div>
 
         <div class="shortcuts-content">
-            <div class="shortcut-section">
-                <h3>Playback</h3>
-                <div class="shortcut-item">
-                    <span class="key">Space</span>
-                    <span class="desc">Play / Pause simulation</span>
+            @foreach (var group in AppConstants.Keyboard.Sections)
+            {
+                <div class="shortcut-section">
+                    <h3>@group.Title</h3>
+                    @foreach (var item in group.Items)
+                    {
+                        <div class="shortcut-item">
+                            <span class="key">@item.Key</span>
+                            <span class="desc">@item.LongDesc</span>
+                        </div>
+                    }
                 </div>
-                <div class="shortcut-item">
-                    <span class="key">←</span>
-                    <span class="desc">Step backward one data point</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="key">→</span>
-                    <span class="desc">Step forward one data point</span>
-                </div>
-            </div>
-
-            <div class="shortcut-section">
-                <h3>Navigation</h3>
-                <div class="shortcut-item">
-                    <span class="key">↑</span>
-                    <span class="desc">Jump to next year</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="key">↓</span>
-                    <span class="desc">Jump to previous year</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="key">Home</span>
-                    <span class="desc">Jump to start of timeline</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="key">End</span>
-                    <span class="desc">Jump to end of timeline</span>
-                </div>
-            </div>
-
-            <div class="shortcut-section">
-                <h3>View</h3>
-                <div class="shortcut-item">
-                    <span class="key">R</span>
-                    <span class="desc">Reset axis zoom to default</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="key">F</span>
-                    <span class="desc">Toggle fullscreen mode</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="key">?</span>
-                    <span class="desc">Show this help overlay</span>
-                </div>
-            </div>
+            }
         </div>
 
         <div class="modal-footer">
