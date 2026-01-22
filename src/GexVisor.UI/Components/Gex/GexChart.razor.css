@@ -172,3 +172,91 @@
     fill: var(--accent-red);
     filter: brightness(1.1);
 }
+
+/* Zoom controls */
+.zoom-controls {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 4px;
+    z-index: 20;
+}
+
+.zoom-btn {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-card);
+    color: var(--text-muted);
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.zoom-btn:hover {
+    background: var(--bg-darker);
+    color: var(--text-primary);
+    border-color: var(--accent-cyan);
+}
+
+.zoom-btn:active {
+    transform: scale(0.95);
+}
+
+.zoom-btn.reset-btn {
+    font-size: 0.9rem;
+}
+
+/* Crosshair overlay */
+.crosshair-h,
+.crosshair-v {
+    position: absolute;
+    pointer-events: none;
+    z-index: 15;
+}
+
+.crosshair-h {
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--text-muted);
+    opacity: 0.5;
+}
+
+.crosshair-v {
+    top: 0;
+    bottom: 30px; /* Above x-axis */
+    width: 1px;
+    background: var(--text-muted);
+    opacity: 0.5;
+}
+
+.crosshair-tooltip {
+    position: absolute;
+    pointer-events: none;
+    z-index: 25;
+    background: var(--bg-darker);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.tooltip-price {
+    color: var(--accent-yellow);
+}
+
+.tooltip-gamma {
+    color: var(--accent-cyan);
+}
