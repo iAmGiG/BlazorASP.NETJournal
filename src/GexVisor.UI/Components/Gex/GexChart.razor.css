@@ -14,7 +14,7 @@
     flex-direction: column;
     justify-content: space-between;
     padding: 8px 0;
-    font-size: 0.65rem;
+    font-size: clamp(0.55rem, 1.2vw, 0.75rem);
     color: var(--text-muted);
     font-family: 'JetBrains Mono', monospace;
     text-align: right;
@@ -58,7 +58,7 @@
     display: flex;
     justify-content: space-between;
     padding: 8px 0;
-    font-size: 0.65rem;
+    font-size: clamp(0.55rem, 1.2vw, 0.75rem);
     color: var(--text-muted);
     font-family: 'JetBrains Mono', monospace;
     cursor: ew-resize;
