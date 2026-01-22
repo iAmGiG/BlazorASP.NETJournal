@@ -23,7 +23,16 @@
          @onmousedown:preventDefault
          title="Drag or scroll to adjust price (Shift for faster)">
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="chart-svg">
-            <!-- Center line (0 axis) -->
+            <!-- Grid layer (behind bars) -->
+            <g class="grid-lines">
+                @foreach (var line in GridLines)
+                {
+                    <line x1="@line.X1" y1="@line.Y1" x2="@line.X2" y2="@line.Y2"
+                          class="grid-line grid-line-@line.LineType" />
+                }
+            </g>
+
+            <!-- Center line (0 axis) - slightly bolder than grid -->
             <line x1="50" y1="0" x2="50" y2="100" class="center-line" />
 
             <!-- Gamma bars -->
@@ -70,6 +79,7 @@
     private const double Sigma = 12.0;
 
     private List<GammaBar> GammaBars { get; set; } = new();
+    private List<GridLine> GridLines { get; set; } = new();
     private DotNetObjectReference<GexChart>? _dotNetRef;
     private bool _isDragging;
     private bool _jsInitialized;
@@ -93,6 +103,7 @@
     protected override void OnInitialized()
     {
         StateService.OnStateChanged += OnStateChanged;
+        CalculateGridLines();
         CalculateBars();
     }
 
@@ -110,6 +121,40 @@
     {
         CalculateBars();
         StateHasChanged();
+    }
+
+    private void CalculateGridLines()
+    {
+        var lines = new List<GridLine>();
+
+        // Horizontal lines (price levels) at 20%, 40%, 60%, 80%
+        foreach (var y in new[] { 20.0, 40.0, 60.0, 80.0 })
+        {
+            lines.Add(new GridLine
+            {
+                X1 = 0,
+                Y1 = y,
+                X2 = 100,
+                Y2 = y,
+                LineType = "horizontal"
+            });
+        }
+
+        // Vertical lines (gamma values) at 25%, 75%
+        // (50% is the center line, already rendered separately)
+        foreach (var x in new[] { 25.0, 75.0 })
+        {
+            lines.Add(new GridLine
+            {
+                X1 = x,
+                Y1 = 0,
+                X2 = x,
+                Y2 = 100,
+                LineType = "vertical"
+            });
+        }
+
+        GridLines = lines;
     }
 
     private void CalculateBars()
@@ -402,5 +447,14 @@
         public double Height { get; init; }
         public string ColorClass { get; init; } = "";
         public double Opacity { get; init; }
+    }
+
+    private record GridLine
+    {
+        public double X1 { get; init; }
+        public double Y1 { get; init; }
+        public double X2 { get; init; }
+        public double Y2 { get; init; }
+        public string LineType { get; init; } = "";
     }
 }

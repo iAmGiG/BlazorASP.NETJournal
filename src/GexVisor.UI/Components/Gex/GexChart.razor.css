@@ -84,7 +84,26 @@
     font-weight: 600;
 }
 
-/* Center line (0 axis) */
+/* Grid lines (TradingView style) */
+.grid-lines {
+    opacity: 0.1;
+}
+
+.grid-line {
+    stroke: var(--text-muted);
+    stroke-dasharray: 2, 2;
+    stroke-width: 0.15;
+}
+
+.grid-line-horizontal {
+    /* Horizontal price level reference lines */
+}
+
+.grid-line-vertical {
+    /* Vertical gamma value reference lines */
+}
+
+/* Center line (0 axis) - slightly bolder than grid */
 .center-line {
     stroke: var(--border-color);
     stroke-width: 0.2;
