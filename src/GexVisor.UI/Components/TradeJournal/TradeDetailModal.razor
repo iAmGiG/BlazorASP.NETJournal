@@ -1,5 +1,6 @@
 @using GexVisor.Core
 @using GexVisor.UI.Models
+@using GexVisor.UI.Components.Charts
 @inject IJSRuntime JS
 
 @* Modal for viewing detailed trade information *@
@@ -64,6 +65,30 @@
                         </div>
                     </div>
                 </section>
+
+                @* Price Chart *@
+                @if (!string.IsNullOrEmpty(Trade.Ticker))
+                {
+                    <section class="detail-section chart-section">
+                        <div class="chart-header">
+                            <h3><i class="fas fa-chart-line"></i> Price Action</h3>
+                            <div class="chart-controls">
+                                <select @bind="selectedTimeframe" class="timeframe-select">
+                                    <option value="1d">Daily</option>
+                                    <option value="1h">Hourly</option>
+                                    <option value="15m">15 Min</option>
+                                </select>
+                                <button class="btn-toggle" @onclick="ToggleChart">
+                                    <i class="fas @(showChart ? "fa-chevron-up" : "fa-chevron-down")"></i>
+                                </button>
+                            </div>
+                        </div>
+                        @if (showChart)
+                        {
+                            <TradeChart Trade="Trade" Timeframe="@selectedTimeframe" Height="280" />
+                        }
+                    </section>
+                }
 
                 @* Options Details *@
                 <section class="detail-section">
@@ -174,6 +199,15 @@
 
     [Parameter]
     public EventCallback<Guid> OnDeleteTrade { get; set; }
+
+    // Chart state
+    private string selectedTimeframe = "1d";
+    private bool showChart = true;
+
+    private void ToggleChart()
+    {
+        showChart = !showChart;
+    }
 
     private void Close()
     {
@@ -437,5 +471,78 @@
 
     .btn-danger:hover {
         background: #dc2626;
+    }
+
+    /* Chart Section */
+    .chart-section {
+        background: var(--surface-1);
+        border-radius: 8px;
+        padding: 1rem;
+    }
+
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .chart-header h3 {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    .chart-header h3 i {
+        color: var(--accent);
+    }
+
+    .chart-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .timeframe-select {
+        padding: 0.35rem 0.75rem;
+        background: var(--surface-2);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        color: var(--text-color);
+        font-size: 0.85rem;
+        cursor: pointer;
+    }
+
+    .timeframe-select:focus {
+        outline: none;
+        border-color: var(--accent);
+    }
+
+    .btn-toggle {
+        padding: 0.35rem 0.5rem;
+        background: var(--surface-2);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .btn-toggle:hover {
+        color: var(--text-color);
+        background: var(--surface-3);
+    }
+
+    @@media (max-width: 600px) {
+        .chart-section {
+            padding: 0.75rem;
+        }
+
+        .chart-header {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
     }
 </style>
