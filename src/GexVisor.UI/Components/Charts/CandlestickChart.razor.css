@@ -1,0 +1,67 @@
+.candlestick-chart-container {
+    width: 100%;
+    min-height: 350px;
+    background: var(--bg-card, #1a1a2e);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.chart-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 350px;
+    color: var(--text-muted, #888);
+    gap: 1rem;
+}
+
+.chart-placeholder i {
+    font-size: 3rem;
+    opacity: 0.5;
+}
+
+.chart-placeholder span {
+    font-size: 0.9rem;
+}
+
+/* ApexCharts dark theme overrides */
+::deep .apexcharts-canvas {
+    background: transparent !important;
+}
+
+::deep .apexcharts-tooltip {
+    background: var(--bg-panel, #16213e) !important;
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1)) !important;
+    border-radius: 4px !important;
+}
+
+::deep .apexcharts-tooltip-title {
+    background: var(--bg-card, #1a1a2e) !important;
+    border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.1)) !important;
+}
+
+::deep .apexcharts-xaxistooltip {
+    background: var(--bg-panel, #16213e) !important;
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1)) !important;
+    color: var(--text-primary, #fff) !important;
+}
+
+::deep .apexcharts-yaxistooltip {
+    background: var(--bg-panel, #16213e) !important;
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1)) !important;
+    color: var(--text-primary, #fff) !important;
+}
+
+::deep .apexcharts-menu {
+    background: var(--bg-panel, #16213e) !important;
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1)) !important;
+}
+
+::deep .apexcharts-menu-item:hover {
+    background: var(--bg-card, #1a1a2e) !important;
+}
+
+::deep .apexcharts-toolbar {
+    z-index: 10;
+}

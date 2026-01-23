@@ -1,0 +1,138 @@
+@using GexVisor.Core
+
+<div class="candlestick-chart-container">
+    @if (Bars.Count == 0)
+    {
+        <div class="chart-placeholder">
+            <i class="fas fa-chart-line"></i>
+            <span>No data available</span>
+        </div>
+    }
+    else
+    {
+        <ApexChart TItem="OhlcvBar"
+                   Title="@Title"
+                   Options="chartOptions"
+                   Height="@Height">
+            <ApexCandleSeries TItem="OhlcvBar"
+                              Items="Bars"
+                              Name="Price"
+                              XValue="@(e => e.Timestamp)"
+                              Open="@(e => e.Open)"
+                              High="@(e => e.High)"
+                              Low="@(e => e.Low)"
+                              Close="@(e => e.Close)" />
+        </ApexChart>
+    }
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Symbol { get; set; } = "SPY";
+    [Parameter] public List<OhlcvBar> Bars { get; set; } = new();
+    [Parameter] public int Height { get; set; } = 350;
+
+    private ApexChartOptions<OhlcvBar> chartOptions = new();
+
+    protected override void OnInitialized()
+    {
+        ConfigureChartOptions();
+    }
+
+    protected override void OnParametersSet()
+    {
+        ConfigureChartOptions();
+    }
+
+    private void ConfigureChartOptions()
+    {
+        chartOptions = new ApexChartOptions<OhlcvBar>
+        {
+            Theme = new Theme
+            {
+                Mode = Mode.Dark,
+                Palette = PaletteType.Palette1
+            },
+            Chart = new Chart
+            {
+                Background = "transparent",
+                Toolbar = new Toolbar
+                {
+                    Show = true,
+                    Tools = new Tools
+                    {
+                        Download = true,
+                        Selection = true,
+                        Zoom = true,
+                        Zoomin = true,
+                        Zoomout = true,
+                        Pan = true,
+                        Reset = true
+                    }
+                },
+                Zoom = new Zoom
+                {
+                    Enabled = true,
+                    Type = AxisType.X
+                }
+            },
+            Grid = new Grid
+            {
+                BorderColor = "rgba(255, 255, 255, 0.1)",
+                StrokeDashArray = 3
+            },
+            Xaxis = new XAxis
+            {
+                Type = XAxisType.Datetime,
+                Labels = new XAxisLabels
+                {
+                    Style = new AxisLabelStyle
+                    {
+                        Colors = "#888"
+                    },
+                    DatetimeUTC = false
+                },
+                AxisBorder = new AxisBorder { Color = "rgba(255, 255, 255, 0.2)" },
+                AxisTicks = new AxisTicks { Color = "rgba(255, 255, 255, 0.2)" }
+            },
+            Yaxis = new List<YAxis>
+            {
+                new YAxis
+                {
+                    Labels = new YAxisLabels
+                    {
+                        Style = new AxisLabelStyle
+                        {
+                            Colors = "#888"
+                        },
+                        Formatter = "function(val) { return '$' + val.toFixed(2); }"
+                    },
+                    Tooltip = new YAxisTooltip { Enabled = true }
+                }
+            },
+            PlotOptions = new PlotOptions
+            {
+                Candlestick = new PlotOptionsCandlestick
+                {
+                    Colors = new PlotOptionsCandlestickColors
+                    {
+                        Upward = "#00c853",
+                        Downward = "#ff5252"
+                    },
+                    Wick = new PlotOptionsCandlestickWick
+                    {
+                        UseFillColor = true
+                    }
+                }
+            },
+            Tooltip = new Tooltip
+            {
+                Theme = Mode.Dark,
+                X = new TooltipX
+                {
+                    Format = "MMM dd, yyyy HH:mm"
+                }
+            }
+        };
+    }
+}
