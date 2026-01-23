@@ -209,11 +209,17 @@ public partial class GexChart : IAsyncDisposable
         var maxStrike = strikeGammas.Last().StrikePrice;
         var strikeRange = maxStrike - minStrike;
 
-        if (strikeRange <= 0) return bars;
+        if (strikeRange <= 0)
+        {
+            return bars;
+        }
 
         // Find max absolute GEX for normalization
         var maxAbsGex = strikeGammas.Max(s => Math.Abs(s.NetGex));
-        if (maxAbsGex == 0) maxAbsGex = 1;
+        if (maxAbsGex == 0)
+        {
+            maxAbsGex = 1;
+        }
 
         // Calculate center position (spot price)
         var spotPosition = (gexData.SpotPrice - minStrike) / strikeRange;
@@ -361,7 +367,10 @@ public partial class GexChart : IAsyncDisposable
         var strikeEnd = state.StrikeEnd;
         var priceRange = strikeEnd - strikeStart;
 
-        if (priceRange <= 0) return ChartConstants.DefaultCenterY;
+        if (priceRange <= 0)
+        {
+            return ChartConstants.DefaultCenterY;
+        }
 
         var strikeCount = (int)Math.Max(ChartConstants.MinStrikeCount,
             Math.Min(ChartConstants.MaxStrikeCount, priceRange / state.StrikeStep));
@@ -376,7 +385,10 @@ public partial class GexChart : IAsyncDisposable
         var strikeEnd = state.StrikeEnd;
         var priceRange = strikeEnd - strikeStart;
 
-        if (priceRange <= 0) return ChartConstants.DefaultCenterY;
+        if (priceRange <= 0)
+        {
+            return ChartConstants.DefaultCenterY;
+        }
 
         var zeroGamma = state.Price * (1 + Math.Abs(state.Tilt) * ChartConstants.ZeroGammaTiltMultiplier);
         var strikeCount = (int)Math.Max(ChartConstants.MinStrikeCount,
@@ -425,19 +437,27 @@ public partial class GexChart : IAsyncDisposable
 
     private void OnChartWheel(WheelEventArgs e)
     {
-        if (StateService.State.IsSimulating) return;
+        if (StateService.State.IsSimulating)
+        {
+            return;
+        }
 
         // Throttle wheel events
         var now = DateTime.UtcNow;
         if ((now - _lastChartWheelTime).TotalMilliseconds < ChartConstants.WheelThrottleMs)
+        {
             return;
+        }
+
         _lastChartWheelTime = now;
 
         var step = e.ShiftKey ? 10m : 2m;
         var delta = e.DeltaY > 0 ? -step : step;
 
         if (StateService.State.InvertScroll)
+        {
             delta = -delta;
+        }
 
         var newPrice = StateService.State.Price + delta;
         newPrice = Math.Max(StateService.State.StrikeStart, Math.Min(StateService.State.StrikeEnd, newPrice));
@@ -449,7 +469,10 @@ public partial class GexChart : IAsyncDisposable
         // Throttle wheel events
         var now = DateTime.UtcNow;
         if ((now - _lastYAxisWheelTime).TotalMilliseconds < ChartConstants.WheelThrottleMs)
+        {
             return;
+        }
+
         _lastYAxisWheelTime = now;
 
         var delta = e.DeltaY > 0 ? 0.1m : -0.1m;
@@ -461,7 +484,10 @@ public partial class GexChart : IAsyncDisposable
         // Throttle wheel events
         var now = DateTime.UtcNow;
         if ((now - _lastXAxisWheelTime).TotalMilliseconds < ChartConstants.WheelThrottleMs)
+        {
             return;
+        }
+
         _lastXAxisWheelTime = now;
 
         var delta = e.DeltaY > 0 ? 0.1m : -0.1m;
@@ -491,7 +517,10 @@ public partial class GexChart : IAsyncDisposable
 
     private void OnChartMouseMove(MouseEventArgs e)
     {
-        if (_isDragging) return;
+        if (_isDragging)
+        {
+            return;
+        }
 
         // Use OffsetX/OffsetY which are relative to the target element
         // Estimate chart area dimensions (SVG is most of the container minus x-axis ~30px)
@@ -544,7 +573,11 @@ public partial class GexChart : IAsyncDisposable
 
     private async Task OnChartMouseDown(MouseEventArgs e)
     {
-        if (StateService.State.IsSimulating) return;
+        if (StateService.State.IsSimulating)
+        {
+            return;
+        }
+
         _isDragging = true;
         await JS.InvokeVoidAsync("GexInterop.startChartDrag", e.ClientY, (double)StateService.State.Price);
     }

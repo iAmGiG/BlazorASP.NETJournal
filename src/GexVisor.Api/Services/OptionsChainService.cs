@@ -17,7 +17,7 @@ public class OptionsChainService : IOptionsChainService
     // Rate limiting (O(1) with queue)
     private readonly Queue<DateTime> _callTimestamps = new();
     private readonly SemaphoreSlim _rateLimitLock = new(1, 1);
-    private int _callsPerMinute = 75; // Default standard tier
+    private readonly int _callsPerMinute = 75; // Default standard tier
 
     // Provider fallback order
     private readonly List<MarketDataProvider> _providerOrder = new()
@@ -278,21 +278,48 @@ public class OptionsChainService : IOptionsChainService
         decimal score = 0;
 
         // Greeks present (40% weight total)
-        if (data.Delta.HasValue) score += 0.1m;
-        if (data.Gamma.HasValue) score += 0.1m;
-        if (data.Theta.HasValue) score += 0.1m;
-        if (data.Vega.HasValue) score += 0.1m;
+        if (data.Delta.HasValue)
+        {
+            score += 0.1m;
+        }
+
+        if (data.Gamma.HasValue)
+        {
+            score += 0.1m;
+        }
+
+        if (data.Theta.HasValue)
+        {
+            score += 0.1m;
+        }
+
+        if (data.Vega.HasValue)
+        {
+            score += 0.1m;
+        }
 
         // IV present (20% weight)
-        if (data.ImpliedVolatility.HasValue) score += 0.2m;
+        if (data.ImpliedVolatility.HasValue)
+        {
+            score += 0.2m;
+        }
 
         // Bid/Ask valid (20% weight)
         if (data.Bid.HasValue && data.Ask.HasValue && data.Ask > data.Bid)
+        {
             score += 0.2m;
+        }
 
         // Volume/OI present (20% weight total)
-        if (data.Volume > 0) score += 0.1m;
-        if (data.OpenInterest > 0) score += 0.1m;
+        if (data.Volume > 0)
+        {
+            score += 0.1m;
+        }
+
+        if (data.OpenInterest > 0)
+        {
+            score += 0.1m;
+        }
 
         return score;
     }
@@ -384,7 +411,9 @@ public class OptionsChainService : IOptionsChainService
 
             // Remove old timestamps (O(1) queue operations)
             while (_callTimestamps.Count > 0 && _callTimestamps.Peek() < oneMinuteAgo)
+            {
                 _callTimestamps.Dequeue();
+            }
 
             // Check if at limit
             if (_callTimestamps.Count >= _callsPerMinute)

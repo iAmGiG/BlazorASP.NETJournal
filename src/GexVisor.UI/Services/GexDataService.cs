@@ -1,7 +1,5 @@
 using System.Globalization;
-using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using GexVisor.UI.Models;
 
 namespace GexVisor.UI.Services;
@@ -38,7 +36,9 @@ public class GexDataService : IGexDataService
         {
             var response = await _httpClient.GetAsync("data/index.json");
             if (!response.IsSuccessStatusCode)
+            {
                 return null;
+            }
 
             var json = await response.Content.ReadAsStringAsync();
             _index = JsonSerializer.Deserialize<GexIndex>(json, _jsonOptions);
@@ -68,7 +68,9 @@ public class GexDataService : IGexDataService
             var json = await response.Content.ReadAsStringAsync();
             var rawTimeline = JsonSerializer.Deserialize<RawGexTimeline>(json, _jsonOptions);
             if (rawTimeline == null)
+            {
                 return null;
+            }
 
             return TransformTimeline(rawTimeline);
         }
@@ -131,7 +133,10 @@ public class GexDataService : IGexDataService
     public IEnumerable<string> GetAssetClasses()
     {
         if (_index == null)
+        {
             return Enumerable.Empty<string>();
+        }
+
         return _index.AssetClasses.Keys.OrderBy(k => k);
     }
 
@@ -141,7 +146,10 @@ public class GexDataService : IGexDataService
     public IEnumerable<string> GetSymbolsForClass(string assetClass)
     {
         if (_index?.AssetClasses.TryGetValue(assetClass, out var symbols) == true)
+        {
             return symbols.OrderBy(s => s);
+        }
+
         return Enumerable.Empty<string>();
     }
 
@@ -151,7 +159,10 @@ public class GexDataService : IGexDataService
     public IEnumerable<string> GetAllSymbols()
     {
         if (_index == null)
+        {
             return Enumerable.Empty<string>();
+        }
+
         return _index.Symbols.Select(s => s.Symbol).OrderBy(s => s);
     }
 

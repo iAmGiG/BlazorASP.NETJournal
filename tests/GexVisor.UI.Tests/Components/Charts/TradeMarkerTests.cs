@@ -1,8 +1,8 @@
-using ApexCharts;
+// Copyright (c) GexVisor. All rights reserved.
+
 using FluentAssertions;
 using GexVisor.Core;
 using GexVisor.UI.Components.Charts;
-using Xunit;
 
 namespace GexVisor.UI.Tests.Components.Charts;
 
@@ -12,8 +12,6 @@ namespace GexVisor.UI.Tests.Components.Charts;
 /// </summary>
 public class TradeMarkerTests
 {
-    #region BuildTradeAnnotations Tests
-
     [Fact]
     public void BuildTradeAnnotations_ReturnsEmptyPoints_WhenNoValidData()
     {
@@ -53,10 +51,6 @@ public class TradeMarkerTests
         // Assert
         annotations.Points.Should().HaveCount(2);
     }
-
-    #endregion
-
-    #region BuildEntryMarker Tests
 
     [Fact]
     public void BuildEntryMarker_SetsCorrectXAndY()
@@ -126,10 +120,6 @@ public class TradeMarkerTests
         marker.Label?.Text.Should().Contain("STO");
     }
 
-    #endregion
-
-    #region BuildExitMarker Tests
-
     [Fact]
     public void BuildExitMarker_UsesGreenColor_ForProfitableTrade()
     {
@@ -185,10 +175,6 @@ public class TradeMarkerTests
         labelText.Should().Contain("$-");
     }
 
-    #endregion
-
-    #region BuildEntryPriceLine Tests
-
     [Fact]
     public void BuildEntryPriceLine_CreatesYAxisAnnotation()
     {
@@ -221,10 +207,6 @@ public class TradeMarkerTests
         line.BorderWidth.Should().Be(1);
     }
 
-    #endregion
-
-    #region BuildExitPriceLine Tests
-
     [Fact]
     public void BuildExitPriceLine_ReturnsNull_WhenNoExitPrice()
     {
@@ -255,10 +237,6 @@ public class TradeMarkerTests
         labelText.Should().Contain("$110.00");
     }
 
-    #endregion
-
-    #region Helper Methods
-
     private static OptionsLog CreateLongTrade()
     {
         return new OptionsLog
@@ -269,7 +247,7 @@ public class TradeMarkerTests
             Quantity = 1,
             StrikePrice = 400m,
             ExpirationDate = DateTime.Now.AddDays(30),
-            Ticker = "SPY"
+            Ticker = "SPY",
         };
     }
 
@@ -283,7 +261,7 @@ public class TradeMarkerTests
             Quantity = 1,
             StrikePrice = 400m,
             ExpirationDate = DateTime.Now.AddDays(30),
-            Ticker = "SPY"
+            Ticker = "SPY",
         };
     }
 
@@ -299,9 +277,7 @@ public class TradeMarkerTests
             Quantity = 1,
             StrikePrice = 400m,
             ExpirationDate = DateTime.Now.AddDays(30),
-            Ticker = "SPY"
+            Ticker = "SPY",
         };
     }
-
-    #endregion
 }

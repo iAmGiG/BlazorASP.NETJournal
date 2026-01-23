@@ -1,0 +1,66 @@
+name: Lint
+
+on:
+  push:
+    branches: [ development, main ]
+  pull_request:
+    branches: [ development, main ]
+
+jobs:
+  dotnet-lint:
+    name: .NET Code Linting
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      
+      - name: Restore dependencies
+        run: dotnet restore
+      
+      - name: Check code formatting
+        run: dotnet format --verify-no-changes --verbosity diagnostic
+      
+      - name: Build with analyzers
+        run: dotnet build --no-restore /p:TreatWarningsAsErrors=true
+      
+      - name: Run tests
+        run: dotnet test --no-build --verbosity normal
+
+  markdown-lint:
+    name: Markdown Linting
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install markdownlint-cli
+        run: npm install -g markdownlint-cli
+      
+      - name: Lint markdown files
+        run: markdownlint 'docs/**/*.md' --config .markdownlint.json
+
+  editorconfig-check:
+    name: EditorConfig Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Check editorconfig compliance
+        uses: editorconfig-checker/action-editorconfig-checker@main
+      
+      - name: Run editorconfig-checker
+        run: editorconfig-checker

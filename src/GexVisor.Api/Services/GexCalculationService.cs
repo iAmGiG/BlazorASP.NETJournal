@@ -144,7 +144,9 @@ public class GexCalculationService : IGexCalculationService
     private decimal? FindZeroGammaLevel(List<StrikeGamma> strikes, decimal spotPrice)
     {
         if (strikes.Count < 2)
+        {
             return null;
+        }
 
         // Find strikes where net GEX crosses zero
         for (int i = 0; i < strikes.Count - 1; i++)
@@ -198,7 +200,9 @@ public class GexCalculationService : IGexCalculationService
         var maxGex = Math.Max(Math.Abs(callGex), Math.Abs(putGex));
 
         if (maxGex == 0)
+        {
             return GexRegime.Neutral;
+        }
 
         var gexRatio = totalGex / maxGex;
 
@@ -208,10 +212,16 @@ public class GexCalculationService : IGexCalculationService
         // - Neutral: Balanced exposure
 
         if (gexRatio > RegimeNeutralThreshold)
+        {
             return GexRegime.LongGamma;
+        }
         else if (gexRatio < -RegimeNeutralThreshold)
+        {
             return GexRegime.ShortGamma;
+        }
         else
+        {
             return GexRegime.Neutral;
+        }
     }
 }

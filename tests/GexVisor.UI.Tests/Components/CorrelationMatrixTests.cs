@@ -1,8 +1,9 @@
+// Copyright (c) GexVisor. All rights reserved.
+
 using Bunit;
 using FluentAssertions;
 using GexVisor.UI.Components.Comparison;
 using GexVisor.UI.Models;
-using Xunit;
 
 namespace GexVisor.UI.Tests.Components;
 
@@ -16,7 +17,7 @@ public class CorrelationMatrixTests : TestContext
     public void Component_WithNoCorrelations_DisplaysEmptyState()
     {
         // Arrange & Act
-        var cut = RenderComponent<CorrelationMatrix>(parameters => parameters
+        var cut = this.RenderComponent<CorrelationMatrix>(parameters => parameters
             .Add(p => p.Correlations, null));
 
         // Assert
@@ -28,7 +29,7 @@ public class CorrelationMatrixTests : TestContext
     public void Component_WithEmptyList_DisplaysEmptyState()
     {
         // Arrange & Act
-        var cut = RenderComponent<CorrelationMatrix>(parameters => parameters
+        var cut = this.RenderComponent<CorrelationMatrix>(parameters => parameters
             .Add(p => p.Correlations, new List<CorrelationMetrics>()));
 
         // Assert
@@ -41,17 +42,18 @@ public class CorrelationMatrixTests : TestContext
         // Arrange
         var correlations = new List<CorrelationMetrics>
         {
-            CreateCorrelation("SPY", "QQQ", 0.85m),
-            CreateCorrelation("SPY", "IWM", 0.72m),
-            CreateCorrelation("QQQ", "IWM", 0.68m)
+            this.CreateCorrelation("SPY", "QQQ", 0.85m),
+            this.CreateCorrelation("SPY", "IWM", 0.72m),
+            this.CreateCorrelation("QQQ", "IWM", 0.68m),
         };
 
         // Act
-        var cut = RenderComponent<CorrelationMatrix>(parameters => parameters
+        var cut = this.RenderComponent<CorrelationMatrix>(parameters => parameters
             .Add(p => p.Correlations, correlations));
 
         // Assert - should have 3 unique symbols (SPY, QQQ, IWM) sorted alphabetically
         var headerCells = cut.FindAll(".matrix-cell.header");
+
         // First cell is corner, next 3 are column headers, next 3 are row headers
         var columnHeaders = headerCells.Skip(1).Take(3).Select(e => e.TextContent).ToList();
         columnHeaders.Should().BeEquivalentTo(new[] { "IWM", "QQQ", "SPY" });
@@ -63,11 +65,11 @@ public class CorrelationMatrixTests : TestContext
         // Arrange
         var correlations = new List<CorrelationMetrics>
         {
-            CreateCorrelation("SPY", "QQQ", 0.85m)
+            this.CreateCorrelation("SPY", "QQQ", 0.85m),
         };
 
         // Act
-        var cut = RenderComponent<CorrelationMatrix>(parameters => parameters
+        var cut = this.RenderComponent<CorrelationMatrix>(parameters => parameters
             .Add(p => p.Correlations, correlations));
 
         // Assert
@@ -81,11 +83,11 @@ public class CorrelationMatrixTests : TestContext
         // Arrange
         var correlations = new List<CorrelationMetrics>
         {
-            CreateCorrelation("SPY", "QQQ", 0.85m)
+            this.CreateCorrelation("SPY", "QQQ", 0.85m),
         };
 
         // Act
-        var cut = RenderComponent<CorrelationMatrix>(parameters => parameters
+        var cut = this.RenderComponent<CorrelationMatrix>(parameters => parameters
             .Add(p => p.Correlations, correlations));
 
         // Assert
@@ -101,11 +103,11 @@ public class CorrelationMatrixTests : TestContext
         // Arrange
         var correlations = new List<CorrelationMetrics>
         {
-            CreateCorrelation("SPY", "QQQ", 0.85m) // Strong: >= 0.7
+            this.CreateCorrelation("SPY", "QQQ", 0.85m), // Strong: >= 0.7
         };
 
         // Act
-        var cut = RenderComponent<CorrelationMatrix>(parameters => parameters
+        var cut = this.RenderComponent<CorrelationMatrix>(parameters => parameters
             .Add(p => p.Correlations, correlations));
 
         // Assert - should have "strong" CSS class
@@ -119,11 +121,11 @@ public class CorrelationMatrixTests : TestContext
         // Arrange
         var correlations = new List<CorrelationMetrics>
         {
-            CreateCorrelation("SPY", "QQQ", 0.55m) // Moderate: 0.4-0.7
+            this.CreateCorrelation("SPY", "QQQ", 0.55m), // Moderate: 0.4-0.7
         };
 
         // Act
-        var cut = RenderComponent<CorrelationMatrix>(parameters => parameters
+        var cut = this.RenderComponent<CorrelationMatrix>(parameters => parameters
             .Add(p => p.Correlations, correlations));
 
         // Assert - should have "moderate" CSS class
@@ -137,11 +139,11 @@ public class CorrelationMatrixTests : TestContext
         // Arrange
         var correlations = new List<CorrelationMetrics>
         {
-            CreateCorrelation("SPY", "QQQ", 0.25m) // Weak: < 0.4
+            this.CreateCorrelation("SPY", "QQQ", 0.25m), // Weak: < 0.4
         };
 
         // Act
-        var cut = RenderComponent<CorrelationMatrix>(parameters => parameters
+        var cut = this.RenderComponent<CorrelationMatrix>(parameters => parameters
             .Add(p => p.Correlations, correlations));
 
         // Assert - should have "weak" CSS class
@@ -155,10 +157,10 @@ public class CorrelationMatrixTests : TestContext
         // Arrange - render with initial correlations
         var initialCorrelations = new List<CorrelationMetrics>
         {
-            CreateCorrelation("SPY", "QQQ", 0.85m)
+            this.CreateCorrelation("SPY", "QQQ", 0.85m),
         };
 
-        var cut = RenderComponent<CorrelationMatrix>(parameters => parameters
+        var cut = this.RenderComponent<CorrelationMatrix>(parameters => parameters
             .Add(p => p.Correlations, initialCorrelations));
 
         // Verify initial symbols (QQQ, SPY)
@@ -169,8 +171,8 @@ public class CorrelationMatrixTests : TestContext
         // Act - change Correlations parameter to NEW list reference
         var newCorrelations = new List<CorrelationMetrics>
         {
-            CreateCorrelation("IWM", "DIA", 0.75m),
-            CreateCorrelation("IWM", "SPY", 0.68m)
+            this.CreateCorrelation("IWM", "DIA", 0.75m),
+            this.CreateCorrelation("IWM", "SPY", 0.68m),
         };
 
         cut.SetParametersAndRender(parameters => parameters
@@ -188,10 +190,10 @@ public class CorrelationMatrixTests : TestContext
         // Arrange - render with correlations
         var correlations = new List<CorrelationMetrics>
         {
-            CreateCorrelation("SPY", "QQQ", 0.85m)
+            this.CreateCorrelation("SPY", "QQQ", 0.85m),
         };
 
-        var cut = RenderComponent<CorrelationMatrix>(parameters => parameters
+        var cut = this.RenderComponent<CorrelationMatrix>(parameters => parameters
             .Add(p => p.Correlations, correlations));
 
         // Verify symbols exist
@@ -205,8 +207,6 @@ public class CorrelationMatrixTests : TestContext
         cut.Find(".empty-state").Should().NotBeNull();
     }
 
-    #region Helper Methods
-
     private CorrelationMetrics CreateCorrelation(string symbol1, string symbol2, decimal priceCorr)
     {
         return new CorrelationMetrics
@@ -217,9 +217,7 @@ public class CorrelationMatrixTests : TestContext
             GexCorrelation = 0.5m,
             RegimeAlignment = 75.0m,
             RegimeFlipCorrelation = 60.0m,
-            PerformanceDispersion = 0.15m
+            PerformanceDispersion = 0.15m,
         };
     }
-
-    #endregion
 }

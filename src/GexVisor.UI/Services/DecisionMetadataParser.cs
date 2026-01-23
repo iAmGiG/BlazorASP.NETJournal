@@ -28,7 +28,9 @@ public class DecisionMetadataParser
 
             var logEntries = JsonSerializer.Deserialize<List<AutotraderLogEntry>>(jsonContent, options);
             if (logEntries == null)
+            {
                 return (trades, decisions);
+            }
 
             foreach (var entry in logEntries)
             {
@@ -58,7 +60,9 @@ public class DecisionMetadataParser
 
         var lines = csvContent.Split('\n', StringSplitOptions.RemoveEmptyEntries);
         if (lines.Length < 2) // Must have header + at least one row
+        {
             return (trades, decisions);
+        }
 
         var header = ParseCsvLine(lines[0]);
         var columnMap = MapCsvColumns(header);
@@ -67,11 +71,15 @@ public class DecisionMetadataParser
         {
             var values = ParseCsvLine(lines[i]);
             if (values.Length < header.Length)
+            {
                 continue;
+            }
 
             // Skip rows with invalid required numeric fields
             if (!IsValidCsvRow(values, columnMap))
+            {
                 continue;
+            }
 
             var trade = MapCsvToOptionsLog(values, columnMap);
             var decision = MapCsvToTradeDecision(values, columnMap, trade.Id);
@@ -252,7 +260,9 @@ public class DecisionMetadataParser
     private string? GetValue(string[] values, Dictionary<string, int> columns, string columnName)
     {
         if (!columns.TryGetValue(columnName, out int index))
+        {
             return null;
+        }
 
         return index < values.Length ? values[index] : null;
     }
@@ -261,7 +271,9 @@ public class DecisionMetadataParser
     {
         var value = GetValue(values, columns, columnName);
         if (string.IsNullOrWhiteSpace(value))
+        {
             return null;
+        }
 
         return decimal.TryParse(value, out var result) ? result : null;
     }
@@ -270,7 +282,9 @@ public class DecisionMetadataParser
     {
         var value = GetValue(values, columns, columnName);
         if (string.IsNullOrWhiteSpace(value))
+        {
             return null;
+        }
 
         return DateTime.TryParse(value, out var result) ? result : null;
     }

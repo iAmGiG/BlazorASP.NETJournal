@@ -1,0 +1,16 @@
+{
+  "tasks": [
+    {
+      "name": "Format C# code",
+      "command": "dotnet",
+      "args": [ "format", "--verify-no-changes", "--verbosity", "minimal" ],
+      "include": [ "**/*.cs", "**/*.csproj" ]
+    },
+    {
+      "name": "Build with analyzers",
+      "command": "dotnet",
+      "args": [ "build", "--no-incremental", "/p:TreatWarningsAsErrors=true" ],
+      "include": [ "**/*.cs" ]
+    }
+  ]
+}

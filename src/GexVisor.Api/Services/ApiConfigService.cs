@@ -95,31 +95,49 @@ public class ApiConfigService : IApiConfigService
     {
         // Map from autogen-trader config.json format
         if (dict.TryGetValue("ALPHA_VANTAGE_KEY", out var av))
+        {
             _config.AlphaVantageKey = av;
+        }
 
         if (dict.TryGetValue("FINNHUB_KEY", out var fh))
+        {
             _config.FinnhubKey = fh;
+        }
 
         if (dict.TryGetValue("POLYGON_IO", out var pg))
+        {
             _config.PolygonKey = pg;
+        }
 
         if (dict.TryGetValue("ALPACA_ENDPOINT", out var ae))
+        {
             _config.AlpacaEndpoint = ae;
+        }
 
         if (dict.TryGetValue("ALPACA_PAPER_API_KEY", out var ak))
+        {
             _config.AlpacaApiKey = ak;
+        }
 
         if (dict.TryGetValue("ALPACA_PAPER_SECRET", out var asecret))
+        {
             _config.AlpacaSecret = asecret;
+        }
 
         if (dict.TryGetValue("FREDAPI", out var fred))
+        {
             _config.FredApiKey = fred;
+        }
 
         if (dict.TryGetValue("FMP", out var fmp))
+        {
             _config.FmpKey = fmp;
+        }
 
         if (dict.TryGetValue("NEWSAPI_KEY", out var news))
+        {
             _config.NewsApiKey = news;
+        }
     }
 
     private void LoadFromAppSettings(IConfiguration configuration)
@@ -156,11 +174,30 @@ public class ApiConfigService : IApiConfigService
     {
         var providers = new List<string>();
 
-        if (_config.HasAlphaVantage) providers.Add("AlphaVantage");
-        if (_config.HasFinnhub) providers.Add("Finnhub");
-        if (_config.HasAlpaca) providers.Add("Alpaca");
-        if (_config.HasPolygon) providers.Add("Polygon");
-        if (_config.HasFred) providers.Add("FRED");
+        if (_config.HasAlphaVantage)
+        {
+            providers.Add("AlphaVantage");
+        }
+
+        if (_config.HasFinnhub)
+        {
+            providers.Add("Finnhub");
+        }
+
+        if (_config.HasAlpaca)
+        {
+            providers.Add("Alpaca");
+        }
+
+        if (_config.HasPolygon)
+        {
+            providers.Add("Polygon");
+        }
+
+        if (_config.HasFred)
+        {
+            providers.Add("FRED");
+        }
 
         _logger.LogInformation("API Configuration loaded. Configured providers: {Providers}",
             string.Join(", ", providers));

@@ -67,7 +67,9 @@ public class MarketDataCacheService
 
         // Return cached if fresh enough
         if (cached != null && !IsQuoteStale(cached))
+        {
             return cached;
+        }
 
         // Fetch and cache
         var quote = await fetcher();
@@ -89,7 +91,9 @@ public class MarketDataCacheService
 
         // Historical data (older than 2 days): very long TTL
         if (age.TotalDays > 2)
+        {
             return HistoricalDataTtl;
+        }
 
         // Recent data TTL depends on timeframe
         return timeframe switch
@@ -114,7 +118,10 @@ public class MarketDataCacheService
     /// <summary>Cache OHLCV bars with smart TTL.</summary>
     public async Task SetBarsAsync(string symbol, BarTimeframe timeframe, List<OhlcvBar> bars)
     {
-        if (bars.Count == 0) return;
+        if (bars.Count == 0)
+        {
+            return;
+        }
 
         var mostRecent = bars.Max(b => b.Timestamp);
         var ttl = GetTtlForBars(timeframe, mostRecent);
@@ -139,7 +146,9 @@ public class MarketDataCacheService
 
             // If data is still fresh for this timeframe, return cached
             if (DateTime.UtcNow - mostRecent < expectedTtl)
+            {
                 return cached;
+            }
         }
 
         // Fetch and cache
@@ -165,7 +174,9 @@ public class MarketDataCacheService
         {
             var quote = await GetQuoteAsync(symbol);
             if (quote != null)
+            {
                 result[symbol.ToUpperInvariant()] = quote;
+            }
         }
         return result;
     }

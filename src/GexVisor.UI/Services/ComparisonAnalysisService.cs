@@ -107,9 +107,13 @@ public class ComparisonAnalysisService
                     gexValues[asset.Symbol] = dataPoint.Gex;
 
                     if (asset.Timeline.AssetClass == AppConstants.Correlation.IndexAssetClass)
+                    {
                         hasIndex = true;
+                    }
                     else
+                    {
                         hasStock = true;
+                    }
                 }
             }
 

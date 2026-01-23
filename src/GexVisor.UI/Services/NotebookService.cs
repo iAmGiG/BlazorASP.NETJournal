@@ -39,7 +39,9 @@ public class NotebookService : BaseEntryService<NotebookEntry>
     public override IEnumerable<NotebookEntry> Search(string query)
     {
         if (string.IsNullOrWhiteSpace(query))
+        {
             return Entries;
+        }
 
         var terms = query.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         return Entries.Where(e =>
@@ -96,16 +98,24 @@ public class NotebookService : BaseEntryService<NotebookEntry>
             sb.AppendLine(CultureInfo.InvariantCulture, $"**Date:** {entry.CreatedAt:yyyy-MM-dd HH:mm}");
 
             if (!string.IsNullOrEmpty(entry.LinkedDate))
+            {
                 sb.AppendLine(CultureInfo.InvariantCulture, $"**Linked to:** {entry.LinkedDate}");
+            }
 
             if (entry.Tags.Count > 0)
+            {
                 sb.AppendLine(CultureInfo.InvariantCulture, $"**Tags:** {string.Join(", ", entry.Tags.Select(t => $"`{t}`"))}");
+            }
 
             if (entry.PriceAtCreation.HasValue)
+            {
                 sb.AppendLine(CultureInfo.InvariantCulture, $"**Price:** ${entry.PriceAtCreation:F2}");
+            }
 
             if (entry.GexAtCreation.HasValue)
+            {
                 sb.AppendLine(CultureInfo.InvariantCulture, $"**GEX:** {entry.GexAtCreation:F2}B");
+            }
 
             sb.AppendLine();
             sb.AppendLine(entry.Content);

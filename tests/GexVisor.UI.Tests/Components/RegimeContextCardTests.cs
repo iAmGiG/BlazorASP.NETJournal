@@ -1,8 +1,9 @@
+// Copyright (c) GexVisor. All rights reserved.
+
 using Bunit;
 using FluentAssertions;
 using GexVisor.UI.Components.TradeJournal;
 using GexVisor.UI.Models;
-using Xunit;
 
 namespace GexVisor.UI.Tests.Components;
 
@@ -16,7 +17,7 @@ public class RegimeContextCardTests : TestContext
     public void Component_WithNullDecision_DoesNotRenderCard()
     {
         // Arrange & Act
-        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, null));
 
         // Assert
@@ -29,11 +30,11 @@ public class RegimeContextCardTests : TestContext
         // Arrange
         var decision = new TradeDecision
         {
-            RegimeType = "bullish"
+            RegimeType = "bullish",
         };
 
         // Act
-        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -47,11 +48,11 @@ public class RegimeContextCardTests : TestContext
         // Arrange
         var decision = new TradeDecision
         {
-            RegimeType = "bullish"
+            RegimeType = "bullish",
         };
 
         // Act
-        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -69,11 +70,11 @@ public class RegimeContextCardTests : TestContext
         // Arrange
         var decision = new TradeDecision
         {
-            RegimeType = regimeType
+            RegimeType = regimeType,
         };
 
         // Act
-        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -86,11 +87,11 @@ public class RegimeContextCardTests : TestContext
         // Arrange
         var decision = new TradeDecision
         {
-            GexLevel = 2.5m
+            GexLevel = 2.5m,
         };
 
         // Act
-        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -103,11 +104,11 @@ public class RegimeContextCardTests : TestContext
         // Arrange
         var decision = new TradeDecision
         {
-            GexLevel = -1.8m
+            GexLevel = -1.8m,
         };
 
         // Act
-        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -120,11 +121,11 @@ public class RegimeContextCardTests : TestContext
         // Arrange
         var decision = new TradeDecision
         {
-            GexLevel = 3.0m
+            GexLevel = 3.0m,
         };
 
         // Act
-        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -140,11 +141,11 @@ public class RegimeContextCardTests : TestContext
         // Arrange
         var decision = new TradeDecision
         {
-            GexLevel = -2.0m
+            GexLevel = -2.0m,
         };
 
         // Act
-        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -160,11 +161,11 @@ public class RegimeContextCardTests : TestContext
         // Arrange
         var decision = new TradeDecision
         {
-            IvLevel = 0.25m
+            IvLevel = 0.25m,
         };
 
         // Act
-        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -177,11 +178,11 @@ public class RegimeContextCardTests : TestContext
         // Arrange
         var decision = new TradeDecision
         {
-            IsNegativeGamma = true
+            IsNegativeGamma = true,
         };
 
         // Act
-        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -198,11 +199,11 @@ public class RegimeContextCardTests : TestContext
         // Arrange
         var decision = new TradeDecision
         {
-            IsNegativeGamma = false
+            IsNegativeGamma = false,
         };
 
         // Act
-        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -219,11 +220,11 @@ public class RegimeContextCardTests : TestContext
         // Arrange
         var decision = new TradeDecision
         {
-            ConfidenceScore = 0.85m
+            ConfidenceScore = 0.85m,
         };
 
         // Act
-        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -238,11 +239,11 @@ public class RegimeContextCardTests : TestContext
         // Arrange
         var decision = new TradeDecision
         {
-            RiskAssessment = "High volatility expected around FOMC announcement"
+            RiskAssessment = "High volatility expected around FOMC announcement",
         };
 
         // Act
-        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -256,11 +257,11 @@ public class RegimeContextCardTests : TestContext
         // Arrange
         var decision = new TradeDecision
         {
-            RegimeType = "bullish"
+            RegimeType = "bullish",
         };
 
         // Act
-        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -278,11 +279,11 @@ public class RegimeContextCardTests : TestContext
             IvLevel = 0.25m,
             IsNegativeGamma = false,
             ConfidenceScore = 0.85m,
-            RiskAssessment = "Low risk environment"
+            RiskAssessment = "Low risk environment",
         };
 
         // Act
-        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert

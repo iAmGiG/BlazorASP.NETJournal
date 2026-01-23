@@ -13,8 +13,8 @@ public class BoardStateService
 
     public event Action? OnBoardStateChanged;
 
-    private Dictionary<string, List<GitHubProjectItem>> _itemsCache = new();
-    private Dictionary<string, DateTime> _cacheTimestamps = new();
+    private readonly Dictionary<string, List<GitHubProjectItem>> _itemsCache = new();
+    private readonly Dictionary<string, DateTime> _cacheTimestamps = new();
     private bool _isLoading;
     private string? _lastError;
 
@@ -36,7 +36,9 @@ public class BoardStateService
     {
         var project = _projectService.SelectedProject;
         if (project == null)
+        {
             return new();
+        }
 
         var projectId = project.Id;
 
@@ -62,7 +64,9 @@ public class BoardStateService
     {
         var project = _projectService.SelectedProject;
         if (project == null)
+        {
             return new();
+        }
 
         // Prevent concurrent refresh operations
         if (_isLoading)
@@ -104,7 +108,9 @@ public class BoardStateService
     {
         var project = _projectService.SelectedProject;
         if (project?.StatusField == null)
+        {
             return new();
+        }
 
         var result = new Dictionary<string, List<GitHubProjectItem>>();
 
@@ -155,7 +161,10 @@ public class BoardStateService
     {
         var project = _projectService.SelectedProject;
         if (project == null)
+        {
             return false;
+        }
+
         return _itemsCache.ContainsKey(project.Id);
     }
 

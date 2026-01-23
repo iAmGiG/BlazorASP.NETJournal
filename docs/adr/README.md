@@ -46,6 +46,7 @@ What other options were evaluated? Why were they rejected?
 | [0006](0006-state-management.md) | State Management (Event-Driven vs. Redux) | Accepted | 2022-06 |
 | [0007](0007-blazor-code-behind-pattern.md) | Blazor Code-Behind Pattern | Accepted | 2026-01-22 |
 | [0008](0008-chart-library-selection.md) | Chart Library Selection (ApexCharts) | Accepted | 2026-01-22 |
+| [0009](0009-linting-infrastructure.md) | Linting Infrastructure (EditorConfig, Analyzers, Husky) | Accepted | 2026-01-22 |
 
 ## Creating a New ADR
 

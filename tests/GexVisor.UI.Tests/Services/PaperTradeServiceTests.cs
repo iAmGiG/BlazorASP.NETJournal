@@ -1,8 +1,9 @@
+// Copyright (c) GexVisor. All rights reserved.
+
 using FluentAssertions;
 using GexVisor.UI.Models;
 using GexVisor.UI.Services;
 using Moq;
-using Xunit;
 
 namespace GexVisor.UI.Tests.Services;
 
@@ -295,7 +296,6 @@ public class PaperTradeServiceTests
     }
 
     // Helper methods
-
     private static PaperTrade CreateOpenTrade(string direction, decimal entryPrice, string[]? tags = null)
     {
         return new PaperTrade
@@ -305,7 +305,7 @@ public class PaperTradeServiceTests
             TargetPrice = entryPrice + 10,
             StopLoss = entryPrice - 5,
             Tags = tags != null ? [.. tags] : [],
-            IsNegativeGammaAtCreation = false
+            IsNegativeGammaAtCreation = false,
         };
     }
 
@@ -320,7 +320,7 @@ public class PaperTradeServiceTests
             ExitPrice = exitPrice,
             ExitReason = profit ? ExitReason.Target : ExitReason.Stop,
             Tags = tags != null ? [.. tags] : [],
-            IsNegativeGammaAtCreation = isNegativeGamma
+            IsNegativeGammaAtCreation = isNegativeGamma,
         };
     }
 }

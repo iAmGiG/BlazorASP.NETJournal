@@ -141,7 +141,9 @@ public class TradeLogService
     public IEnumerable<OptionsLog> GetTradesBySymbol(string symbol)
     {
         if (string.IsNullOrWhiteSpace(symbol))
+        {
             return [];
+        }
 
         return _trades.Where(t => t.Ticker != null &&
             t.Ticker.Equals(symbol, StringComparison.OrdinalIgnoreCase))
@@ -184,14 +186,28 @@ public class TradeLogService
         var closedTrades = GetClosedTrades().ToList();
 
         if (!minPnL.HasValue && !maxPnL.HasValue)
+        {
             return closedTrades;
+        }
 
         return closedTrades.Where(t =>
         {
             var pnl = t.CalculatePnL();
-            if (!pnl.HasValue) return false;
-            if (minPnL.HasValue && pnl.Value < minPnL.Value) return false;
-            if (maxPnL.HasValue && pnl.Value > maxPnL.Value) return false;
+            if (!pnl.HasValue)
+            {
+                return false;
+            }
+
+            if (minPnL.HasValue && pnl.Value < minPnL.Value)
+            {
+                return false;
+            }
+
+            if (maxPnL.HasValue && pnl.Value > maxPnL.Value)
+            {
+                return false;
+            }
+
             return true;
         });
     }
@@ -202,7 +218,9 @@ public class TradeLogService
     public IEnumerable<OptionsLog> Search(string query)
     {
         if (string.IsNullOrWhiteSpace(query))
+        {
             return _trades;
+        }
 
         var lowerQuery = query.ToLowerInvariant();
         return _trades.Where(t =>
@@ -282,7 +300,9 @@ public class TradeLogService
     {
         var tradesToExport = (trades ?? _trades).ToList();
         if (!tradesToExport.Any())
+        {
             return string.Empty;
+        }
 
         var csv = new StringBuilder();
 
@@ -314,10 +334,14 @@ public class TradeLogService
     private static string EscapeCsv(string value)
     {
         if (string.IsNullOrEmpty(value))
+        {
             return "";
+        }
 
         if (value.Contains(',') || value.Contains('"') || value.Contains('\n'))
+        {
             return $"\"{value.Replace("\"", "\"\"")}\"";
+        }
 
         return value;
     }

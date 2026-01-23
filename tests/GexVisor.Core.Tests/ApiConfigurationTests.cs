@@ -1,5 +1,4 @@
-using GexVisor.Core;
-using Xunit;
+// Copyright (c) GexVisor. All rights reserved.
 
 namespace GexVisor.Core.Tests;
 
@@ -8,8 +7,6 @@ namespace GexVisor.Core.Tests;
 /// </summary>
 public class ApiConfigurationTests
 {
-    #region Validation Tests
-
     [Fact]
     public void Validate_NoProviders_ReturnsError()
     {
@@ -30,7 +27,7 @@ public class ApiConfigurationTests
         // Arrange
         var config = new ApiConfiguration
         {
-            AlphaVantageKey = "test-key"
+            AlphaVantageKey = "test-key",
         };
 
         // Act
@@ -46,7 +43,7 @@ public class ApiConfigurationTests
         // Arrange
         var config = new ApiConfiguration
         {
-            FinnhubKey = "test-key"
+            FinnhubKey = "test-key",
         };
 
         // Act
@@ -63,7 +60,7 @@ public class ApiConfigurationTests
         var config = new ApiConfiguration
         {
             AlpacaApiKey = "test-key",
-            AlpacaSecret = "test-secret"
+            AlpacaSecret = "test-secret",
         };
 
         // Act
@@ -79,7 +76,8 @@ public class ApiConfigurationTests
         // Arrange
         var config = new ApiConfiguration
         {
-            AlpacaApiKey = "test-key"
+            AlpacaApiKey = "test-key",
+
             // Missing AlpacaSecret
         };
 
@@ -96,7 +94,8 @@ public class ApiConfigurationTests
         // Arrange
         var config = new ApiConfiguration
         {
-            AlpacaSecret = "test-secret"
+            AlpacaSecret = "test-secret",
+
             // Missing AlpacaApiKey
         };
 
@@ -116,7 +115,7 @@ public class ApiConfigurationTests
             AlphaVantageKey = "av-key",
             FinnhubKey = "fh-key",
             AlpacaApiKey = "alpaca-key",
-            AlpacaSecret = "alpaca-secret"
+            AlpacaSecret = "alpaca-secret",
         };
 
         // Act
@@ -125,10 +124,6 @@ public class ApiConfigurationTests
         // Assert
         Assert.Empty(errors);
     }
-
-    #endregion
-
-    #region Provider Detection Tests
 
     [Fact]
     public void HasAlphaVantage_WithKey_ReturnsTrue()
@@ -188,10 +183,6 @@ public class ApiConfigurationTests
         Assert.True(config.HasFred);
     }
 
-    #endregion
-
-    #region Rate Limits Constants
-
     [Fact]
     public void RateLimits_AlphaVantage_Is75()
     {
@@ -215,6 +206,4 @@ public class ApiConfigurationTests
     {
         Assert.Equal(5, ApiConfiguration.RateLimits.Polygon);
     }
-
-    #endregion
 }

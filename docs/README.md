@@ -14,6 +14,7 @@ New to GexVisor? Start here:
 | Document | Description |
 |----------|-------------|
 | [getting-started.md](getting-started.md) | Prerequisites, build, run, and development workflow |
+| [linting.md](linting.md) | Code linting setup: EditorConfig, analyzers, pre-commit hooks |
 | [architecture.md](architecture.md) | Service inventory, state patterns, data flow |
 | [live-data.md](live-data.md) | Live GEX data: setup, usage, and troubleshooting |
 | [chart-viewer.md](chart-viewer.md) | Chart Viewer: candlestick charts and trade markers |

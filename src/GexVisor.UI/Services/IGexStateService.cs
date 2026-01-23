@@ -1,5 +1,4 @@
 using GexVisor.Core;
-using GexVisor.UI.Configuration;
 using GexVisor.UI.Models;
 
 namespace GexVisor.UI.Services;

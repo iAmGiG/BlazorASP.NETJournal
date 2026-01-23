@@ -1,8 +1,9 @@
+// Copyright (c) GexVisor. All rights reserved.
+
 using FluentAssertions;
 using GexVisor.Core;
 using GexVisor.UI.Services;
 using Moq;
-using Xunit;
 
 namespace GexVisor.UI.Tests.Services;
 
@@ -41,7 +42,7 @@ public class TradeLogServiceTests
         {
             CreateSampleTrade("SPY", OptionsLog.TradeType.BTO, 450m),
             CreateSampleTrade("QQQ", OptionsLog.TradeType.STO, 380m),
-            CreateSampleTrade("IWM", OptionsLog.TradeType.BTC, 200m)
+            CreateSampleTrade("IWM", OptionsLog.TradeType.BTC, 200m),
         };
 
         // Act
@@ -122,8 +123,7 @@ public class TradeLogServiceTests
         // Act
         var result = service.GetTradesByDateRange(
             new DateTime(2024, 1, 1),
-            new DateTime(2024, 1, 31)
-        );
+            new DateTime(2024, 1, 31));
 
         // Assert
         result.Should().HaveCount(2);
@@ -445,7 +445,7 @@ public class TradeLogServiceTests
             TradeDirection = GexVisor.Core.TradeLog.Type.Long,
             CreatedDate = date ?? DateTime.UtcNow,
             Notes = string.Empty,
-            Analysis = string.Empty
+            Analysis = string.Empty,
         };
     }
 

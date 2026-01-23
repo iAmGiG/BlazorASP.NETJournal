@@ -1,5 +1,5 @@
-using GexVisor.Core;
 using System.Text.Json;
+using GexVisor.Core;
 
 namespace GexVisor.UI.Services;
 
@@ -52,7 +52,9 @@ public class TaskPersistenceService
             string filePath = Path.Combine(TasksDirectoryPath, TasksFileName);
 
             if (!File.Exists(filePath))
+            {
                 return new List<ToDoTask>();
+            }
 
             string jsonString = File.ReadAllText(filePath);
             var tasks = JsonSerializer.Deserialize<List<ToDoTask>>(jsonString, _jsonOptions);

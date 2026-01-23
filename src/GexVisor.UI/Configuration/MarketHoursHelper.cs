@@ -26,7 +26,9 @@ public static class MarketHoursHelper
 
         // Weekend check
         if (dayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)
+        {
             return false;
+        }
 
         // Market hours check
         return timeOfDay >= MarketOpen && timeOfDay < MarketClose;

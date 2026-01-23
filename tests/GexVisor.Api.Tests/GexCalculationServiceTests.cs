@@ -1,25 +1,26 @@
+// Copyright (c) GexVisor. All rights reserved.
+
 using GexVisor.Api.Services;
 using GexVisor.Core;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace GexVisor.Api.Tests;
 
 public class GexCalculationServiceTests
 {
-    private readonly Mock<IOptionsChainService> _mockOptionsService;
-    private readonly Mock<IMarketDataService> _mockMarketDataService;
-    private readonly IGexCalculationService _service;
+    private readonly Mock<IOptionsChainService> mockOptionsService;
+    private readonly Mock<IMarketDataService> mockMarketDataService;
+    private readonly IGexCalculationService service;
 
     public GexCalculationServiceTests()
     {
-        _mockOptionsService = new Mock<IOptionsChainService>();
-        _mockMarketDataService = new Mock<IMarketDataService>();
+        this.mockOptionsService = new Mock<IOptionsChainService>();
+        this.mockMarketDataService = new Mock<IMarketDataService>();
 
-        _service = new GexCalculationService(
-            _mockOptionsService.Object,
-            _mockMarketDataService.Object,
+        this.service = new GexCalculationService(
+            this.mockOptionsService.Object,
+            this.mockMarketDataService.Object,
             Mock.Of<ILogger<GexCalculationService>>());
     }
 
@@ -35,15 +36,15 @@ public class GexCalculationServiceTests
             CreateContract("SPY", 455m, OptionType.Call, 0.015m, 1500),
             CreateContract("SPY", 445m, OptionType.Put, 0.01m, 800),
             CreateContract("SPY", 450m, OptionType.Put, 0.02m, 1800),
-            CreateContract("SPY", 455m, OptionType.Put, 0.015m, 1200)
+            CreateContract("SPY", 455m, OptionType.Put, 0.015m, 1200),
         });
 
-        _mockOptionsService
+        this.mockOptionsService
             .Setup(s => s.GetChainAsync("SPY", null))
             .ReturnsAsync(OptionsChainResult<OptionsChain>.Ok(chain, MarketDataProvider.AlphaVantage));
 
         // Act
-        var result = await _service.CalculateGexAsync("SPY", spotPrice);
+        var result = await this.service.CalculateGexAsync("SPY", spotPrice);
 
         // Assert
         Assert.True(result.Success);
@@ -66,15 +67,15 @@ public class GexCalculationServiceTests
         var chain = CreateTestOptionsChain("TEST", new[]
         {
             CreateContract("TEST", 100m, OptionType.Call, 0.05m, 1000),
-            CreateContract("TEST", 100m, OptionType.Put, 0.04m, 800)
+            CreateContract("TEST", 100m, OptionType.Put, 0.04m, 800),
         });
 
-        _mockOptionsService
+        this.mockOptionsService
             .Setup(s => s.GetChainAsync("TEST", null))
             .ReturnsAsync(OptionsChainResult<OptionsChain>.Ok(chain, MarketDataProvider.AlphaVantage));
 
         // Act
-        var result = await _service.CalculateGexAsync("TEST", spotPrice);
+        var result = await this.service.CalculateGexAsync("TEST", spotPrice);
 
         // Assert
         Assert.True(result.Success);
@@ -103,15 +104,15 @@ public class GexCalculationServiceTests
             CreateContract("SPY", 95m, OptionType.Call, 0.05m, 2000),  // High call GEX
             CreateContract("SPY", 95m, OptionType.Put, 0.025m, 2000), // Low put GEX
             CreateContract("SPY", 100m, OptionType.Call, 0.025m, 2000), // Low call GEX
-            CreateContract("SPY", 100m, OptionType.Put, 0.05m, 2000)   // High put GEX
+            CreateContract("SPY", 100m, OptionType.Put, 0.05m, 2000),   // High put GEX
         });
 
-        _mockOptionsService
+        this.mockOptionsService
             .Setup(s => s.GetChainAsync("SPY", null))
             .ReturnsAsync(OptionsChainResult<OptionsChain>.Ok(chain, MarketDataProvider.AlphaVantage));
 
         // Act
-        var result = await _service.CalculateGexAsync("SPY", spotPrice);
+        var result = await this.service.CalculateGexAsync("SPY", spotPrice);
 
         // Assert
         Assert.True(result.Success);
@@ -129,15 +130,15 @@ public class GexCalculationServiceTests
         var chain = CreateTestOptionsChain("SPY", new[]
         {
             CreateContract("SPY", 100m, OptionType.Call, 0.1m, 5000),  // Very high call GEX
-            CreateContract("SPY", 100m, OptionType.Put, 0.01m, 500)    // Low put GEX
+            CreateContract("SPY", 100m, OptionType.Put, 0.01m, 500),    // Low put GEX
         });
 
-        _mockOptionsService
+        this.mockOptionsService
             .Setup(s => s.GetChainAsync("SPY", null))
             .ReturnsAsync(OptionsChainResult<OptionsChain>.Ok(chain, MarketDataProvider.AlphaVantage));
 
         // Act
-        var result = await _service.CalculateGexAsync("SPY", spotPrice);
+        var result = await this.service.CalculateGexAsync("SPY", spotPrice);
 
         // Assert
         Assert.True(result.Success);
@@ -153,15 +154,15 @@ public class GexCalculationServiceTests
         var chain = CreateTestOptionsChain("SPY", new[]
         {
             CreateContract("SPY", 100m, OptionType.Call, 0.01m, 500),   // Low call GEX
-            CreateContract("SPY", 100m, OptionType.Put, 0.1m, 5000)     // Very high put GEX
+            CreateContract("SPY", 100m, OptionType.Put, 0.1m, 5000),     // Very high put GEX
         });
 
-        _mockOptionsService
+        this.mockOptionsService
             .Setup(s => s.GetChainAsync("SPY", null))
             .ReturnsAsync(OptionsChainResult<OptionsChain>.Ok(chain, MarketDataProvider.AlphaVantage));
 
         // Act
-        var result = await _service.CalculateGexAsync("SPY", spotPrice);
+        var result = await this.service.CalculateGexAsync("SPY", spotPrice);
 
         // Assert
         Assert.True(result.Success);
@@ -177,15 +178,15 @@ public class GexCalculationServiceTests
         var chain = CreateTestOptionsChain("SPY", new[]
         {
             CreateContract("SPY", 100m, OptionType.Call, 0.05m, 1000),
-            CreateContract("SPY", 100m, OptionType.Put, 0.048m, 1000)   // Within 10% of call
+            CreateContract("SPY", 100m, OptionType.Put, 0.048m, 1000),   // Within 10% of call
         });
 
-        _mockOptionsService
+        this.mockOptionsService
             .Setup(s => s.GetChainAsync("SPY", null))
             .ReturnsAsync(OptionsChainResult<OptionsChain>.Ok(chain, MarketDataProvider.AlphaVantage));
 
         // Act
-        var result = await _service.CalculateGexAsync("SPY", spotPrice);
+        var result = await this.service.CalculateGexAsync("SPY", spotPrice);
 
         // Assert
         Assert.True(result.Success);
@@ -203,15 +204,15 @@ public class GexCalculationServiceTests
             CreateContract("SPY", 95m, OptionType.Call, 0.01m, 1000),
             CreateContract("SPY", 100m, OptionType.Call, 0.02m, 2000),
             CreateContract("SPY", 100m, OptionType.Put, 0.02m, 1500),
-            CreateContract("SPY", 105m, OptionType.Put, 0.01m, 1000)
+            CreateContract("SPY", 105m, OptionType.Put, 0.01m, 1000),
         });
 
-        _mockOptionsService
+        this.mockOptionsService
             .Setup(s => s.GetChainAsync("SPY", null))
             .ReturnsAsync(OptionsChainResult<OptionsChain>.Ok(chain, MarketDataProvider.AlphaVantage));
 
         // Act
-        var result = await _service.CalculateGexAsync("SPY", spotPrice);
+        var result = await this.service.CalculateGexAsync("SPY", spotPrice);
 
         // Assert
         Assert.True(result.Success);
@@ -231,30 +232,30 @@ public class GexCalculationServiceTests
         {
             Symbol = "SPY",
             Price = spotPrice,
-            Timestamp = DateTime.UtcNow
+            Timestamp = DateTime.UtcNow,
         };
 
-        _mockMarketDataService
+        this.mockMarketDataService
             .Setup(s => s.GetQuoteAsync("SPY"))
             .ReturnsAsync(MarketDataResult<Quote>.Ok(quote, MarketDataProvider.Alpaca));
 
         var chain = CreateTestOptionsChain("SPY", new[]
         {
-            CreateContract("SPY", 450m, OptionType.Call, 0.02m, 1000)
+            CreateContract("SPY", 450m, OptionType.Call, 0.02m, 1000),
         });
 
-        _mockOptionsService
+        this.mockOptionsService
             .Setup(s => s.GetChainAsync("SPY", null))
             .ReturnsAsync(OptionsChainResult<OptionsChain>.Ok(chain, MarketDataProvider.AlphaVantage));
 
         // Act - Call without explicit spot price
-        var result = await _service.CalculateGexAsync("SPY");
+        var result = await this.service.CalculateGexAsync("SPY");
 
         // Assert
         Assert.True(result.Success);
         Assert.NotNull(result.Data);
         Assert.Equal(spotPrice, result.Data.SpotPrice);
-        _mockMarketDataService.Verify(s => s.GetQuoteAsync("SPY"), Times.Once);
+        this.mockMarketDataService.Verify(s => s.GetQuoteAsync("SPY"), Times.Once);
     }
 
     [Fact]
@@ -264,15 +265,15 @@ public class GexCalculationServiceTests
         var chain = CreateTestOptionsChain("SPY", new[]
         {
             CreateContract("SPY", 450m, OptionType.Call, null, 0), // No gamma, no OI
-            CreateContract("SPY", 455m, OptionType.Put, 0m, 1000)  // Zero gamma
+            CreateContract("SPY", 455m, OptionType.Put, 0m, 1000),  // Zero gamma
         });
 
-        _mockOptionsService
+        this.mockOptionsService
             .Setup(s => s.GetChainAsync("SPY", null))
             .ReturnsAsync(OptionsChainResult<OptionsChain>.Ok(chain, MarketDataProvider.AlphaVantage));
 
         // Act
-        var result = await _service.CalculateGexAsync("SPY", 450m);
+        var result = await this.service.CalculateGexAsync("SPY", 450m);
 
         // Assert
         Assert.False(result.Success);
@@ -283,19 +284,17 @@ public class GexCalculationServiceTests
     public async Task CalculateGex_OptionsChainFails_ReturnsFailure()
     {
         // Arrange
-        _mockOptionsService
+        this.mockOptionsService
             .Setup(s => s.GetChainAsync("SPY", null))
             .ReturnsAsync(OptionsChainResult<OptionsChain>.Fail("API error"));
 
         // Act
-        var result = await _service.CalculateGexAsync("SPY", 450m);
+        var result = await this.service.CalculateGexAsync("SPY", 450m);
 
         // Assert
         Assert.False(result.Success);
         Assert.Contains("Failed to fetch options chain", result.Error);
     }
-
-    #region Helper Methods
 
     private static OptionsChain CreateTestOptionsChain(string symbol, OptionContract[] contracts)
     {
@@ -304,7 +303,7 @@ public class GexCalculationServiceTests
             Symbol = symbol,
             Contracts = contracts.ToList(),
             Timestamp = DateTime.UtcNow,
-            Source = MarketDataProvider.AlphaVantage
+            Source = MarketDataProvider.AlphaVantage,
         };
     }
 
@@ -327,9 +326,7 @@ public class GexCalculationServiceTests
             OpenInterest = openInterest,
             Delta = type == OptionType.Call ? 0.5m : -0.5m,
             Timestamp = DateTime.UtcNow,
-            Source = MarketDataProvider.AlphaVantage
+            Source = MarketDataProvider.AlphaVantage,
         };
     }
-
-    #endregion
 }

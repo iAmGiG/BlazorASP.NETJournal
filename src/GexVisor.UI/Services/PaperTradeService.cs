@@ -21,7 +21,9 @@ public class PaperTradeService : BaseEntryService<PaperTrade>
     public override IEnumerable<PaperTrade> Search(string query)
     {
         if (string.IsNullOrWhiteSpace(query))
+        {
             return Entries;
+        }
 
         var lower = query.ToLowerInvariant();
         return Entries.Where(t =>
@@ -48,7 +50,9 @@ public class PaperTradeService : BaseEntryService<PaperTrade>
     {
         var trade = GetById(id);
         if (trade == null || !trade.IsOpen)
+        {
             return;
+        }
 
         var closedTrade = trade with
         {
@@ -204,7 +208,10 @@ public class PaperTradeService : BaseEntryService<PaperTrade>
             if (trades?.Count > 0 && trades[0].EntryPrice > 0)
             {
                 foreach (var trade in trades)
+                {
                     await AddAsync(trade with { Id = Guid.NewGuid() });
+                }
+
                 return trades.Count;
             }
         }
@@ -225,15 +232,28 @@ public class PaperTradeService : BaseEntryService<PaperTrade>
         });
 
         if (autoTrades == null || autoTrades.Count == 0)
+        {
             return 0;
+        }
 
         foreach (var at in autoTrades)
         {
             var direction = InferDirection(at);
             var tags = new List<string>();
-            if (!string.IsNullOrEmpty(at.symbol)) tags.Add(at.symbol.ToUpperInvariant());
-            if (!string.IsNullOrEmpty(at.strategy_name)) tags.Add(at.strategy_name);
-            if (at.quantity > 0) tags.Add($"qty:{at.quantity}");
+            if (!string.IsNullOrEmpty(at.symbol))
+            {
+                tags.Add(at.symbol.ToUpperInvariant());
+            }
+
+            if (!string.IsNullOrEmpty(at.strategy_name))
+            {
+                tags.Add(at.strategy_name);
+            }
+
+            if (at.quantity > 0)
+            {
+                tags.Add($"qty:{at.quantity}");
+            }
 
             var trade = new PaperTrade
             {
@@ -263,9 +283,13 @@ public class PaperTradeService : BaseEntryService<PaperTrade>
             var priceChange = trade.exit_price.Value - trade.entry_price;
             // Positive P&L with price increase = Long, with price decrease = Short
             if (trade.realized_pnl > 0)
+            {
                 return priceChange > 0 ? TradeDirection.Long : TradeDirection.Short;
+            }
             else
+            {
                 return priceChange < 0 ? TradeDirection.Long : TradeDirection.Short;
+            }
         }
         // Default to Long if we can't infer
         return TradeDirection.Long;
@@ -273,7 +297,11 @@ public class PaperTradeService : BaseEntryService<PaperTrade>
 
     private static string? MapExitReason(string? reason)
     {
-        if (string.IsNullOrEmpty(reason)) return null;
+        if (string.IsNullOrEmpty(reason))
+        {
+            return null;
+        }
+
         return reason.ToLowerInvariant() switch
         {
             "take_profit" or "target" => ExitReason.Target,

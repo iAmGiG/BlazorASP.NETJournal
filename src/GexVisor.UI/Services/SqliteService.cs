@@ -1,5 +1,5 @@
-using Microsoft.JSInterop;
 using System.Text.Json;
+using Microsoft.JSInterop;
 
 namespace GexVisor.UI.Services;
 

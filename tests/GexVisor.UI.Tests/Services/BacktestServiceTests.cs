@@ -1,8 +1,9 @@
+// Copyright (c) GexVisor. All rights reserved.
+
 using FluentAssertions;
 using GexVisor.UI.Models;
 using GexVisor.UI.Services;
 using Moq;
-using Xunit;
 
 namespace GexVisor.UI.Tests.Services;
 
@@ -61,15 +62,15 @@ public class BacktestServiceTests
 
         var old = CreateBacktest("Strategy1", totalReturn: 10m) with
         {
-            CreatedAt = DateTime.UtcNow.AddDays(-2)
+            CreatedAt = DateTime.UtcNow.AddDays(-2),
         };
         var newest = CreateBacktest("Strategy2", totalReturn: 15m) with
         {
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
         };
         var middle = CreateBacktest("Strategy3", totalReturn: 12m) with
         {
-            CreatedAt = DateTime.UtcNow.AddDays(-1)
+            CreatedAt = DateTime.UtcNow.AddDays(-1),
         };
 
         await service.AddAsync(old);
@@ -318,7 +319,6 @@ public class BacktestServiceTests
     }
 
     // Helper method
-
     private static BacktestResult CreateBacktest(string strategyName, decimal totalReturn,
         int totalTrades = 100, int winningTrades = 60, decimal? sharpeRatio = null,
         decimal? returnInPositiveGamma = null, decimal? returnInNegativeGamma = null,
@@ -336,7 +336,7 @@ public class BacktestServiceTests
             SharpeRatio = sharpeRatio,
             ReturnInPositiveGamma = returnInPositiveGamma,
             ReturnInNegativeGamma = returnInNegativeGamma,
-            Tags = tags != null ? [.. tags] : []
+            Tags = tags != null ? [.. tags] : [],
         };
     }
 }

@@ -1,3 +1,5 @@
+// Copyright (c) GexVisor. All rights reserved.
+
 using System.Net;
 using System.Text.Json;
 using FluentAssertions;
@@ -5,7 +7,6 @@ using GexVisor.Core;
 using GexVisor.UI.Services;
 using Moq;
 using Moq.Protected;
-using Xunit;
 
 namespace GexVisor.UI.Tests.Services;
 
@@ -79,7 +80,7 @@ public class PriceDataServiceTests
                 callCount++;
                 return new HttpResponseMessage(HttpStatusCode.OK)
                 {
-                    Content = new StringContent(JsonSerializer.Serialize(bars))
+                    Content = new StringContent(JsonSerializer.Serialize(bars)),
                 };
             });
 
@@ -104,7 +105,7 @@ public class PriceDataServiceTests
         {
             CreateBar("SPY", DateTime.Now.AddDays(-1)),
             CreateBar("SPY", DateTime.Now.AddDays(-3)),
-            CreateBar("SPY", DateTime.Now.AddDays(-2))
+            CreateBar("SPY", DateTime.Now.AddDays(-2)),
         };
         var httpClient = CreateMockHttpClient(HttpStatusCode.OK, bars);
         var service = new PriceDataService(httpClient);
@@ -122,17 +123,17 @@ public class PriceDataServiceTests
     {
         // Arrange
         var bars = CreateSampleBars("SPY", 5);
-        var requestedUrl = "";
+        var requestedUrl = string.Empty;
         var mockHandler = new Mock<HttpMessageHandler>();
         mockHandler.Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
-            .Callback<HttpRequestMessage, CancellationToken>((req, _) => requestedUrl = req.RequestUri?.ToString() ?? "")
+            .Callback<HttpRequestMessage, CancellationToken>((req, _) => requestedUrl = req.RequestUri?.ToString() ?? string.Empty)
             .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent(JsonSerializer.Serialize(bars))
+                Content = new StringContent(JsonSerializer.Serialize(bars)),
             });
 
         var httpClient = new HttpClient(mockHandler.Object) { BaseAddress = new Uri("http://localhost/") };
@@ -204,8 +205,6 @@ public class PriceDataServiceTests
         service.ClearCache();
     }
 
-    #region Helper Methods
-
     private static HttpClient CreateMockHttpClient<T>(HttpStatusCode statusCode, T content)
     {
         var mockHandler = new Mock<HttpMessageHandler>();
@@ -217,7 +216,7 @@ public class PriceDataServiceTests
             .ReturnsAsync(new HttpResponseMessage(statusCode)
             {
                 Content = new StringContent(
-                    content is string s ? s : JsonSerializer.Serialize(content))
+                    content is string s ? s : JsonSerializer.Serialize(content)),
             });
 
         return new HttpClient(mockHandler.Object) { BaseAddress = new Uri("http://localhost/") };
@@ -247,9 +246,7 @@ public class PriceDataServiceTests
             High = price + 2,
             Low = price - 2,
             Close = price + 1,
-            Volume = 1_000_000
+            Volume = 1_000_000,
         };
     }
-
-    #endregion
 }

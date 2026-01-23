@@ -69,7 +69,9 @@ public sealed class SqliteCacheService : ICacheService, IDisposable
         // Ensure directory exists
         var directory = Path.GetDirectoryName(dbPath);
         if (!string.IsNullOrEmpty(directory))
+        {
             Directory.CreateDirectory(directory);
+        }
 
         InitializeDatabase();
     }
@@ -188,7 +190,9 @@ public sealed class SqliteCacheService : ICacheService, IDisposable
     {
         var cached = await GetAsync<T>(key);
         if (cached != null)
+        {
             return cached;
+        }
 
         var value = await fetcher();
         await SetAsync(key, value, ttl);
@@ -255,7 +259,9 @@ public sealed class SqliteCacheService : ICacheService, IDisposable
         // Get database size
         long dbSize = 0;
         if (File.Exists(_dbPath))
+        {
             dbSize = new FileInfo(_dbPath).Length;
+        }
 
         return new CacheStats
         {
@@ -327,7 +333,11 @@ public sealed class SqliteCacheService : ICacheService, IDisposable
 
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
         _writeLock.Dispose();
     }

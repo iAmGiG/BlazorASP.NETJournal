@@ -1,8 +1,9 @@
+// Copyright (c) GexVisor. All rights reserved.
+
 using FluentAssertions;
 using GexVisor.UI.Models;
 using GexVisor.UI.Services;
 using Moq;
-using Xunit;
 
 namespace GexVisor.UI.Tests.Services;
 
@@ -20,7 +21,7 @@ public class AnnotationServiceTests
         var storedAnnotations = new List<PatternAnnotation>
         {
             CreateAnnotation("gamma_flip_pos", "2024-01-01"),
-            CreateAnnotation("opex_pinning", "2024-01-02")
+            CreateAnnotation("opex_pinning", "2024-01-02"),
         };
         mockStorage.Setup(x => x.GetAsync<List<PatternAnnotation>>(StorageKeys.Annotations))
             .ReturnsAsync(storedAnnotations);
@@ -245,7 +246,7 @@ public class AnnotationServiceTests
         // Add range annotation (2024-01-01 to 2024-01-05) - IsRange is calculated from EndDate
         var rangeAnnotation = CreateAnnotation("gamma_flip_pos", "2024-01-01") with
         {
-            EndDate = "2024-01-05"
+            EndDate = "2024-01-05",
         };
         await service.AddAsync(rangeAnnotation);
 
@@ -292,7 +293,7 @@ public class AnnotationServiceTests
         await service.LoadAsync();
         var annotation = CreateAnnotation("gamma_flip_pos", "2024-01-01") with
         {
-            Notes = "Test note"
+            Notes = "Test note",
         };
         await service.AddAsync(annotation);
 
@@ -314,7 +315,7 @@ public class AnnotationServiceTests
         await service.LoadAsync();
         var annotation = CreateAnnotation("gamma_flip_pos", "2024-01-01") with
         {
-            Notes = "Has, comma and \"quote\""
+            Notes = "Has, comma and \"quote\"",
         };
         await service.AddAsync(annotation);
 
@@ -356,17 +357,17 @@ public class AnnotationServiceTests
         await service.AddAsync(CreateAnnotation("gamma_flip_pos", "2024-01-01") with
         {
             Outcome = AnnotationOutcomes.Confirmed,
-            Taxonomy = "MECH"
+            Taxonomy = "MECH",
         });
         await service.AddAsync(CreateAnnotation("gamma_flip_pos", "2024-01-02") with
         {
             Outcome = AnnotationOutcomes.Invalidated,
-            Taxonomy = "MECH"
+            Taxonomy = "MECH",
         });
         await service.AddAsync(CreateAnnotation("opex_pinning", "2024-01-03") with
         {
             Outcome = AnnotationOutcomes.Confirmed,
-            Taxonomy = "PROB"
+            Taxonomy = "PROB",
         });
 
         // Act
@@ -390,7 +391,7 @@ public class AnnotationServiceTests
         await service.LoadAsync();
         await service.AddAsync(CreateAnnotation("gamma_flip_pos", "2024-01-01") with
         {
-            Outcome = AnnotationOutcomes.Confirmed
+            Outcome = AnnotationOutcomes.Confirmed,
         });
 
         // Act
@@ -412,19 +413,19 @@ public class AnnotationServiceTests
 
         await service.AddAsync(CreateAnnotation("gamma_flip_pos", "2024-01-01") with
         {
-            Outcome = AnnotationOutcomes.Confirmed
+            Outcome = AnnotationOutcomes.Confirmed,
         });
         await service.AddAsync(CreateAnnotation("opex_pinning", "2024-01-02") with
         {
-            Outcome = AnnotationOutcomes.Confirmed
+            Outcome = AnnotationOutcomes.Confirmed,
         });
         await service.AddAsync(CreateAnnotation("dealer_squeeze", "2024-01-03") with
         {
-            Outcome = AnnotationOutcomes.Invalidated
+            Outcome = AnnotationOutcomes.Invalidated,
         });
         await service.AddAsync(CreateAnnotation("negative_gamma_regime", "2024-01-04") with
         {
-            Outcome = AnnotationOutcomes.Pending
+            Outcome = AnnotationOutcomes.Pending,
         });
 
         // Act
@@ -449,7 +450,7 @@ public class AnnotationServiceTests
             Confidence = "medium",
             PriceAtAnnotation = 450m,
             GexAtAnnotation = 1000m,
-            IsNegativeGamma = false
+            IsNegativeGamma = false,
         };
     }
 }

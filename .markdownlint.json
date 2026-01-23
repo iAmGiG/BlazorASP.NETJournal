@@ -1,28 +1,22 @@
 {
   "default": true,
-  "MD003": { "style": "consistent" },
-  "MD004": { "style": "consistent" },
+  "MD001": true,
+  "MD003": { "style": "atx" },
+  "MD004": { "style": "dash" },
   "MD007": { "indent": 2 },
   "MD013": {
     "line_length": 120,
-    "heading_line_length": 120,
-    "header_line_length": 120,
-    "code_block_line_length": 120,
-    "code_blocks": true,
-    "headers": true,
-    "headers_only": false,
-    "strict": false,
-    "stern": false
+    "code_blocks": false,
+    "tables": false
   },
-  "MD022": false,
-  "MD024": false,
-  "MD025": false,
-  "MD031": false,
-  "MD032": false,
+  "MD024": { "siblings_only": true },
+  "MD025": true,
+  "MD026": { "punctuation": ".,;:!" },
+  "MD029": { "style": "ordered" },
   "MD033": false,
-  "MD036": false,
-  "MD040": false,
-  "MD060": false,
-  "no-hard-tabs": true,
-  "whitespace": true
+  "MD034": false,
+  "MD041": false,
+  "MD046": { "style": "fenced" },
+  "MD049": { "style": "underscore" },
+  "MD050": { "style": "asterisk" }
 }

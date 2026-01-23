@@ -148,7 +148,10 @@ public static class TradeMarker
     /// </summary>
     public static AnnotationsYAxis? BuildExitPriceLine(OptionsLog trade)
     {
-        if (!trade.ExitPrice.HasValue) return null;
+        if (!trade.ExitPrice.HasValue)
+        {
+            return null;
+        }
 
         var pnl = trade.CalculatePnL();
         var isProfitable = pnl.HasValue && pnl.Value >= 0;

@@ -1,6 +1,7 @@
+// Copyright (c) GexVisor. All rights reserved.
+
 using FluentAssertions;
 using GexVisor.UI.Configuration;
-using Xunit;
 
 namespace GexVisor.UI.Tests.Configuration;
 

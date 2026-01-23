@@ -107,7 +107,9 @@ public class StatusMapper
     public string MapStatus(string? projectId, string? rawStatus)
     {
         if (string.IsNullOrWhiteSpace(rawStatus))
+        {
             return NormalizedStatus.Backlog;
+        }
 
         // Check custom mapping first
         if (!string.IsNullOrEmpty(projectId)
@@ -168,7 +170,9 @@ public class StatusMapper
         // More efficient than Regex for most cases
         var patternIndex = normalizedText.IndexOf(normalizedPattern, StringComparison.Ordinal);
         if (patternIndex == -1)
+        {
             return false;
+        }
 
         // Check start boundary (pattern is at start OR preceded by space)
         var isStartBoundary = patternIndex == 0 || char.IsWhiteSpace(normalizedText[patternIndex - 1]);
@@ -187,7 +191,9 @@ public class StatusMapper
     public (string NormalizedStatus, bool IsExactMatch, bool IsCustom) MapStatusWithConfidence(string? projectId, string? rawStatus)
     {
         if (string.IsNullOrWhiteSpace(rawStatus))
+        {
             return (NormalizedStatus.Backlog, false, false);
+        }
 
         // Check custom mapping first
         if (!string.IsNullOrEmpty(projectId)

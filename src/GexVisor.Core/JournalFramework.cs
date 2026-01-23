@@ -1,5 +1,3 @@
-using System.Text.Json;
-
 namespace GexVisor.Core
 {
     public class JournalFramework
@@ -90,7 +88,9 @@ namespace GexVisor.Core
         public virtual decimal? CalculatePnL()
         {
             if (!ExitPrice.HasValue)
+            {
                 return null;
+            }
 
             var priceDelta = ExitPrice.Value - EntryPrice;
             var multiplier = TradeDirection == Type.Long ? 1 : -1;
@@ -146,7 +146,9 @@ namespace GexVisor.Core
         public override decimal? CalculatePnL()
         {
             if (!ExitPrice.HasValue)
+            {
                 return null;
+            }
 
             var priceDelta = ExitPrice.Value - EntryPrice;
             var directionMultiplier = (OptionTradeType == TradeType.BTO || OptionTradeType == TradeType.STC) ? 1 : -1;

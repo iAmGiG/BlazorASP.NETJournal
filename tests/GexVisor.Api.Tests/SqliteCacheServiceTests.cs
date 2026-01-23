@@ -1,6 +1,7 @@
+// Copyright (c) GexVisor. All rights reserved.
+
 using GexVisor.Api.Services;
 using Microsoft.Data.Sqlite;
-using Xunit;
 
 namespace GexVisor.Api.Tests;
 
@@ -10,19 +11,20 @@ namespace GexVisor.Api.Tests;
 /// </summary>
 public class SqliteCacheServiceTests : IDisposable
 {
-    private readonly string _testDbPath;
-    private readonly SqliteCacheService _cache;
+    private readonly string testDbPath;
+    private readonly SqliteCacheService cache;
 
     public SqliteCacheServiceTests()
     {
         // Create unique test database for each test run
-        _testDbPath = Path.Combine(Path.GetTempPath(), $"gexvisor_test_{Guid.NewGuid()}.db");
-        _cache = new SqliteCacheService(_testDbPath);
+        this.testDbPath = Path.Combine(Path.GetTempPath(), $"gexvisor_test_{Guid.NewGuid()}.db");
+        this.cache = new SqliteCacheService(this.testDbPath);
     }
 
+    /// <inheritdoc/>
     public void Dispose()
     {
-        _cache.Dispose();
+        this.cache.Dispose();
 
         // Clear SQLite connection pools to release file locks
         SqliteConnection.ClearAllPools();
@@ -32,8 +34,11 @@ public class SqliteCacheServiceTests : IDisposable
         {
             try
             {
-                if (File.Exists(_testDbPath))
-                    File.Delete(_testDbPath);
+                if (File.Exists(this.testDbPath))
+                {
+                    File.Delete(this.testDbPath);
+                }
+
                 break;
             }
             catch (IOException)
@@ -41,16 +46,15 @@ public class SqliteCacheServiceTests : IDisposable
                 Thread.Sleep(50);
             }
         }
+
         GC.SuppressFinalize(this);
     }
-
-    #region Basic Operations
 
     [Fact]
     public async Task GetAsync_NonExistentKey_ReturnsNull()
     {
         // Act
-        var result = await _cache.GetAsync<TestData>("nonexistent");
+        var result = await this.cache.GetAsync<TestData>("nonexistent");
 
         // Assert
         Assert.Null(result);
@@ -63,8 +67,8 @@ public class SqliteCacheServiceTests : IDisposable
         var data = new TestData { Id = 1, Name = "Test" };
 
         // Act
-        await _cache.SetAsync("test-key", data);
-        var result = await _cache.GetAsync<TestData>("test-key");
+        await this.cache.SetAsync("test-key", data);
+        var result = await this.cache.GetAsync<TestData>("test-key");
 
         // Assert
         Assert.NotNull(result);
@@ -80,19 +84,15 @@ public class SqliteCacheServiceTests : IDisposable
         var data2 = new TestData { Id = 2, Name = "Second" };
 
         // Act
-        await _cache.SetAsync("key", data1);
-        await _cache.SetAsync("key", data2);
-        var result = await _cache.GetAsync<TestData>("key");
+        await this.cache.SetAsync("key", data1);
+        await this.cache.SetAsync("key", data2);
+        var result = await this.cache.GetAsync<TestData>("key");
 
         // Assert
         Assert.NotNull(result);
         Assert.Equal(2, result.Id);
         Assert.Equal("Second", result.Name);
     }
-
-    #endregion
-
-    #region GetOrFetch
 
     [Fact]
     public async Task GetOrFetchAsync_MissingKey_FetchesAndCaches()
@@ -106,8 +106,8 @@ public class SqliteCacheServiceTests : IDisposable
         }
 
         // Act
-        var result1 = await _cache.GetOrFetchAsync("fetch-key", Fetcher);
-        var result2 = await _cache.GetOrFetchAsync("fetch-key", Fetcher);
+        var result1 = await this.cache.GetOrFetchAsync("fetch-key", Fetcher);
+        var result2 = await this.cache.GetOrFetchAsync("fetch-key", Fetcher);
 
         // Assert
         Assert.Equal(1, fetchCount); // Should only fetch once
@@ -121,7 +121,7 @@ public class SqliteCacheServiceTests : IDisposable
     {
         // Arrange
         var data = new TestData { Id = 1, Name = "Cached" };
-        await _cache.SetAsync("existing-key", data);
+        await this.cache.SetAsync("existing-key", data);
 
         var fetchCalled = false;
         Task<TestData> Fetcher()
@@ -131,16 +131,12 @@ public class SqliteCacheServiceTests : IDisposable
         }
 
         // Act
-        var result = await _cache.GetOrFetchAsync("existing-key", Fetcher);
+        var result = await this.cache.GetOrFetchAsync("existing-key", Fetcher);
 
         // Assert
         Assert.False(fetchCalled);
         Assert.Equal(1, result.Id);
     }
-
-    #endregion
-
-    #region TTL and Expiration
 
     [Fact]
     public async Task SetAsync_WithTtl_ExpiresAfterDuration()
@@ -150,17 +146,17 @@ public class SqliteCacheServiceTests : IDisposable
         var shortTtl = TimeSpan.FromSeconds(2);
 
         // Act
-        await _cache.SetAsync("expiring-key", data, shortTtl);
+        await this.cache.SetAsync("expiring-key", data, shortTtl);
 
         // Should exist immediately
-        var beforeExpiry = await _cache.GetAsync<TestData>("expiring-key");
+        var beforeExpiry = await this.cache.GetAsync<TestData>("expiring-key");
         Assert.NotNull(beforeExpiry);
 
         // Wait for expiration
         await Task.Delay(2500);
 
         // Should be expired now
-        var afterExpiry = await _cache.GetAsync<TestData>("expiring-key");
+        var afterExpiry = await this.cache.GetAsync<TestData>("expiring-key");
         Assert.Null(afterExpiry);
     }
 
@@ -171,10 +167,10 @@ public class SqliteCacheServiceTests : IDisposable
         var data = new TestData { Id = 1, Name = "Permanent" };
 
         // Act
-        await _cache.SetAsync("permanent-key", data);
+        await this.cache.SetAsync("permanent-key", data);
 
         // Assert (no TTL means no expiration)
-        var result = await _cache.GetAsync<TestData>("permanent-key");
+        var result = await this.cache.GetAsync<TestData>("permanent-key");
         Assert.NotNull(result);
     }
 
@@ -190,22 +186,18 @@ public class SqliteCacheServiceTests : IDisposable
         Assert.Equal(TimeSpan.FromDays(3650), SqliteCacheService.DefaultHistoricalTtl);
     }
 
-    #endregion
-
-    #region Invalidation
-
     [Fact]
     public async Task InvalidateAsync_ExactMatch_RemovesEntry()
     {
         // Arrange
-        await _cache.SetAsync("to-delete", new TestData { Id = 1 });
+        await this.cache.SetAsync("to-delete", new TestData { Id = 1 });
 
         // Act
-        var deleted = await _cache.InvalidateAsync("to-delete");
+        var deleted = await this.cache.InvalidateAsync("to-delete");
 
         // Assert
         Assert.Equal(1, deleted);
-        var result = await _cache.GetAsync<TestData>("to-delete");
+        var result = await this.cache.GetAsync<TestData>("to-delete");
         Assert.Null(result);
     }
 
@@ -213,57 +205,53 @@ public class SqliteCacheServiceTests : IDisposable
     public async Task InvalidateAsync_WildcardPattern_RemovesMatchingEntries()
     {
         // Arrange
-        await _cache.SetAsync("quote:SPY", new TestData { Id = 1 });
-        await _cache.SetAsync("quote:QQQ", new TestData { Id = 2 });
-        await _cache.SetAsync("bars:SPY", new TestData { Id = 3 });
+        await this.cache.SetAsync("quote:SPY", new TestData { Id = 1 });
+        await this.cache.SetAsync("quote:QQQ", new TestData { Id = 2 });
+        await this.cache.SetAsync("bars:SPY", new TestData { Id = 3 });
 
         // Act
-        var deleted = await _cache.InvalidateAsync("quote:*");
+        var deleted = await this.cache.InvalidateAsync("quote:*");
 
         // Assert
         Assert.Equal(2, deleted);
-        Assert.Null(await _cache.GetAsync<TestData>("quote:SPY"));
-        Assert.Null(await _cache.GetAsync<TestData>("quote:QQQ"));
-        Assert.NotNull(await _cache.GetAsync<TestData>("bars:SPY"));
+        Assert.Null(await this.cache.GetAsync<TestData>("quote:SPY"));
+        Assert.Null(await this.cache.GetAsync<TestData>("quote:QQQ"));
+        Assert.NotNull(await this.cache.GetAsync<TestData>("bars:SPY"));
     }
 
     [Fact]
     public async Task CleanupExpiredAsync_RemovesExpiredEntries()
     {
         // Arrange
-        await _cache.SetAsync("expired", new TestData { Id = 1 }, TimeSpan.FromSeconds(1));
-        await _cache.SetAsync("valid", new TestData { Id = 2 }, TimeSpan.FromHours(1));
+        await this.cache.SetAsync("expired", new TestData { Id = 1 }, TimeSpan.FromSeconds(1));
+        await this.cache.SetAsync("valid", new TestData { Id = 2 }, TimeSpan.FromHours(1));
 
         // Wait for first to expire
         await Task.Delay(1500);
 
         // Act
-        var deleted = await _cache.CleanupExpiredAsync();
+        var deleted = await this.cache.CleanupExpiredAsync();
 
         // Assert
         Assert.Equal(1, deleted);
-        Assert.Null(await _cache.GetAsync<TestData>("expired"));
-        Assert.NotNull(await _cache.GetAsync<TestData>("valid"));
+        Assert.Null(await this.cache.GetAsync<TestData>("expired"));
+        Assert.NotNull(await this.cache.GetAsync<TestData>("valid"));
     }
-
-    #endregion
-
-    #region Statistics
 
     [Fact]
     public async Task GetStatsAsync_ReturnsCorrectCounts()
     {
         // Arrange
-        await _cache.SetAsync("key1", new TestData { Id = 1 });
-        await _cache.SetAsync("key2", new TestData { Id = 2 });
+        await this.cache.SetAsync("key1", new TestData { Id = 1 });
+        await this.cache.SetAsync("key2", new TestData { Id = 2 });
 
         // Trigger some hits and misses
-        await _cache.GetAsync<TestData>("key1"); // Hit
-        await _cache.GetAsync<TestData>("key1"); // Hit
-        await _cache.GetAsync<TestData>("nonexistent"); // Miss
+        await this.cache.GetAsync<TestData>("key1"); // Hit
+        await this.cache.GetAsync<TestData>("key1"); // Hit
+        await this.cache.GetAsync<TestData>("nonexistent"); // Miss
 
         // Act
-        var stats = await _cache.GetStatsAsync();
+        var stats = await this.cache.GetStatsAsync();
 
         // Assert
         Assert.Equal(2, stats.TotalEntries);
@@ -276,18 +264,14 @@ public class SqliteCacheServiceTests : IDisposable
     public async Task GetStatsAsync_ReportsDatabaseSize()
     {
         // Arrange
-        await _cache.SetAsync("data", new TestData { Id = 1, Name = "Some data" });
+        await this.cache.SetAsync("data", new TestData { Id = 1, Name = "Some data" });
 
         // Act
-        var stats = await _cache.GetStatsAsync();
+        var stats = await this.cache.GetStatsAsync();
 
         // Assert
         Assert.True(stats.DatabaseSizeBytes > 0);
     }
-
-    #endregion
-
-    #region Thread Safety
 
     [Fact]
     public async Task ConcurrentWrites_NoCorruption()
@@ -304,7 +288,7 @@ public class SqliteCacheServiceTests : IDisposable
             {
                 try
                 {
-                    await _cache.SetAsync($"concurrent-{index}", new TestData { Id = index });
+                    await this.cache.SetAsync($"concurrent-{index}", new TestData { Id = index });
                 }
                 catch
                 {
@@ -319,7 +303,7 @@ public class SqliteCacheServiceTests : IDisposable
         Assert.Equal(0, errors);
 
         // Verify all writes succeeded
-        var stats = await _cache.GetStatsAsync();
+        var stats = await this.cache.GetStatsAsync();
         Assert.Equal(100, stats.TotalEntries);
     }
 
@@ -327,7 +311,7 @@ public class SqliteCacheServiceTests : IDisposable
     public async Task ConcurrentReadsAndWrites_NoCorruption()
     {
         // Arrange
-        await _cache.SetAsync("shared-key", new TestData { Id = 0 });
+        await this.cache.SetAsync("shared-key", new TestData { Id = 0 });
         var tasks = new List<Task>();
         var errors = 0;
 
@@ -339,7 +323,7 @@ public class SqliteCacheServiceTests : IDisposable
             {
                 try
                 {
-                    await _cache.GetAsync<TestData>("shared-key");
+                    await this.cache.GetAsync<TestData>("shared-key");
                 }
                 catch
                 {
@@ -351,7 +335,7 @@ public class SqliteCacheServiceTests : IDisposable
             {
                 try
                 {
-                    await _cache.SetAsync($"write-{index}", new TestData { Id = index });
+                    await this.cache.SetAsync($"write-{index}", new TestData { Id = index });
                 }
                 catch
                 {
@@ -366,12 +350,12 @@ public class SqliteCacheServiceTests : IDisposable
         Assert.Equal(0, errors);
     }
 
-    #endregion
 
     // Test data class for serialization
     private class TestData
     {
         public int Id { get; set; }
+
         public string Name { get; set; } = string.Empty;
     }
 }

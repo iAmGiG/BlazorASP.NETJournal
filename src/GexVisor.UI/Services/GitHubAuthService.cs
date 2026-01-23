@@ -205,7 +205,9 @@ public class GitHubAuthService
     private async Task FetchUserInfoAsync()
     {
         if (string.IsNullOrEmpty(_state.AccessToken))
+        {
             return;
+        }
 
         try
         {
@@ -235,7 +237,9 @@ public class GitHubAuthService
     public async Task<bool> RefreshTokenAsync()
     {
         if (string.IsNullOrEmpty(_state.RefreshToken))
+        {
             return false;
+        }
 
         try
         {
@@ -286,7 +290,10 @@ public class GitHubAuthService
     public AuthenticationHeaderValue? GetAuthHeader()
     {
         if (!IsAuthenticated)
+        {
             return null;
+        }
+
         return new AuthenticationHeaderValue("Bearer", _state.AccessToken);
     }
 }

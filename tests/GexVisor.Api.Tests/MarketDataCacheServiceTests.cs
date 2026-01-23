@@ -1,7 +1,8 @@
+// Copyright (c) GexVisor. All rights reserved.
+
 using GexVisor.Api.Services;
 using GexVisor.Core;
 using Microsoft.Data.Sqlite;
-using Xunit;
 
 namespace GexVisor.Api.Tests;
 
@@ -11,20 +12,21 @@ namespace GexVisor.Api.Tests;
 /// </summary>
 public class MarketDataCacheServiceTests : IDisposable
 {
-    private readonly string _testDbPath;
-    private readonly SqliteCacheService _cacheService;
-    private readonly MarketDataCacheService _marketCache;
+    private readonly string testDbPath;
+    private readonly SqliteCacheService cacheService;
+    private readonly MarketDataCacheService marketCache;
 
     public MarketDataCacheServiceTests()
     {
-        _testDbPath = Path.Combine(Path.GetTempPath(), $"gexvisor_market_test_{Guid.NewGuid()}.db");
-        _cacheService = new SqliteCacheService(_testDbPath);
-        _marketCache = new MarketDataCacheService(_cacheService);
+        this.testDbPath = Path.Combine(Path.GetTempPath(), $"gexvisor_market_test_{Guid.NewGuid()}.db");
+        this.cacheService = new SqliteCacheService(this.testDbPath);
+        this.marketCache = new MarketDataCacheService(this.cacheService);
     }
 
+    /// <inheritdoc/>
     public void Dispose()
     {
-        _cacheService.Dispose();
+        this.cacheService.Dispose();
 
         // Clear SQLite connection pools to release file locks
         SqliteConnection.ClearAllPools();
@@ -34,8 +36,11 @@ public class MarketDataCacheServiceTests : IDisposable
         {
             try
             {
-                if (File.Exists(_testDbPath))
-                    File.Delete(_testDbPath);
+                if (File.Exists(this.testDbPath))
+                {
+                    File.Delete(this.testDbPath);
+                }
+
                 break;
             }
             catch (IOException)
@@ -43,10 +48,9 @@ public class MarketDataCacheServiceTests : IDisposable
                 Thread.Sleep(50);
             }
         }
+
         GC.SuppressFinalize(this);
     }
-
-    #region Quote TTL Tests
 
     [Fact]
     public void GetTtlForQuote_RecentQuote_Returns24Hours()
@@ -81,7 +85,7 @@ public class MarketDataCacheServiceTests : IDisposable
         var quote = new Quote
         {
             Symbol = "SPY",
-            Timestamp = DateTime.UtcNow.AddMinutes(-5)
+            Timestamp = DateTime.UtcNow.AddMinutes(-5),
         };
 
         // Act
@@ -98,7 +102,7 @@ public class MarketDataCacheServiceTests : IDisposable
         var quote = new Quote
         {
             Symbol = "SPY",
-            Timestamp = DateTime.UtcNow.AddMinutes(-30)
+            Timestamp = DateTime.UtcNow.AddMinutes(-30),
         };
 
         // Act
@@ -108,10 +112,6 @@ public class MarketDataCacheServiceTests : IDisposable
         Assert.True(isStale);
     }
 
-    #endregion
-
-    #region Quote Caching
-
     [Fact]
     public async Task SetQuoteAsync_ThenGetQuoteAsync_ReturnsQuote()
     {
@@ -120,12 +120,12 @@ public class MarketDataCacheServiceTests : IDisposable
         {
             Symbol = "SPY",
             Price = 500.00m,
-            Timestamp = DateTime.UtcNow
+            Timestamp = DateTime.UtcNow,
         };
 
         // Act
-        await _marketCache.SetQuoteAsync(quote);
-        var result = await _marketCache.GetQuoteAsync("SPY");
+        await this.marketCache.SetQuoteAsync(quote);
+        var result = await this.marketCache.GetQuoteAsync("SPY");
 
         // Assert
         Assert.NotNull(result);
@@ -141,21 +141,17 @@ public class MarketDataCacheServiceTests : IDisposable
         {
             Symbol = "SPY",
             Price = 500.00m,
-            Timestamp = DateTime.UtcNow
+            Timestamp = DateTime.UtcNow,
         };
 
         // Act
-        await _marketCache.SetQuoteAsync(quote);
-        var result = await _marketCache.GetQuoteAsync("spy");
+        await this.marketCache.SetQuoteAsync(quote);
+        var result = await this.marketCache.GetQuoteAsync("spy");
 
         // Assert
         Assert.NotNull(result);
         Assert.Equal("SPY", result.Symbol);
     }
-
-    #endregion
-
-    #region Bar TTL Tests
 
     [Fact]
     public void GetTtlForBars_Minute1_Returns5Minutes()
@@ -187,10 +183,6 @@ public class MarketDataCacheServiceTests : IDisposable
         Assert.Equal(TimeSpan.FromDays(3650), ttl);
     }
 
-    #endregion
-
-    #region Bar Caching
-
     [Fact]
     public async Task SetBarsAsync_ThenGetBarsAsync_ReturnsBars()
     {
@@ -198,12 +190,12 @@ public class MarketDataCacheServiceTests : IDisposable
         var bars = new List<OhlcvBar>
         {
             new() { Symbol = "SPY", Timestamp = DateTime.UtcNow.AddDays(-1), Open = 500, High = 505, Low = 498, Close = 502, Volume = 1000000 },
-            new() { Symbol = "SPY", Timestamp = DateTime.UtcNow, Open = 502, High = 508, Low = 501, Close = 506, Volume = 1200000 }
+            new() { Symbol = "SPY", Timestamp = DateTime.UtcNow, Open = 502, High = 508, Low = 501, Close = 506, Volume = 1200000 },
         };
 
         // Act
-        await _marketCache.SetBarsAsync("SPY", BarTimeframe.Day, bars);
-        var result = await _marketCache.GetBarsAsync("SPY", BarTimeframe.Day);
+        await this.marketCache.SetBarsAsync("SPY", BarTimeframe.Day, bars);
+        var result = await this.marketCache.GetBarsAsync("SPY", BarTimeframe.Day);
 
         // Assert
         Assert.NotNull(result);
@@ -217,26 +209,22 @@ public class MarketDataCacheServiceTests : IDisposable
         var emptyBars = new List<OhlcvBar>();
 
         // Act
-        await _marketCache.SetBarsAsync("EMPTY", BarTimeframe.Day, emptyBars);
-        var result = await _marketCache.GetBarsAsync("EMPTY", BarTimeframe.Day);
+        await this.marketCache.SetBarsAsync("EMPTY", BarTimeframe.Day, emptyBars);
+        var result = await this.marketCache.GetBarsAsync("EMPTY", BarTimeframe.Day);
 
         // Assert
         Assert.Null(result);
     }
 
-    #endregion
-
-    #region Multiple Quotes
-
     [Fact]
     public async Task GetMultipleQuotesAsync_ReturnsCachedQuotes()
     {
         // Arrange
-        await _marketCache.SetQuoteAsync(new Quote { Symbol = "SPY", Price = 500, Timestamp = DateTime.UtcNow });
-        await _marketCache.SetQuoteAsync(new Quote { Symbol = "QQQ", Price = 400, Timestamp = DateTime.UtcNow });
+        await this.marketCache.SetQuoteAsync(new Quote { Symbol = "SPY", Price = 500, Timestamp = DateTime.UtcNow });
+        await this.marketCache.SetQuoteAsync(new Quote { Symbol = "QQQ", Price = 400, Timestamp = DateTime.UtcNow });
 
         // Act
-        var result = await _marketCache.GetMultipleQuotesAsync(new[] { "SPY", "QQQ", "IWM" });
+        var result = await this.marketCache.GetMultipleQuotesAsync(new[] { "SPY", "QQQ", "IWM" });
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -252,56 +240,50 @@ public class MarketDataCacheServiceTests : IDisposable
         var quotes = new[]
         {
             new Quote { Symbol = "SPY", Price = 500, Timestamp = DateTime.UtcNow },
-            new Quote { Symbol = "QQQ", Price = 400, Timestamp = DateTime.UtcNow }
+            new Quote { Symbol = "QQQ", Price = 400, Timestamp = DateTime.UtcNow },
         };
 
         // Act
-        await _marketCache.SetMultipleQuotesAsync(quotes);
+        await this.marketCache.SetMultipleQuotesAsync(quotes);
 
         // Assert
-        Assert.NotNull(await _marketCache.GetQuoteAsync("SPY"));
-        Assert.NotNull(await _marketCache.GetQuoteAsync("QQQ"));
+        Assert.NotNull(await this.marketCache.GetQuoteAsync("SPY"));
+        Assert.NotNull(await this.marketCache.GetQuoteAsync("QQQ"));
     }
-
-    #endregion
-
-    #region Cache Management
 
     [Fact]
     public async Task InvalidateSymbolAsync_RemovesSymbolData()
     {
         // Arrange
-        await _marketCache.SetQuoteAsync(new Quote { Symbol = "SPY", Price = 500, Timestamp = DateTime.UtcNow });
-        await _marketCache.SetBarsAsync("SPY", BarTimeframe.Day, new List<OhlcvBar>
+        await this.marketCache.SetQuoteAsync(new Quote { Symbol = "SPY", Price = 500, Timestamp = DateTime.UtcNow });
+        await this.marketCache.SetBarsAsync("SPY", BarTimeframe.Day, new List<OhlcvBar>
         {
-            new() { Symbol = "SPY", Timestamp = DateTime.UtcNow, Open = 500, High = 505, Low = 498, Close = 502, Volume = 1000000 }
+            new() { Symbol = "SPY", Timestamp = DateTime.UtcNow, Open = 500, High = 505, Low = 498, Close = 502, Volume = 1000000 },
         });
 
         // Act
-        await _marketCache.InvalidateSymbolAsync("SPY");
+        await this.marketCache.InvalidateSymbolAsync("SPY");
 
         // Assert
-        Assert.Null(await _marketCache.GetQuoteAsync("SPY"));
-        Assert.Null(await _marketCache.GetBarsAsync("SPY", BarTimeframe.Day));
+        Assert.Null(await this.marketCache.GetQuoteAsync("SPY"));
+        Assert.Null(await this.marketCache.GetBarsAsync("SPY", BarTimeframe.Day));
     }
 
     [Fact]
     public async Task InvalidateAllQuotesAsync_RemovesOnlyQuotes()
     {
         // Arrange
-        await _marketCache.SetQuoteAsync(new Quote { Symbol = "SPY", Price = 500, Timestamp = DateTime.UtcNow });
-        await _marketCache.SetBarsAsync("SPY", BarTimeframe.Day, new List<OhlcvBar>
+        await this.marketCache.SetQuoteAsync(new Quote { Symbol = "SPY", Price = 500, Timestamp = DateTime.UtcNow });
+        await this.marketCache.SetBarsAsync("SPY", BarTimeframe.Day, new List<OhlcvBar>
         {
-            new() { Symbol = "SPY", Timestamp = DateTime.UtcNow, Open = 500, High = 505, Low = 498, Close = 502, Volume = 1000000 }
+            new() { Symbol = "SPY", Timestamp = DateTime.UtcNow, Open = 500, High = 505, Low = 498, Close = 502, Volume = 1000000 },
         });
 
         // Act
-        await _marketCache.InvalidateAllQuotesAsync();
+        await this.marketCache.InvalidateAllQuotesAsync();
 
         // Assert
-        Assert.Null(await _marketCache.GetQuoteAsync("SPY"));
-        Assert.NotNull(await _marketCache.GetBarsAsync("SPY", BarTimeframe.Day));
+        Assert.Null(await this.marketCache.GetQuoteAsync("SPY"));
+        Assert.NotNull(await this.marketCache.GetBarsAsync("SPY", BarTimeframe.Day));
     }
-
-    #endregion
 }

@@ -1,4 +1,3 @@
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -56,7 +55,9 @@ public class GitHubProjectService
     public async Task<List<GitHubProject>> FetchProjectsAsync(string? afterCursor = null)
     {
         if (!_auth.IsAuthenticated)
+        {
             return new();
+        }
 
         var query = $$"""
             query($cursor: String) {
@@ -160,7 +161,9 @@ public class GitHubProjectService
     public async Task<List<GitHubProject>> FetchMoreProjectsAsync()
     {
         if (!_auth.IsAuthenticated || !_hasMoreProjects || _endCursor == null)
+        {
             return new();
+        }
 
         return await FetchProjectsAsync(_endCursor);
     }
@@ -191,7 +194,9 @@ public class GitHubProjectService
     public async Task<List<GitHubProjectItem>> FetchProjectItemsAsync()
     {
         if (!_auth.IsAuthenticated || _selectedProject == null)
+        {
             return new();
+        }
 
         var query = $$"""
             query($projectId: ID!) {
@@ -243,7 +248,9 @@ public class GitHubProjectService
         var response = await ExecuteGraphQLAsync<ProjectItemsResponse>(query, variables);
 
         if (response?.Data?.Node?.Items?.Nodes == null)
+        {
             return new();
+        }
 
         return response.Data.Node.Items.Nodes
             .Where(n => n.Content != null)

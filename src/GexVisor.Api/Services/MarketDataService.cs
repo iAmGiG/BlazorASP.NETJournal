@@ -1,4 +1,3 @@
-using System.Net.Http.Headers;
 using System.Text.Json;
 using GexVisor.Core;
 
@@ -54,7 +53,10 @@ public class MarketDataService : IMarketDataService
         // Fetch from providers
         foreach (var provider in _providerOrder)
         {
-            if (!IsProviderConfigured(provider)) continue;
+            if (!IsProviderConfigured(provider))
+            {
+                continue;
+            }
 
             try
             {
@@ -139,11 +141,15 @@ public class MarketDataService : IMarketDataService
         {
             var result = await GetQuoteAsync(symbol); // This will also cache
             if (result.Success && result.Data != null)
+            {
                 quotes.Add(result.Data);
+            }
         }
 
         if (quotes.Count == 0)
+        {
             return MarketDataResult<List<Quote>>.Fail("Failed to get any quotes");
+        }
 
         var finalSource = quotes[0].Source;
         var finalProvider = !string.IsNullOrEmpty(finalSource) && Enum.TryParse<MarketDataProvider>(finalSource, out var p)
@@ -165,7 +171,10 @@ public class MarketDataService : IMarketDataService
         // Fetch from providers
         foreach (var provider in _providerOrder)
         {
-            if (!IsProviderConfigured(provider)) continue;
+            if (!IsProviderConfigured(provider))
+            {
+                continue;
+            }
 
             try
             {
@@ -217,14 +226,18 @@ public class MarketDataService : IMarketDataService
         var response = await client.GetAsync($"{endpoint}/v2/stocks/{symbol}/quotes/latest");
 
         if (!response.IsSuccessStatusCode)
+        {
             return null;
+        }
 
         var json = await response.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
 
         if (!root.TryGetProperty("quote", out var quote))
+        {
             return null;
+        }
 
         var askPrice = quote.GetProperty("ap").GetDecimal();
         var bidPrice = quote.GetProperty("bp").GetDecimal();
@@ -245,7 +258,9 @@ public class MarketDataService : IMarketDataService
             var snap = snapshotDoc.RootElement;
 
             if (snap.TryGetProperty("prevDailyBar", out var prevBar))
+            {
                 prevClose = prevBar.GetProperty("c").GetDecimal();
+            }
 
             if (snap.TryGetProperty("dailyBar", out var dailyBar))
             {
@@ -285,7 +300,9 @@ public class MarketDataService : IMarketDataService
         var response = await client.GetAsync($"{endpoint}/v2/stocks/snapshots?symbols={symbolsParam}");
 
         if (!response.IsSuccessStatusCode)
+        {
             return MarketDataResult<List<Quote>>.Fail("Alpaca batch request failed");
+        }
 
         var json = await response.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(json);
@@ -350,13 +367,17 @@ public class MarketDataService : IMarketDataService
         var response = await client.GetAsync($"{endpoint}/v2/stocks/{symbol}/bars?timeframe={tf}&limit={limit}");
 
         if (!response.IsSuccessStatusCode)
+        {
             return null;
+        }
 
         var json = await response.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(json);
 
         if (!doc.RootElement.TryGetProperty("bars", out var bars))
+        {
             return null;
+        }
 
         var ohlcvBars = new List<OhlcvBar>();
         foreach (var bar in bars.EnumerateArray())
@@ -389,7 +410,9 @@ public class MarketDataService : IMarketDataService
             $"https://finnhub.io/api/v1/quote?symbol={symbol}&token={config.FinnhubKey}");
 
         if (!response.IsSuccessStatusCode)
+        {
             return null;
+        }
 
         var json = await response.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(json);
@@ -398,7 +421,9 @@ public class MarketDataService : IMarketDataService
         // Check if valid response (Finnhub returns 0 for all values if symbol not found)
         var price = root.GetProperty("c").GetDecimal();
         if (price == 0)
+        {
             return null;
+        }
 
         return MarketDataResult<Quote>.Ok(new Quote
         {
@@ -441,14 +466,18 @@ public class MarketDataService : IMarketDataService
             $"https://finnhub.io/api/v1/stock/candle?symbol={symbol}&resolution={resolution}&from={from}&to={to}&token={config.FinnhubKey}");
 
         if (!response.IsSuccessStatusCode)
+        {
             return null;
+        }
 
         var json = await response.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
 
         if (root.TryGetProperty("s", out var status) && status.GetString() == "no_data")
+        {
             return null;
+        }
 
         var timestamps = root.GetProperty("t").EnumerateArray().ToList();
         var opens = root.GetProperty("o").EnumerateArray().ToList();

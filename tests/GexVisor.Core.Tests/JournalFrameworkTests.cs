@@ -1,5 +1,4 @@
-using GexVisor.Core;
-using Xunit;
+// Copyright (c) GexVisor. All rights reserved.
 
 namespace GexVisor.Core.Tests;
 
@@ -9,8 +8,6 @@ namespace GexVisor.Core.Tests;
 /// </summary>
 public class OptionsLogTests
 {
-    #region BTO (Buy to Open) Tests - Long Position
-
     [Fact]
     public void CalculatePnL_BTO_ProfitScenario_ReturnsPositivePnL()
     {
@@ -21,7 +18,7 @@ public class OptionsLogTests
             EntryPrice = 2.00m,
             ExitPrice = 5.00m,
             Quantity = 1,
-            ContractMultiplier = 100m
+            ContractMultiplier = 100m,
         };
 
         // Act
@@ -42,7 +39,7 @@ public class OptionsLogTests
             EntryPrice = 5.00m,
             ExitPrice = 2.00m,
             Quantity = 1,
-            ContractMultiplier = 100m
+            ContractMultiplier = 100m,
         };
 
         // Act
@@ -63,7 +60,7 @@ public class OptionsLogTests
             EntryPrice = 2.00m,
             ExitPrice = 5.00m,
             Quantity = 5,
-            ContractMultiplier = 100m
+            ContractMultiplier = 100m,
         };
 
         // Act
@@ -73,10 +70,6 @@ public class OptionsLogTests
         Assert.NotNull(pnl);
         Assert.Equal(1500m, pnl.Value);
     }
-
-    #endregion
-
-    #region STC (Sell to Close) Tests - Long Position Closing
 
     [Fact]
     public void CalculatePnL_STC_ProfitScenario_ReturnsPositivePnL()
@@ -88,7 +81,7 @@ public class OptionsLogTests
             EntryPrice = 2.00m,
             ExitPrice = 5.00m,
             Quantity = 1,
-            ContractMultiplier = 100m
+            ContractMultiplier = 100m,
         };
 
         // Act
@@ -109,7 +102,7 @@ public class OptionsLogTests
             EntryPrice = 5.00m,
             ExitPrice = 2.00m,
             Quantity = 1,
-            ContractMultiplier = 100m
+            ContractMultiplier = 100m,
         };
 
         // Act
@@ -119,10 +112,6 @@ public class OptionsLogTests
         Assert.NotNull(pnl);
         Assert.Equal(-300m, pnl.Value);
     }
-
-    #endregion
-
-    #region STO (Sell to Open) Tests - Short Position
 
     [Fact]
     public void CalculatePnL_STO_ProfitScenario_ReturnsPositivePnL()
@@ -134,7 +123,7 @@ public class OptionsLogTests
             EntryPrice = 5.00m,
             ExitPrice = 2.00m,
             Quantity = 1,
-            ContractMultiplier = 100m
+            ContractMultiplier = 100m,
         };
 
         // Act
@@ -155,7 +144,7 @@ public class OptionsLogTests
             EntryPrice = 2.00m,
             ExitPrice = 5.00m,
             Quantity = 1,
-            ContractMultiplier = 100m
+            ContractMultiplier = 100m,
         };
 
         // Act
@@ -176,7 +165,7 @@ public class OptionsLogTests
             EntryPrice = 5.00m,
             ExitPrice = 2.00m,
             Quantity = 5,
-            ContractMultiplier = 100m
+            ContractMultiplier = 100m,
         };
 
         // Act
@@ -186,10 +175,6 @@ public class OptionsLogTests
         Assert.NotNull(pnl);
         Assert.Equal(1500m, pnl.Value);
     }
-
-    #endregion
-
-    #region BTC (Buy to Close) Tests - Short Position Closing
 
     [Fact]
     public void CalculatePnL_BTC_ProfitScenario_ReturnsPositivePnL()
@@ -201,7 +186,7 @@ public class OptionsLogTests
             EntryPrice = 5.00m,
             ExitPrice = 2.00m,
             Quantity = 1,
-            ContractMultiplier = 100m
+            ContractMultiplier = 100m,
         };
 
         // Act
@@ -223,7 +208,7 @@ public class OptionsLogTests
             EntryPrice = 2.00m,
             ExitPrice = 5.00m,
             Quantity = 1,
-            ContractMultiplier = 100m
+            ContractMultiplier = 100m,
         };
 
         // Act
@@ -233,10 +218,6 @@ public class OptionsLogTests
         Assert.NotNull(pnl);
         Assert.Equal(-300m, pnl.Value);
     }
-
-    #endregion
-
-    #region Edge Cases
 
     [Fact]
     public void CalculatePnL_OpenPosition_ReturnsNull()
@@ -248,7 +229,7 @@ public class OptionsLogTests
             EntryPrice = 2.00m,
             ExitPrice = null,
             Quantity = 1,
-            ContractMultiplier = 100m
+            ContractMultiplier = 100m,
         };
 
         // Act
@@ -268,7 +249,7 @@ public class OptionsLogTests
             EntryPrice = 3.50m,
             ExitPrice = 3.50m,
             Quantity = 1,
-            ContractMultiplier = 100m
+            ContractMultiplier = 100m,
         };
 
         // Act
@@ -289,7 +270,7 @@ public class OptionsLogTests
             EntryPrice = 2.00m,
             ExitPrice = 5.00m,
             Quantity = 1,
-            ContractMultiplier = 10m // Mini-Options
+            ContractMultiplier = 10m, // Mini-Options
         };
 
         // Act
@@ -310,7 +291,7 @@ public class OptionsLogTests
             EntryPrice = 100.00m,
             ExitPrice = 95.00m,
             Quantity = 2,
-            ContractMultiplier = 50m // Futures Options
+            ContractMultiplier = 50m, // Futures Options
         };
 
         // Act
@@ -331,7 +312,7 @@ public class OptionsLogTests
             EntryPrice = 1.25m,
             ExitPrice = 3.75m,
             Quantity = 10,
-            ContractMultiplier = 100m
+            ContractMultiplier = 100m,
         };
 
         // Act
@@ -341,10 +322,6 @@ public class OptionsLogTests
         Assert.NotNull(pnl);
         Assert.Equal(2500m, pnl.Value);
     }
-
-    #endregion
-
-    #region Regression Tests for Issue #91
 
     [Fact]
     public void BugRegression_BTC_WasIncorrectlyGroupedWithBTO()
@@ -356,14 +333,13 @@ public class OptionsLogTests
         // Scenario: Sell option at $5 (STO), buy back at $3 (BTC)
         // Expected profit: $200 (price fell while short)
         // Old bug: Calculated as -$200 (treated as long position)
-
         var trade = new OptionsLog
         {
             OptionTradeType = OptionsLog.TradeType.BTC,
             EntryPrice = 5.00m,
             ExitPrice = 3.00m,
             Quantity = 1,
-            ContractMultiplier = 100m
+            ContractMultiplier = 100m,
         };
 
         var pnl = trade.CalculatePnL();
@@ -383,14 +359,13 @@ public class OptionsLogTests
         // Scenario: Buy option at $2 (BTO), sell at $5 (STC)
         // Expected profit: $300 (price rose while long)
         // Old bug: Calculated as -$300 (treated as short position)
-
         var trade = new OptionsLog
         {
             OptionTradeType = OptionsLog.TradeType.STC,
             EntryPrice = 2.00m,
             ExitPrice = 5.00m,
             Quantity = 1,
-            ContractMultiplier = 100m
+            ContractMultiplier = 100m,
         };
 
         var pnl = trade.CalculatePnL();
@@ -399,6 +374,4 @@ public class OptionsLogTests
         Assert.NotNull(pnl);
         Assert.Equal(300m, pnl.Value);
     }
-
-    #endregion
 }

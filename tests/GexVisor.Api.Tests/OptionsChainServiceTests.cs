@@ -1,3 +1,5 @@
+// Copyright (c) GexVisor. All rights reserved.
+
 using System.Net;
 using System.Text.Json;
 using GexVisor.Api.Services;
@@ -5,41 +7,40 @@ using GexVisor.Core;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;
-using Xunit;
 
 namespace GexVisor.Api.Tests;
 
 public class OptionsChainServiceTests : IDisposable
 {
-    private readonly Mock<IApiConfigService> _mockConfig;
-    private readonly Mock<IHttpClientFactory> _mockHttpFactory;
-    private readonly OptionsChainCacheService _cache;
-    private readonly IOptionsChainService _service;
-    private readonly string _testDbPath;
+    private readonly Mock<IApiConfigService> mockConfig;
+    private readonly Mock<IHttpClientFactory> mockHttpFactory;
+    private readonly OptionsChainCacheService cache;
+    private readonly IOptionsChainService service;
+    private readonly string testDbPath;
 
     public OptionsChainServiceTests()
     {
         // Setup API config mock
-        _mockConfig = new Mock<IApiConfigService>();
+        this.mockConfig = new Mock<IApiConfigService>();
         var config = new ApiConfiguration
         {
-            AlphaVantageKey = "demo"
+            AlphaVantageKey = "demo",
         };
-        _mockConfig.Setup(c => c.Configuration).Returns(config);
+        this.mockConfig.Setup(c => c.Configuration).Returns(config);
 
         // Setup HTTP client factory mock
-        _mockHttpFactory = new Mock<IHttpClientFactory>();
+        this.mockHttpFactory = new Mock<IHttpClientFactory>();
 
         // Setup cache with temporary SQLite database
-        _testDbPath = Path.Combine(Path.GetTempPath(), $"options_test_{Guid.NewGuid()}.db");
-        var sqliteCache = new SqliteCacheService(_testDbPath, null);
-        _cache = new OptionsChainCacheService(sqliteCache, Mock.Of<ILogger<OptionsChainCacheService>>());
+        this.testDbPath = Path.Combine(Path.GetTempPath(), $"options_test_{Guid.NewGuid()}.db");
+        var sqliteCache = new SqliteCacheService(this.testDbPath, null);
+        this.cache = new OptionsChainCacheService(sqliteCache, Mock.Of<ILogger<OptionsChainCacheService>>());
 
         // Create service
-        _service = new OptionsChainService(
-            _mockConfig.Object,
-            _cache,
-            _mockHttpFactory.Object,
+        this.service = new OptionsChainService(
+            this.mockConfig.Object,
+            this.cache,
+            this.mockHttpFactory.Object,
             Mock.Of<ILogger<OptionsChainService>>());
     }
 
@@ -47,16 +48,16 @@ public class OptionsChainServiceTests : IDisposable
     public async Task GetChainAsync_ValidSymbol_ReturnsContracts()
     {
         // Arrange
-        var mockResponse = CreateMockAlphaVantageResponse(
+        var mockResponse = this.CreateMockAlphaVantageResponse(
             new[]
             {
-                new { symbol = "SPY", strike = 450m, type = "call", expiration = "2024-01-19", date = "2024-01-15", delta = 0.5m, gamma = 0.01m }
+                new { symbol = "SPY", strike = 450m, type = "call", expiration = "2024-01-19", date = "2024-01-15", delta = 0.5m, gamma = 0.01m },
             });
 
-        SetupHttpMock(mockResponse);
+        this.SetupHttpMock(mockResponse);
 
         // Act
-        var result = await _service.GetChainAsync("SPY", new DateTime(2024, 1, 19));
+        var result = await this.service.GetChainAsync("SPY", new DateTime(2024, 1, 19));
 
         // Assert
         Assert.True(result.Success);
@@ -70,17 +71,17 @@ public class OptionsChainServiceTests : IDisposable
     public async Task GetChainAsync_InvalidBidAsk_FiltersOut()
     {
         // Arrange - Create contracts with invalid bid > ask
-        var mockResponse = CreateMockAlphaVantageResponse(
+        var mockResponse = this.CreateMockAlphaVantageResponse(
             new[]
             {
                 new { symbol = "SPY", strike = 450m, type = "call", expiration = "2024-01-19", date = "2024-01-15", bid = 10m, ask = 5m, delta = 0.5m, gamma = 0.01m },
-                new { symbol = "SPY", strike = 451m, type = "call", expiration = "2024-01-19", date = "2024-01-15", bid = 5m, ask = 10m, delta = 0.5m, gamma = 0.01m }
+                new { symbol = "SPY", strike = 451m, type = "call", expiration = "2024-01-19", date = "2024-01-15", bid = 5m, ask = 10m, delta = 0.5m, gamma = 0.01m },
             });
 
-        SetupHttpMock(mockResponse);
+        this.SetupHttpMock(mockResponse);
 
         // Act
-        var result = await _service.GetChainAsync("SPY", new DateTime(2024, 1, 19));
+        var result = await this.service.GetChainAsync("SPY", new DateTime(2024, 1, 19));
 
         // Assert
         Assert.True(result.Success);
@@ -92,17 +93,17 @@ public class OptionsChainServiceTests : IDisposable
     public async Task Validation_DeltaOutOfBounds_RejectsContract()
     {
         // Arrange - Create call with delta > 1 (invalid)
-        var mockResponse = CreateMockAlphaVantageResponse(
+        var mockResponse = this.CreateMockAlphaVantageResponse(
             new[]
             {
                 new { symbol = "SPY", strike = 450m, type = "call", expiration = "2024-01-19", date = "2024-01-15", delta = 1.5m, gamma = 0.01m },
-                new { symbol = "SPY", strike = 451m, type = "call", expiration = "2024-01-19", date = "2024-01-15", delta = 0.5m, gamma = 0.01m }
+                new { symbol = "SPY", strike = 451m, type = "call", expiration = "2024-01-19", date = "2024-01-15", delta = 0.5m, gamma = 0.01m },
             });
 
-        SetupHttpMock(mockResponse);
+        this.SetupHttpMock(mockResponse);
 
         // Act
-        var result = await _service.GetChainAsync("SPY", new DateTime(2024, 1, 19));
+        var result = await this.service.GetChainAsync("SPY", new DateTime(2024, 1, 19));
 
         // Assert
         Assert.True(result.Success);
@@ -114,17 +115,17 @@ public class OptionsChainServiceTests : IDisposable
     public async Task Validation_NegativeGamma_RejectsContract()
     {
         // Arrange - Create contract with gamma < 0 (invalid)
-        var mockResponse = CreateMockAlphaVantageResponse(
+        var mockResponse = this.CreateMockAlphaVantageResponse(
             new[]
             {
                 new { symbol = "SPY", strike = 450m, type = "call", expiration = "2024-01-19", date = "2024-01-15", delta = 0.5m, gamma = -0.01m },
-                new { symbol = "SPY", strike = 451m, type = "call", expiration = "2024-01-19", date = "2024-01-15", delta = 0.5m, gamma = 0.01m }
+                new { symbol = "SPY", strike = 451m, type = "call", expiration = "2024-01-19", date = "2024-01-15", delta = 0.5m, gamma = 0.01m },
             });
 
-        SetupHttpMock(mockResponse);
+        this.SetupHttpMock(mockResponse);
 
         // Act
-        var result = await _service.GetChainAsync("SPY", new DateTime(2024, 1, 19));
+        var result = await this.service.GetChainAsync("SPY", new DateTime(2024, 1, 19));
 
         // Assert
         Assert.True(result.Success);
@@ -136,17 +137,17 @@ public class OptionsChainServiceTests : IDisposable
     public async Task Validation_NegativeStrike_RejectsContract()
     {
         // Arrange - Create contract with strike <= 0 (invalid)
-        var mockResponse = CreateMockAlphaVantageResponse(
+        var mockResponse = this.CreateMockAlphaVantageResponse(
             new[]
             {
                 new { symbol = "SPY", strike = 0m, type = "call", expiration = "2024-01-19", date = "2024-01-15", delta = 0.5m, gamma = 0.01m },
-                new { symbol = "SPY", strike = 450m, type = "call", expiration = "2024-01-19", date = "2024-01-15", delta = 0.5m, gamma = 0.01m }
+                new { symbol = "SPY", strike = 450m, type = "call", expiration = "2024-01-19", date = "2024-01-15", delta = 0.5m, gamma = 0.01m },
             });
 
-        SetupHttpMock(mockResponse);
+        this.SetupHttpMock(mockResponse);
 
         // Act
-        var result = await _service.GetChainAsync("SPY", new DateTime(2024, 1, 19));
+        var result = await this.service.GetChainAsync("SPY", new DateTime(2024, 1, 19));
 
         // Assert
         Assert.True(result.Success);
@@ -158,17 +159,17 @@ public class OptionsChainServiceTests : IDisposable
     public async Task Validation_NegativeOpenInterest_RejectsContract()
     {
         // Arrange - Create contract with OI < 0 (invalid)
-        var mockResponse = CreateMockAlphaVantageResponse(
+        var mockResponse = this.CreateMockAlphaVantageResponse(
             new[]
             {
                 new { symbol = "SPY", strike = 450m, type = "call", expiration = "2024-01-19", date = "2024-01-15", delta = 0.5m, gamma = 0.01m, openInterest = -100L },
-                new { symbol = "SPY", strike = 451m, type = "call", expiration = "2024-01-19", date = "2024-01-15", delta = 0.5m, gamma = 0.01m, openInterest = 100L }
+                new { symbol = "SPY", strike = 451m, type = "call", expiration = "2024-01-19", date = "2024-01-15", delta = 0.5m, gamma = 0.01m, openInterest = 100L },
             });
 
-        SetupHttpMock(mockResponse);
+        this.SetupHttpMock(mockResponse);
 
         // Act
-        var result = await _service.GetChainAsync("SPY", new DateTime(2024, 1, 19));
+        var result = await this.service.GetChainAsync("SPY", new DateTime(2024, 1, 19));
 
         // Assert
         Assert.True(result.Success);
@@ -180,18 +181,18 @@ public class OptionsChainServiceTests : IDisposable
     public async Task GetChainAsync_CachedData_ReturnsCached()
     {
         // Arrange - First call to populate cache
-        var mockResponse = CreateMockAlphaVantageResponse(
+        var mockResponse = this.CreateMockAlphaVantageResponse(
             new[]
             {
-                new { symbol = "SPY", strike = 450m, type = "call", expiration = "2024-01-19", date = "2024-01-15", delta = 0.5m, gamma = 0.01m }
+                new { symbol = "SPY", strike = 450m, type = "call", expiration = "2024-01-19", date = "2024-01-15", delta = 0.5m, gamma = 0.01m },
             });
 
-        SetupHttpMock(mockResponse);
+        this.SetupHttpMock(mockResponse);
 
-        await _service.GetChainAsync("SPY", new DateTime(2024, 1, 19));
+        await this.service.GetChainAsync("SPY", new DateTime(2024, 1, 19));
 
         // Act - Second call should return cached data (no HTTP call)
-        var result = await _service.GetChainAsync("SPY", new DateTime(2024, 1, 19));
+        var result = await this.service.GetChainAsync("SPY", new DateTime(2024, 1, 19));
 
         // Assert
         Assert.True(result.Success);
@@ -202,17 +203,17 @@ public class OptionsChainServiceTests : IDisposable
     public async Task GetContractAsync_ValidParams_ReturnsContract()
     {
         // Arrange
-        var mockResponse = CreateMockAlphaVantageResponse(
+        var mockResponse = this.CreateMockAlphaVantageResponse(
             new[]
             {
                 new { symbol = "SPY", strike = 450m, type = "call", expiration = "2024-01-19", date = "2024-01-15", delta = 0.5m, gamma = 0.01m },
-                new { symbol = "SPY", strike = 451m, type = "call", expiration = "2024-01-19", date = "2024-01-15", delta = 0.6m, gamma = 0.02m }
+                new { symbol = "SPY", strike = 451m, type = "call", expiration = "2024-01-19", date = "2024-01-15", delta = 0.6m, gamma = 0.02m },
             });
 
-        SetupHttpMock(mockResponse);
+        this.SetupHttpMock(mockResponse);
 
         // Act
-        var result = await _service.GetContractAsync("SPY", 450m, OptionType.Call, new DateTime(2024, 1, 19));
+        var result = await this.service.GetContractAsync("SPY", 450m, OptionType.Call, new DateTime(2024, 1, 19));
 
         // Assert
         Assert.True(result.Success);
@@ -225,16 +226,16 @@ public class OptionsChainServiceTests : IDisposable
     public async Task GetContractAsync_NotFound_ReturnsFailure()
     {
         // Arrange
-        var mockResponse = CreateMockAlphaVantageResponse(
+        var mockResponse = this.CreateMockAlphaVantageResponse(
             new[]
             {
-                new { symbol = "SPY", strike = 450m, type = "call", expiration = "2024-01-19", date = "2024-01-15", delta = 0.5m, gamma = 0.01m }
+                new { symbol = "SPY", strike = 450m, type = "call", expiration = "2024-01-19", date = "2024-01-15", delta = 0.5m, gamma = 0.01m },
             });
 
-        SetupHttpMock(mockResponse);
+        this.SetupHttpMock(mockResponse);
 
         // Act - Request strike that doesn't exist
-        var result = await _service.GetContractAsync("SPY", 999m, OptionType.Call, new DateTime(2024, 1, 19));
+        var result = await this.service.GetContractAsync("SPY", 999m, OptionType.Call, new DateTime(2024, 1, 19));
 
         // Assert
         Assert.False(result.Success);
@@ -246,18 +247,18 @@ public class OptionsChainServiceTests : IDisposable
     public async Task GetExpirationDatesAsync_ValidSymbol_ReturnsUniqueDates()
     {
         // Arrange
-        var mockResponse = CreateMockAlphaVantageResponse(
+        var mockResponse = this.CreateMockAlphaVantageResponse(
             new[]
             {
                 new { symbol = "SPY", strike = 450m, type = "call", expiration = "2024-01-19", date = "2024-01-15", delta = 0.5m, gamma = 0.01m },
                 new { symbol = "SPY", strike = 451m, type = "call", expiration = "2024-01-19", date = "2024-01-15", delta = 0.6m, gamma = 0.02m },
-                new { symbol = "SPY", strike = 450m, type = "call", expiration = "2024-02-16", date = "2024-01-15", delta = 0.5m, gamma = 0.01m }
+                new { symbol = "SPY", strike = 450m, type = "call", expiration = "2024-02-16", date = "2024-01-15", delta = 0.5m, gamma = 0.01m },
             });
 
-        SetupHttpMock(mockResponse);
+        this.SetupHttpMock(mockResponse);
 
         // Act
-        var result = await _service.GetExpirationDatesAsync("SPY");
+        var result = await this.service.GetExpirationDatesAsync("SPY");
 
         // Assert
         Assert.True(result.Success);
@@ -271,7 +272,7 @@ public class OptionsChainServiceTests : IDisposable
     public async Task QualityScore_AllGreeks_ReturnsHigh()
     {
         // Arrange
-        var mockResponse = CreateMockAlphaVantageResponse(
+        var mockResponse = this.CreateMockAlphaVantageResponse(
             new[]
             {
                 new
@@ -290,13 +291,13 @@ public class OptionsChainServiceTests : IDisposable
                     ask = 6m,
                     volume = 1000L,
                     openInterest = 5000L
-                }
+                },
             });
 
-        SetupHttpMock(mockResponse);
+        this.SetupHttpMock(mockResponse);
 
         // Act
-        var result = await _service.GetChainAsync("SPY", new DateTime(2024, 1, 19));
+        var result = await this.service.GetChainAsync("SPY", new DateTime(2024, 1, 19));
 
         // Assert
         Assert.True(result.Success);
@@ -309,16 +310,16 @@ public class OptionsChainServiceTests : IDisposable
     public async Task QualityScore_NoGreeks_ReturnsLow()
     {
         // Arrange - Only symbol, strike, type, expiration, date
-        var mockResponse = CreateMockAlphaVantageResponse(
+        var mockResponse = this.CreateMockAlphaVantageResponse(
             new[]
             {
-                new { symbol = "SPY", strike = 450m, type = "call", expiration = "2024-01-19", date = "2024-01-15" }
+                new { symbol = "SPY", strike = 450m, type = "call", expiration = "2024-01-19", date = "2024-01-15" },
             });
 
-        SetupHttpMock(mockResponse);
+        this.SetupHttpMock(mockResponse);
 
         // Act
-        var result = await _service.GetChainAsync("SPY", new DateTime(2024, 1, 19));
+        var result = await this.service.GetChainAsync("SPY", new DateTime(2024, 1, 19));
 
         // Assert
         Assert.True(result.Success);
@@ -332,12 +333,12 @@ public class OptionsChainServiceTests : IDisposable
     {
         // Arrange - Clear API key
         var emptyConfig = new ApiConfiguration();
-        _mockConfig.Setup(c => c.Configuration).Returns(emptyConfig);
+        this.mockConfig.Setup(c => c.Configuration).Returns(emptyConfig);
 
         var service = new OptionsChainService(
-            _mockConfig.Object,
-            _cache,
-            _mockHttpFactory.Object,
+            this.mockConfig.Object,
+            this.cache,
+            this.mockHttpFactory.Object,
             Mock.Of<ILogger<OptionsChainService>>());
 
         // Act
@@ -380,7 +381,7 @@ public class OptionsChainServiceTests : IDisposable
                     vega = GetProp<decimal?>(c, "vega"),
                     rho = (decimal?)null
                 };
-            }).ToList()
+            }).ToList(),
         };
 
         return JsonSerializer.Serialize(response);
@@ -396,9 +397,13 @@ public class OptionsChainServiceTests : IDisposable
             {
                 var value = prop.GetValue(obj);
                 if (value == null && typeof(T).IsValueType && Nullable.GetUnderlyingType(typeof(T)) == null)
+                {
                     return default!;
+                }
+
                 return (T)value!;
             }
+
             return default!;
         }
         catch
@@ -418,20 +423,22 @@ public class OptionsChainServiceTests : IDisposable
             .ReturnsAsync(new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(responseContent)
+                Content = new StringContent(responseContent),
             });
 
         var httpClient = new HttpClient(mockHandler.Object);
-        _mockHttpFactory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(httpClient);
+        this.mockHttpFactory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(httpClient);
     }
 
+    /// <inheritdoc/>
     public void Dispose()
     {
         // Cleanup test database
-        if (File.Exists(_testDbPath))
+        if (File.Exists(this.testDbPath))
         {
-            File.Delete(_testDbPath);
+            File.Delete(this.testDbPath);
         }
+
         GC.SuppressFinalize(this);
     }
 }

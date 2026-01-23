@@ -203,7 +203,9 @@ public class AnnotationService
             var patternAnnotations = _annotations.Where(a => a.PatternType == code).ToList();
 
             if (patternAnnotations.Count == 0 && code == PatternTypes.Other)
+            {
                 continue;
+            }
 
             var taxonomyBreakdown = patternAnnotations
                 .GroupBy(a => a.Taxonomy)

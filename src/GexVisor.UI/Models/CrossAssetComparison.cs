@@ -1,5 +1,3 @@
-using GexVisor.UI.Models;
-
 namespace GexVisor.UI.Models;
 
 /// <summary>
@@ -135,7 +133,9 @@ public record RegimeDivergenceEvent
         get
         {
             if (AssetRegimes.Count <= 1)
+            {
                 return 0;
+            }
 
             var positiveCount = AssetRegimes.Values.Count(r => r == GammaRegime.Positive);
             var negativeCount = AssetRegimes.Count - positiveCount;

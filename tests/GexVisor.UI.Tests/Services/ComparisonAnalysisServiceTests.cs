@@ -1,8 +1,9 @@
+// Copyright (c) GexVisor. All rights reserved.
+
 using System.Globalization;
 using FluentAssertions;
 using GexVisor.UI.Models;
 using GexVisor.UI.Services;
-using Xunit;
 
 namespace GexVisor.UI.Tests.Services;
 
@@ -12,14 +13,12 @@ namespace GexVisor.UI.Tests.Services;
 /// </summary>
 public class ComparisonAnalysisServiceTests
 {
-    private readonly ComparisonAnalysisService _service;
+    private readonly ComparisonAnalysisService service;
 
     public ComparisonAnalysisServiceTests()
     {
-        _service = new ComparisonAnalysisService();
+        this.service = new ComparisonAnalysisService();
     }
-
-    #region Pearson Correlation Tests
 
     [Fact]
     public void CalculatePearsonCorrelation_PerfectPositiveCorrelation_Returns1()
@@ -29,7 +28,7 @@ public class ComparisonAnalysisServiceTests
         var y = new List<decimal> { 2, 4, 6, 8, 10 }; // y = 2x
 
         // Act
-        var result = _service.CalculatePearsonCorrelation(x, y);
+        var result = this.service.CalculatePearsonCorrelation(x, y);
 
         // Assert
         result.Should().BeApproximately(1.0m, 0.001m);
@@ -43,7 +42,7 @@ public class ComparisonAnalysisServiceTests
         var y = new List<decimal> { 10, 8, 6, 4, 2 }; // inverse relationship
 
         // Act
-        var result = _service.CalculatePearsonCorrelation(x, y);
+        var result = this.service.CalculatePearsonCorrelation(x, y);
 
         // Assert
         result.Should().BeApproximately(-1.0m, 0.001m);
@@ -57,7 +56,7 @@ public class ComparisonAnalysisServiceTests
         var y = new List<decimal> { 3, 1, 4, 2, 5 };
 
         // Act
-        var result = _service.CalculatePearsonCorrelation(x, y);
+        var result = this.service.CalculatePearsonCorrelation(x, y);
 
         // Assert
         result.Should().BeInRange(-0.5m, 0.5m); // Weak or no correlation
@@ -71,7 +70,7 @@ public class ComparisonAnalysisServiceTests
         var y = new List<decimal>();
 
         // Act
-        var result = _service.CalculatePearsonCorrelation(x, y);
+        var result = this.service.CalculatePearsonCorrelation(x, y);
 
         // Assert
         result.Should().Be(0);
@@ -85,7 +84,7 @@ public class ComparisonAnalysisServiceTests
         var y = new List<decimal> { 1, 2 };
 
         // Act
-        var result = _service.CalculatePearsonCorrelation(x, y);
+        var result = this.service.CalculatePearsonCorrelation(x, y);
 
         // Assert
         result.Should().Be(0);
@@ -99,32 +98,30 @@ public class ComparisonAnalysisServiceTests
         var y = new List<decimal> { 1, 2, 3, 4, 5 };
 
         // Act
-        var result = _service.CalculatePearsonCorrelation(x, y);
+        var result = this.service.CalculatePearsonCorrelation(x, y);
 
         // Assert
         result.Should().Be(0); // No variance in x means no correlation
     }
 
-    #endregion
-
-    #region Correlation Integration Tests
-
     [Fact]
     public void CalculateCorrelation_WithOverlappingDates_CalculatesMetrics()
     {
         // Arrange
-        var asset1 = CreateTestAsset("SPY",
+        var asset1 = this.CreateTestAsset(
+            "SPY",
             ("2024-01-01", 450m, 1000m, "POSITIVE_GAMMA"),
             ("2024-01-02", 455m, 1100m, "POSITIVE_GAMMA"),
             ("2024-01-03", 460m, 1200m, "POSITIVE_GAMMA"));
 
-        var asset2 = CreateTestAsset("QQQ",
+        var asset2 = this.CreateTestAsset(
+            "QQQ",
             ("2024-01-01", 380m, 800m, "POSITIVE_GAMMA"),
             ("2024-01-02", 385m, 850m, "POSITIVE_GAMMA"),
             ("2024-01-03", 390m, 900m, "POSITIVE_GAMMA"));
 
         // Act
-        var result = _service.CalculateCorrelation(asset1, asset2);
+        var result = this.service.CalculateCorrelation(asset1, asset2);
 
         // Assert
         result.Should().NotBeNull();
@@ -141,13 +138,13 @@ public class ComparisonAnalysisServiceTests
         // Arrange
         var assets = new List<AssetComparisonData>
         {
-            CreateTestAsset("SPY", ("2024-01-01", 450m, 1000m, "POSITIVE_GAMMA")),
-            CreateTestAsset("QQQ", ("2024-01-01", 380m, 800m, "POSITIVE_GAMMA")),
-            CreateTestAsset("IWM", ("2024-01-01", 200m, 500m, "NEGATIVE_GAMMA"))
+            this.CreateTestAsset("SPY", ("2024-01-01", 450m, 1000m, "POSITIVE_GAMMA")),
+            this.CreateTestAsset("QQQ", ("2024-01-01", 380m, 800m, "POSITIVE_GAMMA")),
+            this.CreateTestAsset("IWM", ("2024-01-01", 200m, 500m, "NEGATIVE_GAMMA")),
         };
 
         // Act
-        var result = _service.GenerateSummary(assets);
+        var result = this.service.GenerateSummary(assets);
 
         // Assert
         result.Should().NotBeNull();
@@ -156,26 +153,24 @@ public class ComparisonAnalysisServiceTests
         result.DivergenceEvents.Should().HaveCount(1); // IWM has different regime
     }
 
-    #endregion
-
-    #region Divergence Event Tests
-
     [Fact]
     public void FindDivergenceEvents_WithDivergentRegimes_FindsEvents()
     {
         // Arrange
         var assets = new List<AssetComparisonData>
         {
-            CreateTestAsset("SPY",
+            this.CreateTestAsset(
+                "SPY",
                 ("2024-01-01", 450m, 1000m, "POSITIVE_GAMMA"),
                 ("2024-01-02", 455m, -500m, "NEGATIVE_GAMMA")),
-            CreateTestAsset("QQQ",
+            this.CreateTestAsset(
+                "QQQ",
                 ("2024-01-01", 380m, -800m, "NEGATIVE_GAMMA"),
-                ("2024-01-02", 385m, 850m, "POSITIVE_GAMMA"))
+                ("2024-01-02", 385m, 850m, "POSITIVE_GAMMA")),
         };
 
         // Act
-        var result = _service.FindDivergenceEvents(assets);
+        var result = this.service.FindDivergenceEvents(assets);
 
         // Assert
         result.Should().HaveCount(2); // Both days have divergence
@@ -190,12 +185,12 @@ public class ComparisonAnalysisServiceTests
         // Arrange
         var assets = new List<AssetComparisonData>
         {
-            CreateTestAsset("SPY", ("2024-01-01", 450m, 1000m, "POSITIVE_GAMMA")),
-            CreateTestAsset("QQQ", ("2024-01-01", 380m, 800m, "POSITIVE_GAMMA"))
+            this.CreateTestAsset("SPY", ("2024-01-01", 450m, 1000m, "POSITIVE_GAMMA")),
+            this.CreateTestAsset("QQQ", ("2024-01-01", 380m, 800m, "POSITIVE_GAMMA")),
         };
 
         // Act
-        var result = _service.FindDivergenceEvents(assets);
+        var result = this.service.FindDivergenceEvents(assets);
 
         // Assert
         result.Should().BeEmpty(); // No divergence
@@ -207,25 +202,21 @@ public class ComparisonAnalysisServiceTests
         // Arrange
         var assets = new List<AssetComparisonData>
         {
-            CreateTestAssetWithClass("SPY", "Index", ("2024-01-01", 450m, 1000m, "POSITIVE_GAMMA")),
-            CreateTestAssetWithClass("AAPL", "Stock", ("2024-01-01", 180m, -500m, "NEGATIVE_GAMMA"))
+            this.CreateTestAssetWithClass("SPY", "Index", ("2024-01-01", 450m, 1000m, "POSITIVE_GAMMA")),
+            this.CreateTestAssetWithClass("AAPL", "Stock", ("2024-01-01", 180m, -500m, "NEGATIVE_GAMMA")),
         };
 
         // Act
-        var result = _service.FindDivergenceEvents(assets);
+        var result = this.service.FindDivergenceEvents(assets);
 
         // Assert
         result.Should().HaveCount(1);
         result[0].IsDispersionOpportunity.Should().BeTrue();
     }
 
-    #endregion
-
-    #region Helper Methods
-
     private AssetComparisonData CreateTestAsset(string symbol, params (string date, decimal price, decimal gex, string regime)[] dataPoints)
     {
-        return CreateTestAssetWithClass(symbol, "Stock", dataPoints);
+        return this.CreateTestAssetWithClass(symbol, "Stock", dataPoints);
     }
 
     private AssetComparisonData CreateTestAssetWithClass(string symbol, string assetClass, params (string date, decimal price, decimal gex, string regime)[] dataPoints)
@@ -243,10 +234,10 @@ public class ComparisonAnalysisServiceTests
             CallOi = 10000,
             PutOi = 10000,
             Contracts = 20000,
-            Quality = 0.95m
+            Quality = 0.95m,
         }).ToList();
 
-        var regimeAnalysis = AnalyzeRegimes(timeline);
+        var regimeAnalysis = this.AnalyzeRegimes(timeline);
 
         return new AssetComparisonData
         {
@@ -259,11 +250,11 @@ public class ComparisonAnalysisServiceTests
                 DateRange = new DateRange
                 {
                     Start = DateOnly.Parse(dataPoints[0].date, CultureInfo.InvariantCulture),
-                    End = DateOnly.Parse(dataPoints[^1].date, CultureInfo.InvariantCulture)
+                    End = DateOnly.Parse(dataPoints[^1].date, CultureInfo.InvariantCulture),
                 },
-                Timeline = timeline
+                Timeline = timeline,
             },
-            RegimeAnalysis = regimeAnalysis
+            RegimeAnalysis = regimeAnalysis,
         };
     }
 
@@ -280,7 +271,7 @@ public class ComparisonAnalysisServiceTests
                 DateRange = "2024-01-01 → 2024-01-01",
                 TotalDays = 0,
                 Segments = segments,
-                Transitions = transitions
+                Transitions = transitions,
             };
         }
 
@@ -298,7 +289,7 @@ public class ComparisonAnalysisServiceTests
                     Regime = currentRegime == "POSITIVE_GAMMA" ? GammaRegime.Positive : GammaRegime.Negative,
                     StartDate = segmentStart,
                     EndDate = timeline[i - 1].Date,
-                    DurationDays = segmentDays
+                    DurationDays = segmentDays,
                 });
 
                 // Add transition
@@ -307,7 +298,7 @@ public class ComparisonAnalysisServiceTests
                     Date = timeline[i].Date,
                     FromRegime = currentRegime == "POSITIVE_GAMMA" ? GammaRegime.Positive : GammaRegime.Negative,
                     ToRegime = timeline[i].Regime == "POSITIVE_GAMMA" ? GammaRegime.Positive : GammaRegime.Negative,
-                    DaysInPreviousRegime = segmentDays
+                    DaysInPreviousRegime = segmentDays,
                 });
 
                 // Start new segment
@@ -327,7 +318,7 @@ public class ComparisonAnalysisServiceTests
             Regime = currentRegime == "POSITIVE_GAMMA" ? GammaRegime.Positive : GammaRegime.Negative,
             StartDate = segmentStart,
             EndDate = timeline[^1].Date,
-            DurationDays = segmentDays
+            DurationDays = segmentDays,
         });
 
         return new RegimeAnalysisSummary
@@ -336,9 +327,7 @@ public class ComparisonAnalysisServiceTests
             DateRange = $"{timeline[0].Date} → {timeline[^1].Date}",
             TotalDays = timeline.Count,
             Segments = segments,
-            Transitions = transitions
+            Transitions = transitions,
         };
     }
-
-    #endregion
 }

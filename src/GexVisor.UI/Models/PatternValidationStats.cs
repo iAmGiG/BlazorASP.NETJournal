@@ -42,10 +42,14 @@ public record PatternValidationStats
         get
         {
             if (CompletedCount < AppConstants.Validation.MinimumPartialSamples)
+            {
                 return ValidationStatus.Unvalidated;
+            }
 
             if (CompletedCount < AppConstants.Validation.MinimumSampleSize)
+            {
                 return ValidationStatus.Partial;
+            }
 
             // Have sufficient sample - check win rate
             return WinRate >= AppConstants.Validation.MinimumWinRatePercent

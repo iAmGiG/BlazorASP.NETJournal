@@ -1,8 +1,6 @@
-using System.Globalization;
 using System.Net.Http.Json;
 using System.Timers;
 using GexVisor.Core;
-using GexVisor.UI.Configuration;
 using GexVisor.UI.Models;
 
 namespace GexVisor.UI.Services;
@@ -18,7 +16,7 @@ public class GexStateService : IGexStateService
     private readonly ILocalStorageService _localStorage;
     private List<GexDataPoint> _timeline = [];
     private List<GexDataPoint> _demoTimeline = [];
-    private System.Timers.Timer? _simulationTimer;
+    private readonly System.Timers.Timer? _simulationTimer;
     private System.Timers.Timer? _liveDataTimer;
     private GexCalculationResult? _liveGexData;
     private bool _useLiveData;
@@ -62,7 +60,9 @@ public class GexStateService : IGexStateService
         InitializeDemoTimeline();
         // Start at the first data point so charts render on load
         if (_timeline.Count > 0)
+        {
             SetCurrentIndex(0);
+        }
 
         // Initialize simulation timer
         _simulationTimer = new System.Timers.Timer();
@@ -191,7 +191,9 @@ public class GexStateService : IGexStateService
     public void StepForward()
     {
         if (_state.CurrentIndex < _timeline.Count - 1)
+        {
             SetCurrentIndex(_state.CurrentIndex + 1);
+        }
     }
 
     /// <summary>
@@ -200,7 +202,9 @@ public class GexStateService : IGexStateService
     public void StepBackward()
     {
         if (_state.CurrentIndex > 0)
+        {
             SetCurrentIndex(_state.CurrentIndex - 1);
+        }
     }
 
     /// <summary>
@@ -219,7 +223,9 @@ public class GexStateService : IGexStateService
     public void UpdateStrikeRange()
     {
         if (_timeline.Count == 0)
+        {
             return;
+        }
 
         var (minPrice, maxPrice) = GetPriceRange();
         var padding = (maxPrice - minPrice) * 0.2m;
@@ -250,7 +256,10 @@ public class GexStateService : IGexStateService
     private (decimal Min, decimal Max) GetPriceRange()
     {
         if (_timeline.Count == 0)
+        {
             return (280, 650);
+        }
+
         return (_timeline.Min(t => t.Price), _timeline.Max(t => t.Price));
     }
 
@@ -344,7 +353,10 @@ public class GexStateService : IGexStateService
         {
             // If at end, wrap to start
             if (_state.CurrentIndex >= _timeline.Count - 1)
+            {
                 SetCurrentIndex(0);
+            }
+
             _simulationTimer?.Start();
         }
         else
@@ -373,14 +385,19 @@ public class GexStateService : IGexStateService
     {
         _state.Mode = mode;
         if (mode == DataMode.Demo)
+        {
             ResetToDemoTimeline();
+        }
+
         NotifyStateChanged();
     }
 
     private void UpdateTimerInterval()
     {
         if (_simulationTimer == null)
+        {
             return;
+        }
 
         // Base interval of 1000ms at 1x speed
         // Speed 1 = 0.5x (2000ms), Speed 2 = 1x (1000ms), Speed 4 = 2x (500ms)
@@ -391,7 +408,9 @@ public class GexStateService : IGexStateService
     private void OnSimulationTick(object? sender, ElapsedEventArgs e)
     {
         if (!_state.IsSimulating)
+        {
             return;
+        }
 
         if (_state.CurrentIndex < _timeline.Count - 1)
         {
@@ -414,7 +433,9 @@ public class GexStateService : IGexStateService
     public RegimeAnalysisSummary? GetRegimeAnalysis()
     {
         if (_timeline.Count == 0)
+        {
             return null;
+        }
 
         // Build a temporary GexTimeline to use its AnalyzeRegimes method
         var timeline = new GexTimeline
@@ -557,7 +578,9 @@ public class GexStateService : IGexStateService
     {
         var cached = await _localStorage.GetAsync<CachedGexData>(StorageKeys.LiveGex(symbol));
         if (cached == null)
+        {
             return null;
+        }
 
         // Return with IsCached = true to indicate it came from cache
         return cached with { IsCached = true };

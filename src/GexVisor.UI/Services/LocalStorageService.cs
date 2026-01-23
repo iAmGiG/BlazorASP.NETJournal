@@ -1,5 +1,5 @@
-using Microsoft.JSInterop;
 using System.Text.Json;
+using Microsoft.JSInterop;
 
 namespace GexVisor.UI.Services;
 
@@ -44,7 +44,9 @@ public class LocalStorageService : ILocalStorageService
         {
             var json = await _js.InvokeAsync<string?>("GexInterop.localStorage.getItem", key);
             if (string.IsNullOrEmpty(json))
+            {
                 return default;
+            }
 
             try
             {
