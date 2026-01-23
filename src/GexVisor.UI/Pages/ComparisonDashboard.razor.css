@@ -443,11 +443,7 @@
     gap: 1rem;
 }
 
-@media (max-width: 900px) {
-    .regime-charts-grid {
-        grid-template-columns: 1fr;
-    }
-}
+/* 900px breakpoint removed - consolidated into 768px below */
 
 /* Loading/Error States */
 .loading-state,
@@ -512,5 +508,9 @@
 
     .info-card {
         min-width: 100%;
+    }
+
+    .regime-charts-grid {
+        grid-template-columns: 1fr;
     }
 }

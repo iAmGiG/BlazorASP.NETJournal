@@ -612,3 +612,10 @@
     color: var(--text-muted);
     line-height: 1.4;
 }
+
+/* Responsive - hide sidebar on mobile */
+@media (max-width: 768px) {
+    .gex-sidebar {
+        display: none;
+    }
+}

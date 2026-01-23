@@ -189,8 +189,41 @@
 }
 
 @media (max-width: 768px) {
+    .gex-app {
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .gex-dashboard {
+        flex-direction: column;
+        overflow: visible;
+    }
+
+    .chart-panel {
+        padding: 0.75rem;
+        min-height: 350px;
+    }
+
+    .panel-header {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .viz-container {
+        min-height: 280px;
+    }
+
+    .data-overlay {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .regime-timeline-section {
+        padding: 0.5rem;
+    }
+
     .toggle-timeline-btn {
-        bottom: 4rem;
+        bottom: 0.5rem;
         right: 0.5rem;
         padding: 0.4rem 0.75rem;
         font-size: 0.7rem;

@@ -280,3 +280,56 @@
     0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(239, 83, 80, 0.7); }
     50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(239, 83, 80, 0); }
 }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .gex-header {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        justify-content: center;
+    }
+
+    .header-left {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .header-center {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        justify-content: center;
+    }
+
+    .metric-card {
+        min-width: 100px;
+        padding: 0.4rem 0.75rem;
+    }
+
+    .metric-value {
+        font-size: 0.95rem;
+    }
+
+    .metric-label {
+        font-size: 0.6rem;
+    }
+
+    .header-right {
+        gap: 0.75rem;
+    }
+
+    .year-badge {
+        font-size: 1.1rem;
+        padding: 0.2rem 0.5rem;
+    }
+
+    .vol-warning {
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding: 0.5rem 1rem;
+    }
+
+    .vol-stat {
+        font-size: 0.7rem;
+    }
+}
