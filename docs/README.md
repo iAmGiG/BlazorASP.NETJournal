@@ -16,6 +16,7 @@ New to GexVisor? Start here:
 | [getting-started.md](getting-started.md) | Prerequisites, build, run, and development workflow |
 | [architecture.md](architecture.md) | Service inventory, state patterns, data flow |
 | [live-data.md](live-data.md) | Live GEX data: setup, usage, and troubleshooting |
+| [chart-viewer.md](chart-viewer.md) | Chart Viewer: candlestick charts and trade markers |
 | [diagrams.md](diagrams.md) | Mermaid diagrams (renders in GitHub) |
 | [state-diagrams.md](state-diagrams.md) | ASCII state machines (universal) |
 | [github-integration.md](github-integration.md) | GitHub Projects v2 API integration for task board |
@@ -40,6 +41,7 @@ New to GexVisor? Start here:
 | `/backtests` | Backtest results tracker |
 | `/notebook` | Research notebook |
 | `/tasks` | Task board (local + GitHub) |
+| `/chart-test` | Chart library test page |
 
 **Note:** Research visualizations are accessible via both:
 - `/arcade` - Arcade-style visualization launcher

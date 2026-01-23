@@ -2,7 +2,10 @@
 @using GexVisor.Core
 @using GexVisor.UI.Components.Charts
 @using GexVisor.UI.Services
+@using Microsoft.AspNetCore.Components
 @inject IPriceDataService PriceService
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <PageTitle>Chart Test - GexVisor</PageTitle>
 
@@ -54,6 +57,12 @@
                 <span>Load Data</span>
             }
         </button>
+        <button class="btn-secondary" @onclick="ExportCsv" disabled="@(bars.Count == 0)" title="Export to CSV">
+            <i class="fas fa-download"></i>
+        </button>
+        <button class="btn-secondary" @onclick="CopyShareUrl" title="Copy share URL">
+            <i class="fas fa-share-alt"></i>
+        </button>
     </section>
 
     @if (!string.IsNullOrEmpty(errorMessage))
@@ -95,14 +104,26 @@
             <ul>
                 <li class="completed"><strong>#129</strong> - Library Selection</li>
                 <li class="completed"><strong>#130</strong> - Price Data Service</li>
-                <li><strong>#131</strong> - Trade Chart Component</li>
-                <li><strong>#132</strong> - Trade Journal Integration</li>
+                <li class="completed"><strong>#131</strong> - Trade Chart Component</li>
+                <li class="completed"><strong>#132</strong> - Trade Journal Integration</li>
+                <li class="completed"><strong>#133</strong> - Export and Sharing</li>
             </ul>
         </div>
     </section>
+
+    @if (showCopiedToast)
+    {
+        <div class="toast">URL copied to clipboard!</div>
+    }
 </div>
 
 @code {
+    [SupplyParameterFromQuery(Name = "symbol")]
+    public string? QuerySymbol { get; set; }
+
+    [SupplyParameterFromQuery(Name = "tf")]
+    public string? QueryTimeframe { get; set; }
+
     private string symbol = "SPY";
     private string timeframe = "1d";
     private int limit = 100;
@@ -110,6 +131,7 @@
     private List<OhlcvBar> bars = new();
     private bool isLoading = false;
     private string? errorMessage = null;
+    private bool showCopiedToast = false;
     private Random random = new();
 
     private string ChartTitle => $"{symbol.ToUpper()} - {(dataSource == "live" ? "Live" : "Sample")} ({timeframe})";
@@ -120,6 +142,12 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // Apply URL parameters if present
+        if (!string.IsNullOrWhiteSpace(QuerySymbol))
+            symbol = QuerySymbol.ToUpperInvariant();
+        if (!string.IsNullOrWhiteSpace(QueryTimeframe))
+            timeframe = QueryTimeframe;
+
         await LoadData();
     }
 
@@ -162,6 +190,40 @@
             GenerateSampleData();
             errorMessage += " (showing sample data)";
         }
+    }
+
+    private async Task ExportCsv()
+    {
+        if (bars.Count == 0) return;
+
+        var csv = ChartExport.ToCsv(bars, symbol);
+        var filename = ChartExport.GenerateCsvFilename(symbol, timeframe);
+
+        // Use JS interop to trigger download
+        var bytes = System.Text.Encoding.UTF8.GetBytes(csv);
+        var base64 = Convert.ToBase64String(bytes);
+        await JS.InvokeVoidAsync("eval", $@"
+            const link = document.createElement('a');
+            link.href = 'data:text/csv;base64,{base64}';
+            link.download = '{filename}';
+            link.click();
+        ");
+    }
+
+    private async Task CopyShareUrl()
+    {
+        var baseUrl = Navigation.ToAbsoluteUri("/chart-test").ToString().Split('?')[0];
+        var shareUrl = ChartExport.BuildShareUrl(baseUrl, symbol, timeframe);
+
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", shareUrl);
+
+        showCopiedToast = true;
+        StateHasChanged();
+
+        // Hide toast after 2 seconds
+        await Task.Delay(2000);
+        showCopiedToast = false;
+        StateHasChanged();
     }
 
     private void GenerateSampleData()

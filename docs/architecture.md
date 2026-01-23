@@ -291,6 +291,68 @@ public static class Keyboard
 
 ---
 
+## Chart Viewer Pipeline
+
+### Overview
+
+The Chart Viewer provides candlestick price charts with trade overlay support for the Trade Journal feature.
+
+### Architecture
+
+```text
+ PriceDataService → CandlestickChart → TradeChart
+        ↓                  ↓               ↓
+   Market Data API     ApexCharts       TradeMarker
+   (OHLCV bars)      (Candlesticks)   (Annotations)
+```
+
+### Service Layer
+
+| Service | Purpose |
+|---------|---------|
+| `IPriceDataService` | Fetch OHLCV data with date range filtering |
+| `MarketDataCacheService` | Smart TTL caching for price data |
+| `ChartExport` | CSV export and URL sharing utilities |
+
+### Component Layer
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| `CandlestickChart` | Components/Charts/ | Base ApexCharts wrapper |
+| `TradeChart` | Components/Charts/ | Candlestick + trade entry/exit markers |
+| `TradeMarker` | Components/Charts/ | Annotation builder for trade overlays |
+
+### Data Flow
+
+```
+1. TradeDetailModal opens for trade
+2. TradeChart extracts Trade.Ticker and date range
+3. PriceDataService.GetCandlesAsync(symbol, timeframe, limit)
+4. Service checks cache, fetches from API if needed
+5. CandlestickChart renders OHLCV data via ApexCharts
+6. TradeMarker builds annotations (entry/exit points, price lines)
+7. ApexCharts overlays annotations on chart
+```
+
+### Export Features
+
+- **PNG/SVG**: Built-in ApexCharts toolbar export
+- **CSV**: `ChartExport.ToCsv()` for data download
+- **URL Sharing**: `ChartExport.BuildShareUrl()` with symbol/timeframe state
+
+### Implementation Notes
+
+- Uses Blazor-ApexCharts 6.1.0 (native Blazor, no JS interop)
+- Key types: `AnnotationMarker`, `Label`, `AnnotationMarkerShape.Circle`
+- See [ADR-0008](adr/0008-chart-library-selection.md) for library selection rationale
+
+### Related Documentation
+
+- [chart-viewer.md](chart-viewer.md) - User guide
+- [live-data.md](live-data.md) - Market data providers
+
+---
+
 ## localStorage Keys
 
 All persistence uses browser localStorage via `LocalStorageService`.
