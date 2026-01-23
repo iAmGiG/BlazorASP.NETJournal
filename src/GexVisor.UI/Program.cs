@@ -37,4 +37,7 @@ builder.Services.AddScoped<StatusMapper>();
 builder.Services.AddScoped<ComparisonService>();
 builder.Services.AddScoped<ComparisonAnalysisService>();
 
+// Chart Services
+builder.Services.AddScoped<IPriceDataService, PriceDataService>();
+
 await builder.Build().RunAsync();

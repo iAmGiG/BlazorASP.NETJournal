@@ -1,13 +1,15 @@
 @page "/chart-test"
 @using GexVisor.Core
 @using GexVisor.UI.Components.Charts
+@using GexVisor.UI.Services
+@inject IPriceDataService PriceService
 
 <PageTitle>Chart Test - GexVisor</PageTitle>
 
 <div class="chart-test-page">
     <header class="page-header">
         <h1>Chart Library Test</h1>
-        <p class="subtitle">ApexCharts Blazor Integration (Issue #129)</p>
+        <p class="subtitle">ApexCharts Blazor Integration</p>
     </header>
 
     <section class="controls-section">
@@ -16,24 +18,59 @@
             <input type="text" @bind="symbol" @bind:event="oninput" placeholder="SPY" />
         </div>
         <div class="control-group">
-            <label>Days</label>
-            <select @bind="days">
-                <option value="7">7 Days</option>
-                <option value="30">30 Days</option>
-                <option value="90">90 Days</option>
-                <option value="180">180 Days</option>
-                <option value="365">1 Year</option>
+            <label>Timeframe</label>
+            <select @bind="timeframe">
+                <option value="1d">Daily</option>
+                <option value="1h">Hourly</option>
+                <option value="15m">15 Min</option>
+                <option value="5m">5 Min</option>
             </select>
         </div>
-        <button class="btn-primary" @onclick="GenerateSampleData">
-            <i class="fas fa-sync-alt"></i> Generate Sample Data
+        <div class="control-group">
+            <label>Bars</label>
+            <select @bind="limit">
+                <option value="30">30</option>
+                <option value="60">60</option>
+                <option value="100">100</option>
+                <option value="200">200</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Data Source</label>
+            <select @bind="dataSource">
+                <option value="live">Live API</option>
+                <option value="sample">Sample Data</option>
+            </select>
+        </div>
+        <button class="btn-primary" @onclick="LoadData" disabled="@isLoading">
+            @if (isLoading)
+            {
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Loading...</span>
+            }
+            else
+            {
+                <i class="fas fa-sync-alt"></i>
+                <span>Load Data</span>
+            }
         </button>
     </section>
 
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="error-banner">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>@errorMessage</span>
+            <button @onclick="() => errorMessage = null">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    }
+
     <section class="chart-section">
-        <CandlestickChart Title="@($"{symbol.ToUpper()} - Sample Data")"
+        <CandlestickChart Title="@ChartTitle"
                           Symbol="@symbol"
-                          Bars="sampleBars"
+                          Bars="bars"
                           Height="400" />
     </section>
 
@@ -43,18 +80,23 @@
             <dl>
                 <dt>Library</dt>
                 <dd>Blazor-ApexCharts 6.1.0</dd>
+                <dt>Data Source</dt>
+                <dd class="@(dataSource == "live" ? "live-source" : "")">
+                    @(dataSource == "live" ? "Live API" : "Sample Data")
+                </dd>
                 <dt>Data Points</dt>
-                <dd>@sampleBars.Count</dd>
+                <dd>@bars.Count</dd>
                 <dt>Date Range</dt>
-                <dd>@(sampleBars.Count > 0 ? $"{sampleBars.First().Timestamp:MMM d} - {sampleBars.Last().Timestamp:MMM d, yyyy}" : "N/A")</dd>
+                <dd>@DateRange</dd>
             </dl>
         </div>
         <div class="info-card">
-            <h3>Next Steps</h3>
+            <h3>Chart Viewer Epic (#111)</h3>
             <ul>
-                <li><strong>#130</strong> - Connect to PriceDataService</li>
-                <li><strong>#131</strong> - Add trade markers</li>
-                <li><strong>#132</strong> - Integrate with Trade Journal</li>
+                <li class="completed"><strong>#129</strong> - Library Selection</li>
+                <li class="completed"><strong>#130</strong> - Price Data Service</li>
+                <li><strong>#131</strong> - Trade Chart Component</li>
+                <li><strong>#132</strong> - Trade Journal Integration</li>
             </ul>
         </div>
     </section>
@@ -62,18 +104,69 @@
 
 @code {
     private string symbol = "SPY";
-    private int days = 30;
-    private List<OhlcvBar> sampleBars = new();
+    private string timeframe = "1d";
+    private int limit = 100;
+    private string dataSource = "live";
+    private List<OhlcvBar> bars = new();
+    private bool isLoading = false;
+    private string? errorMessage = null;
     private Random random = new();
 
-    protected override void OnInitialized()
+    private string ChartTitle => $"{symbol.ToUpper()} - {(dataSource == "live" ? "Live" : "Sample")} ({timeframe})";
+
+    private string DateRange => bars.Count > 0
+        ? $"{bars.First().Timestamp:MMM d} - {bars.Last().Timestamp:MMM d, yyyy}"
+        : "N/A";
+
+    protected override async Task OnInitializedAsync()
     {
-        GenerateSampleData();
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        errorMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            if (dataSource == "live")
+            {
+                await LoadLiveData();
+            }
+            else
+            {
+                GenerateSampleData();
+            }
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadLiveData()
+    {
+        var result = await PriceService.GetCandlesAsync(symbol, timeframe, limit);
+
+        if (result.Success)
+        {
+            bars = result.Bars;
+        }
+        else
+        {
+            errorMessage = result.Error ?? "Failed to load data";
+            // Fall back to sample data
+            GenerateSampleData();
+            errorMessage += " (showing sample data)";
+        }
     }
 
     private void GenerateSampleData()
     {
-        sampleBars.Clear();
+        bars.Clear();
 
         var basePrice = symbol.ToUpper() switch
         {
@@ -87,18 +180,24 @@
         };
 
         var endDate = DateTime.Now.Date;
-        var startDate = endDate.AddDays(-days);
+        var days = timeframe switch
+        {
+            "1d" => limit,
+            "1h" => limit / 6,
+            "15m" => limit / 26,
+            "5m" => limit / 78,
+            _ => limit
+        };
+        var startDate = endDate.AddDays(-Math.Max(days, 7));
 
         var currentPrice = basePrice;
         var currentDate = startDate;
 
-        while (currentDate <= endDate)
+        while (currentDate <= endDate && bars.Count < limit)
         {
-            // Skip weekends
             if (currentDate.DayOfWeek != DayOfWeek.Saturday && currentDate.DayOfWeek != DayOfWeek.Sunday)
             {
-                // Generate realistic OHLCV data
-                var dailyVolatility = 0.02m; // 2% daily volatility
+                var dailyVolatility = 0.02m;
                 var trend = (decimal)(random.NextDouble() - 0.48) * dailyVolatility * currentPrice;
 
                 var open = currentPrice;
@@ -112,7 +211,7 @@
 
                 var volume = (long)(random.NextDouble() * 50_000_000 + 10_000_000);
 
-                sampleBars.Add(new OhlcvBar
+                bars.Add(new OhlcvBar
                 {
                     Symbol = symbol.ToUpper(),
                     Timestamp = currentDate.AddHours(9).AddMinutes(30),
