@@ -3,6 +3,7 @@
 @using GexVisor.UI.Models
 @using GexVisor.UI.Components.Comparison
 @using GexVisor.UI.Components.Gex
+@using GexVisor.UI.Utilities
 @using System.Text
 @using System.Text.Json
 @inject ComparisonService ComparisonService
@@ -203,13 +204,13 @@
                 <h2>Summary Statistics</h2>
                 <div class="correlation-cards">
                     <div class="correlation-card">
-                        <div class="correlation-value @GetCorrelationClass(_summary.AvgPriceCorrelation)">
+                        <div class="correlation-value @CorrelationHelpers.GetCssClass(_summary.AvgPriceCorrelation)">
                             @_summary.AvgPriceCorrelation.ToString("F2")
                         </div>
                         <div class="correlation-label">Avg Price Correlation</div>
                     </div>
                     <div class="correlation-card">
-                        <div class="correlation-value @GetCorrelationClass(_summary.AvgGexCorrelation)">
+                        <div class="correlation-value @CorrelationHelpers.GetCssClass(_summary.AvgGexCorrelation)">
                             @_summary.AvgGexCorrelation.ToString("F2")
                         </div>
                         <div class="correlation-label">Avg GEX Correlation</div>
@@ -396,16 +397,6 @@
     private void OnSelectionChanged()
     {
         InvokeAsync(StateHasChanged);
-    }
-
-    private string GetCorrelationClass(decimal correlation)
-    {
-        return Math.Abs(correlation) switch
-        {
-            >= 0.7m => "strong",
-            >= 0.4m => "moderate",
-            _ => "weak"
-        };
     }
 
     public void Dispose()

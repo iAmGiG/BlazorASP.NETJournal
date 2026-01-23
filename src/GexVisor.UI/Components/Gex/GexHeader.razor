@@ -1,6 +1,7 @@
 @using GexVisor.UI.Configuration
 @using GexVisor.UI.Models
 @using GexVisor.UI.Services
+@using GexVisor.UI.Utilities
 @inject IGexStateService StateService
 @inject IGexExportService ExportService
 @inject IJSRuntime JS
@@ -27,7 +28,7 @@
         </div>
         <div class="metric-card" aria-live="polite">
             <div class="metric-label">Total GEX</div>
-            <div class="metric-value gex-value">@FormatGex(DisplayTotalGex)</div>
+            <div class="metric-value gex-value">@GexFormatters.FormatGex(DisplayTotalGex)</div>
         </div>
     </div>
 
@@ -117,19 +118,11 @@
         ? "GAMMA STATUS: SHORT γ (AMPLIFIED)"
         : "GAMMA STATUS: LONG γ (DAMPENED)";
 
-    private decimal VolEffect => IsNegativeGamma ? 1.5m : 0.7m;
+    private decimal VolEffect => IsNegativeGamma
+        ? AppConstants.Gex.ShortGammaVolatilityMultiplier
+        : AppConstants.Gex.LongGammaVolatilityMultiplier;
 
     private string Outlook => IsNegativeGamma ? "High Volatility" : "Mean Reversion";
-
-    private static string FormatGex(decimal gex)
-    {
-        return gex switch
-        {
-            >= 1000 => $"${gex / 1000:F1}T",
-            >= 1 => $"${gex:F1}B",
-            _ => $"${gex * 1000:F0}M"
-        };
-    }
 
     private async Task OnHelpClick() => await OnHelpRequested.InvokeAsync();
 

@@ -1,6 +1,7 @@
 using System.Globalization;
 using ApexCharts;
 using GexVisor.Core;
+using GexVisor.UI.Configuration;
 
 namespace GexVisor.UI.Components.Charts;
 
@@ -9,9 +10,9 @@ namespace GexVisor.UI.Components.Charts;
 /// </summary>
 public static class TradeMarker
 {
-    // Colors matching app theme
-    private const string LongColor = "#00c853";   // Green for long/buy
-    private const string ShortColor = "#ff5252";  // Red for short/sell
+    // Colors from centralized constants
+    private const string LongColor = AppConstants.ChartColors.LongColor;
+    private const string ShortColor = AppConstants.ChartColors.ShortColor;
 
     /// <summary>
     /// Build annotations for a trade showing entry and exit points.

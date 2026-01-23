@@ -1,6 +1,7 @@
 @page "/gex"
 @using GexVisor.UI.Services
 @using GexVisor.UI.Models
+@using GexVisor.UI.Utilities
 @inject IJSRuntime JS
 @inject ILocalStorageService Storage
 @implements IDisposable
@@ -50,7 +51,7 @@
                 </div>
                 <div class="data-overlay">
                     <div class="data-row"><span>S² Scale:</span> <span class="data-val red">@S2Factor.ToString("F1")x</span></div>
-                    <div class="data-row"><span>Total GEX:</span> <span class="data-val">@FormatGex(TotalGex)</span></div>
+                    <div class="data-row"><span>Total GEX:</span> <span class="data-val">@GexFormatters.FormatGex(TotalGex)</span></div>
                 </div>
             </div>
         </div>
@@ -269,16 +270,6 @@
                 return;
             }
         }
-    }
-
-    private static string FormatGex(decimal gex)
-    {
-        return gex switch
-        {
-            >= 1000 => $"${gex / 1000:F1}T",
-            >= 1 => $"${gex:F1}B",
-            _ => $"${gex * 1000:F0}M"
-        };
     }
 
     public void Dispose()

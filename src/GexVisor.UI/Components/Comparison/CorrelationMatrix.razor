@@ -1,4 +1,5 @@
 @using GexVisor.UI.Models
+@using GexVisor.UI.Utilities
 
 <div class="correlation-matrix">
     <div class="matrix-header">
@@ -40,7 +41,7 @@
                         var corr = GetCorrelation(row, col);
                         if (corr != null)
                         {
-                            <div class="matrix-cell data @GetCorrelationClass(corr.PriceCorrelation)"
+                            <div class="matrix-cell data @CorrelationHelpers.GetCssClass(corr.PriceCorrelation)"
                                  title="@GetTooltipText(corr)">
                                 <span class="corr-value">@corr.PriceCorrelation.ToString("F2")</span>
                             </div>
@@ -79,10 +80,10 @@
                                 <span class="pair-separator">↔</span>
                                 <span class="pair-name">@corr.Symbol2</span>
                             </td>
-                            <td class="@GetCorrelationClass(corr.PriceCorrelation)">
+                            <td class="@CorrelationHelpers.GetCssClass(corr.PriceCorrelation)">
                                 @corr.PriceCorrelation.ToString("F3")
                             </td>
-                            <td class="@GetCorrelationClass(corr.GexCorrelation)">
+                            <td class="@CorrelationHelpers.GetCssClass(corr.GexCorrelation)">
                                 @corr.GexCorrelation.ToString("F3")
                             </td>
                             <td>@corr.RegimeAlignment.ToString("F1")%</td>
@@ -143,16 +144,6 @@
         return Correlations?.FirstOrDefault(c =>
             (c.Symbol1 == symbol1 && c.Symbol2 == symbol2) ||
             (c.Symbol1 == symbol2 && c.Symbol2 == symbol1));
-    }
-
-    private string GetCorrelationClass(decimal correlation)
-    {
-        return Math.Abs(correlation) switch
-        {
-            >= 0.7m => "strong",
-            >= 0.4m => "moderate",
-            _ => "weak"
-        };
     }
 
     private string GetTooltipText(CorrelationMetrics corr)

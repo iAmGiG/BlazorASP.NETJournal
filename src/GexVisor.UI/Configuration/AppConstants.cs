@@ -223,4 +223,191 @@ public static class AppConstants
             ("F", "Fullscreen")
         ];
     }
+
+    /// <summary>
+    /// GEX calculation and volatility regime constants.
+    /// </summary>
+    public static class Gex
+    {
+        /// <summary>
+        /// Volatility multiplier for short gamma regime (amplified moves).
+        /// Dealers are short gamma, so hedging activity adds to price moves.
+        /// </summary>
+        public const decimal ShortGammaVolatilityMultiplier = 1.5m;
+
+        /// <summary>
+        /// Volatility multiplier for long gamma regime (dampened moves).
+        /// Dealers are long gamma, so hedging activity opposes price moves.
+        /// </summary>
+        public const decimal LongGammaVolatilityMultiplier = 0.7m;
+
+        /// <summary>
+        /// Threshold for trillion display in GEX formatting (in billions).
+        /// </summary>
+        public const decimal TrillionThreshold = 1000m;
+
+        /// <summary>
+        /// Threshold for billion display in GEX formatting (in billions).
+        /// </summary>
+        public const decimal BillionThreshold = 1m;
+
+        /// <summary>
+        /// Conversion factor for millions display in GEX formatting.
+        /// </summary>
+        public const decimal MillionConversionFactor = 1000m;
+    }
+
+    /// <summary>
+    /// UI widget and component sizing constants.
+    /// </summary>
+    public static class UiSizing
+    {
+        /// <summary>
+        /// Default MiniRadar widget size in pixels.
+        /// </summary>
+        public const int MiniRadarSize = 280;
+
+        /// <summary>
+        /// Mobile-optimized MiniRadar max width in pixels.
+        /// </summary>
+        public const int MiniRadarMobileMaxWidth = 240;
+
+        /// <summary>
+        /// Default candlestick chart height in pixels.
+        /// </summary>
+        public const int CandlestickChartHeight = 350;
+
+        /// <summary>
+        /// Mobile candlestick chart height in pixels.
+        /// </summary>
+        public const int CandlestickChartHeightMobile = 280;
+
+        /// <summary>
+        /// Settings save debounce delay in milliseconds.
+        /// </summary>
+        public const int SettingsSaveDebounceMs = 500;
+
+        /// <summary>
+        /// Number of bars in persistence meter visualization.
+        /// </summary>
+        public const int PersistenceMeterBarCount = 10;
+
+        /// <summary>
+        /// Default sparkline chart width in pixels.
+        /// </summary>
+        public const int SparklineWidth = 200;
+
+        /// <summary>
+        /// Default sparkline chart height in pixels.
+        /// </summary>
+        public const int SparklineHeight = 60;
+
+        /// <summary>
+        /// Default sparkline chart padding in pixels.
+        /// </summary>
+        public const int SparklinePadding = 4;
+    }
+
+    /// <summary>
+    /// Range input limits for GEX simulation controls.
+    /// </summary>
+    public static class GexRanges
+    {
+        /// <summary>
+        /// Open Interest range minimum (log scale).
+        /// </summary>
+        public const decimal OpenInterestMin = 3m;
+
+        /// <summary>
+        /// Open Interest range maximum (log scale).
+        /// </summary>
+        public const decimal OpenInterestMax = 12m;
+
+        /// <summary>
+        /// Open Interest step increment.
+        /// </summary>
+        public const decimal OpenInterestStep = 0.1m;
+
+        /// <summary>
+        /// Tilt range minimum (put-heavy).
+        /// </summary>
+        public const decimal TiltMin = -0.5m;
+
+        /// <summary>
+        /// Tilt range maximum (call-heavy).
+        /// </summary>
+        public const decimal TiltMax = 0.5m;
+
+        /// <summary>
+        /// Tilt step increment.
+        /// </summary>
+        public const decimal TiltStep = 0.01m;
+    }
+
+    /// <summary>
+    /// Comparison dashboard selection limits.
+    /// </summary>
+    public static class ComparisonLimits
+    {
+        /// <summary>
+        /// Minimum assets required for cross-asset comparison.
+        /// </summary>
+        public const int MinAssets = 2;
+
+        /// <summary>
+        /// Maximum assets allowed for cross-asset comparison.
+        /// </summary>
+        public const int MaxAssets = 4;
+    }
+
+    /// <summary>
+    /// Chart styling constants for ApexCharts and SVG visualizations.
+    /// </summary>
+    public static class ChartColors
+    {
+        /// <summary>
+        /// Upward/bullish candlestick color (green).
+        /// </summary>
+        public const string CandlestickUpward = "#00c853";
+
+        /// <summary>
+        /// Downward/bearish candlestick color (red).
+        /// </summary>
+        public const string CandlestickDownward = "#ff5252";
+
+        /// <summary>
+        /// Long/buy trade marker color (green).
+        /// </summary>
+        public const string LongColor = "#00c853";
+
+        /// <summary>
+        /// Short/sell trade marker color (red).
+        /// </summary>
+        public const string ShortColor = "#ff5252";
+
+        /// <summary>
+        /// Chart grid border color (subtle white).
+        /// </summary>
+        public const string GridBorder = "rgba(255, 255, 255, 0.1)";
+
+        /// <summary>
+        /// Axis label text color.
+        /// </summary>
+        public const string AxisLabel = "#888";
+
+        /// <summary>
+        /// Axis border/tick color.
+        /// </summary>
+        public const string AxisBorder = "rgba(255, 255, 255, 0.2)";
+
+        /// <summary>
+        /// Transparent background for chart areas.
+        /// </summary>
+        public const string Transparent = "transparent";
+
+        /// <summary>
+        /// White stroke color for markers.
+        /// </summary>
+        public const string MarkerStroke = "#ffffff";
+    }
 }
