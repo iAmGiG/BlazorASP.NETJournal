@@ -442,17 +442,18 @@ Tracked in GitHub issues:
 
 | Issue | Title | Priority |
 |-------|-------|----------|
-| #149 | GEX Calculation Engine | High |
-| #147 | Market Data Service (Alpaca/Finnhub) | High |
-| #146 | API Key Configuration Service | High |
-| #144 | Restore radar visualization (Research Complexity Map) | Medium |
+| #162 | Historical GEX Calculation Backfill | Medium |
+| #159 | Price Alerts & GEX Threshold Notifications | Medium |
 | #111 | Simple Chart Viewer (Epic) | Medium |
 | #110 | Self-Tracking Metrics Dashboard (Epic) | Medium |
 
-### Recently Closed (Session 19)
+### Recently Closed (Session 20)
 
 | Issue | Title | Resolution |
 |-------|-------|------------|
+| #145 | Epic: Live Market Data | All subtasks complete |
+| #161 | Load Testing Infrastructure | 7 load tests with metrics |
+| #163 | Mobile/Tablet Viewport Optimization | 768px breakpoints in 6 CSS files |
 | #165 | Extract keyboard shortcuts to shared collection | AppConstants.Keyboard class |
 | #166 | Extract GEX chart legend to C# collection | LegendItems tuple array |
 | #167 | Extract GexChart magic numbers to constants | ChartConfiguration nested class |

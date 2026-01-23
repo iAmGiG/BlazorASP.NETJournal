@@ -182,8 +182,31 @@ Exported data includes:
 - [Getting Started](getting-started.md) - Initial setup and configuration
 - [GEX Calculation Pipeline](architecture.md#gex-calculation-pipeline) - Formula implementation details
 
+## Load Testing
+
+The Live Data feature includes load testing infrastructure to validate performance under concurrent load.
+
+**Run load tests:**
+```bash
+dotnet test --filter "Category=LoadTest"
+```
+
+**Test scenarios:**
+- Concurrent GEX requests (10/50/100 users)
+- Rapid refresh (rate limit validation)
+- Multi-symbol caching independence
+- API failure recovery
+
+**Performance targets:**
+- p99 latency < 2 seconds under 100 concurrent users
+- Cache hit rate > 80% after warm-up
+- Success rate ≥ 95%
+
+See `tests/GexVisor.Api.Tests/LoadTests/` for implementation.
+
 ## Related Issues
 
-- [#145 Epic: Live Market Data](https://github.com/iAmGiG/GexVisor/issues/145) - Parent epic
-- [#149 GEX Calculation Engine](https://github.com/iAmGiG/GexVisor/issues/149) - Core calculation service
-- [#147 Market Data Service](https://github.com/iAmGiG/GexVisor/issues/147) - Multi-provider quote fetching
+- [#145 Epic: Live Market Data](https://github.com/iAmGiG/GexVisor/issues/145) - Parent epic ✅ Complete
+- [#149 GEX Calculation Engine](https://github.com/iAmGiG/GexVisor/issues/149) - Core calculation service ✅
+- [#147 Market Data Service](https://github.com/iAmGiG/GexVisor/issues/147) - Multi-provider quote fetching ✅
+- [#161 Load Testing](https://github.com/iAmGiG/GexVisor/issues/161) - Performance validation ✅
