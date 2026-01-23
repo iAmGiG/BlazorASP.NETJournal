@@ -1,0 +1,244 @@
+@using GexVisor.Core
+@using GexVisor.UI.Services
+@inject IPriceDataService PriceDataService
+
+<div class="trade-chart-container">
+    @if (IsLoading)
+    {
+        <div class="chart-loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Loading chart data...</span>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(Error))
+    {
+        <div class="chart-error">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>@Error</span>
+            <button class="btn-retry" @onclick="LoadDataAsync">
+                <i class="fas fa-redo"></i> Retry
+            </button>
+        </div>
+    }
+    else if (Bars.Count == 0)
+    {
+        <div class="chart-placeholder">
+            <i class="fas fa-chart-line"></i>
+            <span>No price data available</span>
+        </div>
+    }
+    else
+    {
+        <ApexChart TItem="OhlcvBar"
+                   Title="@ChartTitle"
+                   Options="chartOptions"
+                   Height="@Height">
+            <ApexCandleSeries TItem="OhlcvBar"
+                              Items="Bars"
+                              Name="Price"
+                              XValue="@(e => e.Timestamp)"
+                              Open="@(e => e.Open)"
+                              High="@(e => e.High)"
+                              Low="@(e => e.Low)"
+                              Close="@(e => e.Close)" />
+        </ApexChart>
+    }
+</div>
+
+@code {
+    [Parameter] public OptionsLog? Trade { get; set; }
+    [Parameter] public string Symbol { get; set; } = "";
+    [Parameter] public int Height { get; set; } = 350;
+    [Parameter] public int PaddingDays { get; set; } = 5;
+    [Parameter] public string Timeframe { get; set; } = "1d";
+    [Parameter] public bool ShowVolume { get; set; } = false;
+
+    private List<OhlcvBar> Bars { get; set; } = new();
+    private bool IsLoading { get; set; } = true;
+    private string? Error { get; set; }
+    private ApexChartOptions<OhlcvBar> chartOptions = new();
+
+    private string ChartTitle => Trade != null
+        ? $"{GetSymbol()} - {Trade.OptionTradeType} Trade"
+        : GetSymbol();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private string GetSymbol()
+    {
+        // Prefer Trade.Ticker if available, fall back to Symbol parameter
+        if (Trade != null && !string.IsNullOrEmpty(Trade.Ticker))
+            return Trade.Ticker;
+        return Symbol;
+    }
+
+    private async Task LoadDataAsync()
+    {
+        var symbol = GetSymbol();
+        if (string.IsNullOrEmpty(symbol))
+        {
+            Error = "No symbol specified";
+            IsLoading = false;
+            return;
+        }
+
+        IsLoading = true;
+        Error = null;
+        StateHasChanged();
+
+        try
+        {
+            PriceDataResult result;
+
+            if (Trade?.CreatedDate != null)
+            {
+                // Load data around the trade dates
+                result = await PriceDataService.GetCandlesForTradeAsync(
+                    symbol,
+                    Trade.CreatedDate.Value,
+                    Trade.TargetCompletionDate,
+                    PaddingDays,
+                    Timeframe);
+            }
+            else
+            {
+                // Load recent data
+                result = await PriceDataService.GetCandlesAsync(symbol, Timeframe, 60);
+            }
+
+            if (result.Success)
+            {
+                Bars = result.Bars;
+                ConfigureChartOptions();
+            }
+            else
+            {
+                Error = result.Error ?? "Failed to load price data";
+            }
+        }
+        catch (Exception ex)
+        {
+            Error = $"Error loading chart: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ConfigureChartOptions()
+    {
+        chartOptions = new ApexChartOptions<OhlcvBar>
+        {
+            Theme = new Theme
+            {
+                Mode = Mode.Dark,
+                Palette = PaletteType.Palette1
+            },
+            Chart = new Chart
+            {
+                Background = "transparent",
+                Toolbar = new Toolbar
+                {
+                    Show = true,
+                    Tools = new Tools
+                    {
+                        Download = true,
+                        Selection = true,
+                        Zoom = true,
+                        Zoomin = true,
+                        Zoomout = true,
+                        Pan = true,
+                        Reset = true
+                    }
+                },
+                Zoom = new Zoom
+                {
+                    Enabled = true,
+                    Type = AxisType.X
+                }
+            },
+            Grid = new Grid
+            {
+                BorderColor = "rgba(255, 255, 255, 0.1)",
+                StrokeDashArray = 3
+            },
+            Xaxis = new XAxis
+            {
+                Type = XAxisType.Datetime,
+                Labels = new XAxisLabels
+                {
+                    Style = new AxisLabelStyle
+                    {
+                        Colors = "#888"
+                    },
+                    DatetimeUTC = false
+                },
+                AxisBorder = new AxisBorder { Color = "rgba(255, 255, 255, 0.2)" },
+                AxisTicks = new AxisTicks { Color = "rgba(255, 255, 255, 0.2)" }
+            },
+            Yaxis = new List<YAxis>
+            {
+                new YAxis
+                {
+                    Labels = new YAxisLabels
+                    {
+                        Style = new AxisLabelStyle
+                        {
+                            Colors = "#888"
+                        },
+                        Formatter = "function(val) { return '$' + val.toFixed(2); }"
+                    },
+                    Tooltip = new YAxisTooltip { Enabled = true }
+                }
+            },
+            PlotOptions = new PlotOptions
+            {
+                Candlestick = new PlotOptionsCandlestick
+                {
+                    Colors = new PlotOptionsCandlestickColors
+                    {
+                        Upward = "#00c853",
+                        Downward = "#ff5252"
+                    },
+                    Wick = new PlotOptionsCandlestickWick
+                    {
+                        UseFillColor = true
+                    }
+                }
+            },
+            Tooltip = new Tooltip
+            {
+                Theme = Mode.Dark,
+                X = new TooltipX
+                {
+                    Format = "MMM dd, yyyy HH:mm"
+                }
+            }
+        };
+
+        // Add trade annotations if we have a trade
+        if (Trade != null)
+        {
+            chartOptions.Annotations = TradeMarker.BuildTradeAnnotations(Trade);
+
+            // Add horizontal price lines
+            chartOptions.Annotations.Yaxis ??= new List<AnnotationsYAxis>();
+
+            if (Trade.EntryPrice > 0)
+            {
+                chartOptions.Annotations.Yaxis.Add(TradeMarker.BuildEntryPriceLine(Trade));
+            }
+
+            var exitLine = TradeMarker.BuildExitPriceLine(Trade);
+            if (exitLine != null)
+            {
+                chartOptions.Annotations.Yaxis.Add(exitLine);
+            }
+        }
+    }
+}
