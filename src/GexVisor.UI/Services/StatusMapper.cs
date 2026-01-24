@@ -14,7 +14,7 @@ public class StatusMapper
     private const string StorageKey = "gexvisor.statusMappings";
 
     // Compiled regex for performance - used in hot path (status inference)
-    private static readonly Regex HyphenUnderscoreNormalizer = new(@"[-_]+", RegexOptions.Compiled);
+    private static readonly Regex _hyphenUnderscoreNormalizer = new(@"[-_]+", RegexOptions.Compiled);
 
     /// <summary>
     /// Standard normalized status columns.
@@ -32,7 +32,7 @@ public class StatusMapper
     /// Default inference rules for common status naming patterns.
     /// Keys are normalized status names, values are patterns to match (lowercase).
     /// </summary>
-    private static readonly Dictionary<string, string[]> DefaultInferenceRules = new()
+    private static readonly Dictionary<string, string[]> _defaultInferenceRules = new()
     {
         [NormalizedStatus.Backlog] = [
             "todo", "to do", "to-do",
@@ -60,17 +60,17 @@ public class StatusMapper
     /// Pre-normalized patterns with hyphens/underscores replaced with spaces.
     /// Avoids repeated regex operations in hot path.
     /// </summary>
-    private static readonly Dictionary<string, (string Pattern, string NormalizedPattern)[]> NormalizedDefaultPatterns;
+    private static readonly Dictionary<string, (string Pattern, string NormalizedPattern)[]> _normalizedDefaultPatterns;
 
     static StatusMapper()
     {
         // Pre-normalize all patterns to avoid repeated regex operations
-        NormalizedDefaultPatterns = new Dictionary<string, (string, string)[]>();
+        _normalizedDefaultPatterns = new Dictionary<string, (string, string)[]>();
 
-        foreach (var (status, patterns) in DefaultInferenceRules)
+        foreach (var (status, patterns) in _defaultInferenceRules)
         {
-            NormalizedDefaultPatterns[status] = patterns
-                .Select(p => (p, HyphenUnderscoreNormalizer.Replace(p, " ")))
+            _normalizedDefaultPatterns[status] = patterns
+                .Select(p => (p, _hyphenUnderscoreNormalizer.Replace(p, " ")))
                 .ToArray();
         }
     }
@@ -131,9 +131,9 @@ public class StatusMapper
     {
         var lower = rawStatus.ToLowerInvariant().Trim();
         // Normalize once before loop to avoid repeated regex operations
-        var normalizedText = HyphenUnderscoreNormalizer.Replace(lower, " ");
+        var normalizedText = _hyphenUnderscoreNormalizer.Replace(lower, " ");
 
-        foreach (var (normalizedStatus, patterns) in NormalizedDefaultPatterns)
+        foreach (var (normalizedStatus, patterns) in _normalizedDefaultPatterns)
         {
             foreach (var (pattern, normalizedPattern) in patterns)
             {
@@ -206,9 +206,9 @@ public class StatusMapper
         // Check inference rules
         var lower = rawStatus.ToLowerInvariant().Trim();
         // Normalize once before loop to avoid repeated regex operations
-        var normalizedText = HyphenUnderscoreNormalizer.Replace(lower, " ");
+        var normalizedText = _hyphenUnderscoreNormalizer.Replace(lower, " ");
 
-        foreach (var (normalizedStatus, patterns) in NormalizedDefaultPatterns)
+        foreach (var (normalizedStatus, patterns) in _normalizedDefaultPatterns)
         {
             foreach (var (pattern, normalizedPattern) in patterns)
             {

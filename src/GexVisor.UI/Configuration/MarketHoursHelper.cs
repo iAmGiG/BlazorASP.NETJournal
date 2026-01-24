@@ -7,8 +7,8 @@ namespace GexVisor.UI.Configuration;
 public static class MarketHoursHelper
 {
     // Market hours: 9:30 AM - 4:00 PM ET, Mon-Fri
-    private static readonly TimeOnly MarketOpen = new(9, 30);
-    private static readonly TimeOnly MarketClose = new(16, 0);
+    private static readonly TimeOnly _marketOpen = new(9, 30);
+    private static readonly TimeOnly _marketClose = new(16, 0);
 
     /// <summary>
     /// Check if US equity markets are currently open.
@@ -31,7 +31,7 @@ public static class MarketHoursHelper
         }
 
         // Market hours check
-        return timeOfDay >= MarketOpen && timeOfDay < MarketClose;
+        return timeOfDay >= _marketOpen && timeOfDay < _marketClose;
     }
 
     /// <summary>

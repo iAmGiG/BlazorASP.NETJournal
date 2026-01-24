@@ -12,7 +12,7 @@ public class PriceDataService : IPriceDataService
 
     // Cache to avoid redundant API calls within a session
     private readonly Dictionary<string, (DateTime Fetched, List<OhlcvBar> Bars)> _cache = new();
-    private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(5);
 
     public PriceDataService(HttpClient httpClient)
     {
@@ -25,7 +25,7 @@ public class PriceDataService : IPriceDataService
 
         // Check local cache
         if (_cache.TryGetValue(cacheKey, out var cached) &&
-            DateTime.UtcNow - cached.Fetched < CacheDuration)
+            DateTime.UtcNow - cached.Fetched < _cacheDuration)
         {
             return PriceDataResult.Ok(cached.Bars);
         }

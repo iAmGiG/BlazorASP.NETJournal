@@ -18,7 +18,7 @@ public class BoardStateService
     private bool _isLoading;
     private string? _lastError;
 
-    private static readonly TimeSpan CacheExpiry = TimeSpan.FromMinutes(AppConstants.Cache.BoardStateCacheMinutes);
+    private static readonly TimeSpan _cacheExpiry = TimeSpan.FromMinutes(AppConstants.Cache.BoardStateCacheMinutes);
 
     public bool IsLoading => _isLoading;
     public string? LastError => _lastError;
@@ -46,7 +46,7 @@ public class BoardStateService
         if (!forceRefresh && _itemsCache.TryGetValue(projectId, out var cached))
         {
             if (_cacheTimestamps.TryGetValue(projectId, out var timestamp)
-                && DateTime.UtcNow - timestamp < CacheExpiry)
+                && DateTime.UtcNow - timestamp < _cacheExpiry)
             {
                 return cached;
             }

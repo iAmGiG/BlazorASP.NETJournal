@@ -11,7 +11,7 @@ namespace GexVisor.UI.Services;
 /// </summary>
 public class GexExportService : IGexExportService
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
+    private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
@@ -74,7 +74,7 @@ public class GexExportService : IGexExportService
             }).ToList()
         };
 
-        return JsonSerializer.Serialize(export, JsonOptions);
+        return JsonSerializer.Serialize(export, _jsonOptions);
     }
 
     public string ExportStrikeGammasToCsv(IEnumerable<StrikeGamma> strikes, string symbol, decimal spotPrice)
@@ -119,7 +119,7 @@ public class GexExportService : IGexExportService
             }).ToList()
         };
 
-        return JsonSerializer.Serialize(export, JsonOptions);
+        return JsonSerializer.Serialize(export, _jsonOptions);
     }
 
     /// <summary>

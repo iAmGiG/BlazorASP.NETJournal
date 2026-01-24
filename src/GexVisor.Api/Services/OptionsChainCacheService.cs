@@ -11,8 +11,8 @@ public class OptionsChainCacheService
     private readonly ILogger<OptionsChainCacheService> _logger;
 
     // Cache TTL for options data (shorter than quotes - options are more volatile)
-    private static readonly TimeSpan RecentChainTtl = TimeSpan.FromMinutes(5);
-    private static readonly TimeSpan StaleChainTtl = TimeSpan.FromHours(1);
+    private static readonly TimeSpan _recentChainTtl = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan _staleChainTtl = TimeSpan.FromHours(1);
 
     public OptionsChainCacheService(ICacheService cache, ILogger<OptionsChainCacheService> logger)
     {
@@ -89,6 +89,6 @@ public class OptionsChainCacheService
 
         // Recent data (< 30 min): short TTL for freshness
         // Older data: longer TTL (less likely to change significantly)
-        return age.TotalMinutes < 30 ? RecentChainTtl : StaleChainTtl;
+        return age.TotalMinutes < 30 ? _recentChainTtl : _staleChainTtl;
     }
 }

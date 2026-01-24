@@ -13,9 +13,9 @@ public class MarketDataCacheService
     private readonly ILogger<MarketDataCacheService>? _logger;
 
     // Domain-specific TTL rules
-    private static readonly TimeSpan RecentDataTtl = TimeSpan.FromHours(24);
-    private static readonly TimeSpan HistoricalDataTtl = TimeSpan.FromDays(3650); // 10 years
-    private static readonly TimeSpan QuoteStaleThreshold = TimeSpan.FromMinutes(15);
+    private static readonly TimeSpan _recentDataTtl = TimeSpan.FromHours(24);
+    private static readonly TimeSpan _historicalDataTtl = TimeSpan.FromDays(3650); // 10 years
+    private static readonly TimeSpan _quoteStaleThreshold = TimeSpan.FromMinutes(15);
 
     public MarketDataCacheService(ICacheService cache, ILogger<MarketDataCacheService>? logger = null)
     {
@@ -34,8 +34,8 @@ public class MarketDataCacheService
     {
         var age = DateTime.UtcNow - quoteTimestamp;
         return age.TotalDays > 2
-            ? HistoricalDataTtl  // Historical: never expires
-            : RecentDataTtl;     // Recent: refresh daily
+            ? _historicalDataTtl  // Historical: never expires
+            : _recentDataTtl;     // Recent: refresh daily
     }
 
     /// <summary>
@@ -44,7 +44,7 @@ public class MarketDataCacheService
     public static bool IsQuoteStale(Quote quote)
     {
         var age = DateTime.UtcNow - quote.Timestamp;
-        return age > QuoteStaleThreshold;
+        return age > _quoteStaleThreshold;
     }
 
     /// <summary>Get cached quote for a symbol.</summary>
@@ -92,7 +92,7 @@ public class MarketDataCacheService
         // Historical data (older than 2 days): very long TTL
         if (age.TotalDays > 2)
         {
-            return HistoricalDataTtl;
+            return _historicalDataTtl;
         }
 
         // Recent data TTL depends on timeframe
@@ -107,7 +107,7 @@ public class MarketDataCacheService
             BarTimeframe.Day => TimeSpan.FromHours(24),
             BarTimeframe.Week => TimeSpan.FromDays(2),
             BarTimeframe.Month => TimeSpan.FromDays(7),
-            _ => RecentDataTtl
+            _ => _recentDataTtl
         };
     }
 

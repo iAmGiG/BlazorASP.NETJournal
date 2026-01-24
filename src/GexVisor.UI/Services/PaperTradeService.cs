@@ -312,6 +312,8 @@ public class PaperTradeService : BaseEntryService<PaperTrade>
         };
     }
 
+    // Suppress naming warnings - property names match CSV column headers (intentionally snake_case)
+#pragma warning disable IDE1006 // Naming Styles
     private record AutotraderTrade(
         string? trade_id,
         string? symbol,
@@ -326,6 +328,7 @@ public class PaperTradeService : BaseEntryService<PaperTrade>
         string? strategy_name,
         string? signal_strength,
         decimal? realized_pnl);
+#pragma warning restore IDE1006 // Naming Styles
 }
 
 // === Analytics DTOs ===
