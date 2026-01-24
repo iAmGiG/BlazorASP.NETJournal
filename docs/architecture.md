@@ -4,7 +4,7 @@ Detailed technical documentation of the GexVisor system architecture.
 
 ## Service Inventory
 
-GexVisor has 27 services organized into 6 functional domains.
+GexVisor has 28 services organized into 7 functional domains.
 
 ### Core Services (3)
 
@@ -57,6 +57,26 @@ All inherit from `BaseEntryService<T>` using the Template Method pattern.
 | `SqliteService` | WASM SQLite queries (sql.js) |
 | `DecisionMetadataParser` | Parse autotrader logs (JSON/CSV), extract decision metadata |
 | `TaskPersistenceService` | JSON file persistence for ToDo tasks |
+
+### Alert Services (1)
+
+| Service        | Lifetime | Interface          | Responsibility                                 |
+|----------------|----------|--------------------|------------------------------------------------|
+| `AlertService` | Scoped   | ✅ `IAlertService` | GEX threshold monitoring, regime change alerts |
+
+**Alert Types:**
+
+- **Regime Change** (Critical) - Long/Short γ transitions
+- **Zero-Gamma Cross** (Warning) - Price crossing ZG level
+- **GEX Threshold** (Warning) - Upper/lower limit breaches
+- **Price Movement** (Info) - Configurable % threshold
+
+**Features:**
+
+- Cooldown mechanism (default 5 minutes) prevents alert spam
+- Auto-dismiss timer (default 30 seconds)
+- LocalStorage persistence for preferences
+- Toast notification UI via AlertManager component
 
 ### Live Data Services (7)
 
@@ -193,6 +213,9 @@ builder.Services.AddScoped<StatusMapper>();
 builder.Services.AddScoped<SqliteService>();
 builder.Services.AddScoped<TradeLogService>();
 builder.Services.AddScoped<DecisionMetadataParser>();
+
+// Alert services (#159)
+builder.Services.AddScoped<IAlertService, AlertService>();
 
 // Live market data services (Epic #145)
 builder.Services.AddSingleton<IApiConfigService, ApiConfigService>();
@@ -370,6 +393,8 @@ All persistence uses browser localStorage via `LocalStorageService`.
 | `gexvisor.github.auth` | `GitHubAuthState` | OAuth tokens |
 | `gexvisor.github.projects` | `GitHubProjectSettings` | Selected project |
 | `gexvisor.statusMappings` | `StatusMappingsStore` | Custom status mappings |
+| `gexvisor.alertPreferences` | `AlertPreferences` | Alert thresholds, cooldowns, enabled types |
+| `gexvisor.alertHistory` | `List<Alert>` | Recent alert history |
 
 ---
 
@@ -387,6 +412,9 @@ All persistence uses browser localStorage via `LocalStorageService`.
 | `GitHubAuthService` | `OnAuthError` | Auth failure | Error notifications |
 | `GitHubProjectService` | `OnProjectsChanged` | Projects fetched | GitHubProjectSelector |
 | `BoardStateService` | `OnBoardStateChanged` | Items refreshed | KanbanBoard |
+| `AlertService` | `OnAlertTriggered` | Threshold breach or regime change | AlertManager |
+| `AlertService` | `OnAlertDismissed` | User dismisses alert | AlertManager |
+| `AlertService` | `OnPreferencesChanged` | Alert settings updated | AlertManager |
 
 ---
 
@@ -505,9 +533,16 @@ Tracked in GitHub issues:
 | Issue | Title | Priority |
 |-------|-------|----------|
 | #162 | Historical GEX Calculation Backfill | Medium |
-| #159 | Price Alerts & GEX Threshold Notifications | Medium |
-| #111 | Simple Chart Viewer (Epic) | Medium |
 | #110 | Self-Tracking Metrics Dashboard (Epic) | Medium |
+| #175 | Complete ResearchPath enum migration | Low |
+| #176 | Extract ResearchPathData to JSON | Low |
+
+### Recently Closed (Session 22)
+
+| Issue | Title                                      | Resolution                                 |
+|-------|--------------------------------------------|--------------------------------------------|
+| #159  | Price Alerts & GEX Threshold Notifications | AlertService with 4 alert types, 13 tests  |
+| #111  | Simple Chart Viewer (Epic)                 | All 5 subtasks complete                    |
 
 ### Recently Closed (Session 20)
 
