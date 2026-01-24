@@ -58,16 +58,16 @@
             <div class="filter-section">
                 <div class="filter-title">Barrier Type</div>
                 <div class="filter-group">
-                    <button class="filter-btn @(_barrierFilter == "all" ? "active" : "")" @onclick="@(() => SetBarrierFilter("all"))">
+                    <button class="filter-btn @(_barrierFilter == null ? "active" : "")" @onclick="@(() => SetBarrierFilter(null))">
                         All
                     </button>
-                    @foreach (var q in ResearchPathData.Quadrants.Where(x => x.Key != "none"))
+                    @foreach (var q in ResearchPathData.Quadrants.Where(x => x.Key != ResearchQuadrant.None))
                     {
-                        var count = GetFilteredPaths().Count(p => p.BarrierType == q.Key || (q.Key == "scope" && p.Quadrant == "scope"));
+                        var count = GetFilteredPaths().Count(p => p.BarrierQuadrant == q.Key || (q.Key == ResearchQuadrant.Scope && p.Quadrant == ResearchQuadrant.Scope));
                         <button class="filter-btn @(_barrierFilter == q.Key ? "active" : "")"
                                 style="--filter-color: @q.Value.Color"
                                 @onclick="@(() => SetBarrierFilter(q.Key))">
-                            @q.Value.Label.ToLower().Replace("_", " ") <span class="count">@count</span>
+                            @q.Value.Label.ToLowerInvariant().Replace("_", " ") <span class="count">@count</span>
                         </button>
                     }
                 </div>
@@ -83,7 +83,7 @@
                                 style="--filter-color: @status.Value"
                                 @onclick="@(() => ToggleStatusFilter(status.Key))">
                             <span class="status-dot" style="background: @status.Value"></span>
-                            @status.Key <span class="count">@count</span>
+                            @FormatEnumName(status.Key) <span class="count">@count</span>
                         </button>
                     }
                 </div>
@@ -134,7 +134,7 @@
                             <div class="card-header">
                                 <div class="card-ring">Ring @path.Ring</div>
                                 <div class="card-taxonomy" style="background: @taxonomyColor.Item1; color: @taxonomyColor.Item2">
-                                    @path.Taxonomy.ToUpper()
+                                    @FormatEnumName(path.Taxonomy).ToUpperInvariant()
                                 </div>
                             </div>
                             <div class="card-title">@path.Title</div>
@@ -146,7 +146,7 @@
                                 }
                             </div>
                             <div class="card-meta">
-                                <span class="status-badge" style="background: @statusColor">@path.Status</span>
+                                <span class="status-badge" style="background: @statusColor">@FormatEnumName(path.Status)</span>
                                 <span class="quadrant-badge" style="color: @quadrantInfo.Item2">@quadrantInfo.Item1</span>
                             </div>
                             @if (!string.IsNullOrEmpty(path.Paper) && path.Paper != "N/A")
@@ -185,13 +185,13 @@
                 </div>
 
                 <div class="detail-taxonomy" style="background: @taxonomyColor.Item1; color: @taxonomyColor.Item2">
-                    @_selectedPath.Taxonomy.ToUpper()
+                    @FormatEnumName(_selectedPath.Taxonomy).ToUpperInvariant()
                 </div>
 
                 <div class="detail-meta-grid">
                     <div class="detail-meta-item">
                         <div class="meta-label">Status</div>
-                        <div class="meta-value" style="color: @statusColor">@_selectedPath.Status</div>
+                        <div class="meta-value" style="color: @statusColor">@FormatEnumName(_selectedPath.Status)</div>
                     </div>
                     <div class="detail-meta-item">
                         <div class="meta-label">Complexity</div>
@@ -267,11 +267,19 @@
             The validated core (71.5% detection) proves <strong>LLMs reason about structure</strong>, not just memorize.
         </div>
     </div>
+
+    <!-- Modal popup for radar view -->
+    @if (_viewMode == ViewMode.Radar)
+    {
+        <RadarModal Path="@_selectedPath"
+                    OnClose="ClearSelection"
+                    OnRelatedClick="SearchRelated" />
+    }
 </div>
 
 @code {
-    private string _barrierFilter = "all";
-    private string? _statusFilter;
+    private ResearchQuadrant? _barrierFilter;
+    private ResearchStatus? _statusFilter;
     private int? _ringFilter;
     private ResearchPath? _selectedPath;
     private ResearchPath? _hoveredPath;
@@ -292,9 +300,9 @@
     {
         var paths = ResearchPathData.Paths.AsEnumerable();
 
-        if (_barrierFilter != "all")
+        if (_barrierFilter != null)
         {
-            paths = paths.Where(p => p.BarrierType == _barrierFilter || p.Quadrant == _barrierFilter);
+            paths = paths.Where(p => p.BarrierQuadrant == _barrierFilter || p.Quadrant == _barrierFilter);
         }
 
         if (_statusFilter != null)
@@ -317,12 +325,12 @@
         return paths;
     }
 
-    private void SetBarrierFilter(string filter)
+    private void SetBarrierFilter(ResearchQuadrant? filter)
     {
         _barrierFilter = filter;
     }
 
-    private void ToggleStatusFilter(string status)
+    private void ToggleStatusFilter(ResearchStatus status)
     {
         _statusFilter = _statusFilter == status ? null : status;
     }
@@ -346,5 +354,12 @@
     {
         _searchTerm = term;
         _selectedPath = null;
+    }
+
+    private static string FormatEnumName<T>(T enumValue) where T : Enum
+    {
+        var name = enumValue.ToString();
+        // Insert spaces before uppercase letters (camelCase to words)
+        return System.Text.RegularExpressions.Regex.Replace(name, "(?<!^)([A-Z])", " $1");
     }
 }

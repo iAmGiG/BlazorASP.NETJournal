@@ -3,7 +3,7 @@
 <div class="mini-radar" style="width: @(Size)px; height: @(Size)px;">
     <svg viewBox="-350 -350 700 700" class="mini-radar-svg" preserveAspectRatio="xMidYMid meet">
         <!-- Quadrant backgrounds -->
-        @foreach (var q in ResearchPathData.Quadrants.Where(x => x.Key != "none"))
+        @foreach (var q in ResearchPathData.Quadrants.Where(x => x.Key != ResearchQuadrant.None))
         {
             var angles = QuadrantAngles[q.Key];
             var startRad = (angles.Start - 90) * Math.PI / 180;
@@ -25,7 +25,7 @@
         }
 
         <!-- Quadrant dividing lines -->
-        @foreach (var q in ResearchPathData.Quadrants.Where(x => x.Key != "none"))
+        @foreach (var q in ResearchPathData.Quadrants.Where(x => x.Key != ResearchQuadrant.None))
         {
             var angles = QuadrantAngles[q.Key];
             var rad = (angles.Start - 90) * Math.PI / 180;
@@ -80,7 +80,7 @@
     [Parameter] public EventCallback<ResearchPath> OnNodeClick { get; set; }
 
     private static int[] RingRadii => RadarConstants.RingRadii;
-    private static Dictionary<string, (int Start, int End)> QuadrantAngles => RadarConstants.QuadrantAngles;
+    private static Dictionary<ResearchQuadrant, (int Start, int End)> QuadrantAngles => RadarConstants.QuadrantAngles;
 
     private (double X, double Y) GetNodePosition(ResearchPath path)
     {

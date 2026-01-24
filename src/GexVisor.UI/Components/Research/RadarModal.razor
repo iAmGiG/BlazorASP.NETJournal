@@ -1,0 +1,131 @@
+@using GexVisor.UI.Models
+
+@if (Path != null)
+{
+    var statusColor = ResearchPathData.StatusColors.GetValueOrDefault(Path.Status, "#888");
+    var taxonomyColors = ResearchPathData.TaxonomyColors.GetValueOrDefault(Path.Taxonomy, ("#888", "#fff"));
+    var quadrantInfo = ResearchPathData.Quadrants.GetValueOrDefault(Path.BarrierQuadrant, ("Unknown", "#888"));
+
+    <div class="radar-modal-backdrop" @onclick="HandleBackdropClick"></div>
+    <div class="radar-modal" style="--status-color: @statusColor" @onclick:stopPropagation="true">
+        <header class="modal-header">
+            <h2 class="modal-title">@Path.Title</h2>
+            <button class="modal-close" @onclick="HandleClose" title="Close">
+                <i class="fas fa-times"></i>
+            </button>
+        </header>
+
+        <div class="modal-badges">
+            <span class="badge status-badge" style="background: @statusColor">
+                @FormatEnumName(Path.Status)
+            </span>
+            <span class="badge taxonomy-badge" style="background: @taxonomyColors.Item1; color: @taxonomyColors.Item2">
+                @FormatEnumName(Path.Taxonomy)
+            </span>
+            <span class="badge ring-badge">
+                Ring @Path.Ring
+            </span>
+        </div>
+
+        <div class="modal-body">
+            @if (!string.IsNullOrEmpty(Path.Paper) && Path.Paper != "N/A")
+            {
+                <div class="paper-ref">
+                    <i class="fas fa-file-alt"></i> @Path.Paper
+                </div>
+            }
+
+            <section class="modal-section">
+                <p class="description">@Path.Description</p>
+            </section>
+
+            <section class="modal-section barrier-section">
+                <h3 class="section-title">
+                    <i class="fas fa-exclamation-triangle"></i> Why It Stalled
+                </h3>
+                <p>@Path.Barrier</p>
+                <div class="barrier-type">
+                    <span class="barrier-label" style="color: @quadrantInfo.Item2">@quadrantInfo.Item1</span>
+                </div>
+            </section>
+
+            @if (!string.IsNullOrEmpty(Path.Unblock))
+            {
+                <section class="modal-section unblock-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-unlock-alt"></i> What Would Unblock
+                    </h3>
+                    <p>@Path.Unblock</p>
+                </section>
+            }
+
+            @if (Path.Related.Count > 0)
+            {
+                <section class="modal-section related-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-link"></i> Related Concepts
+                    </h3>
+                    <div class="related-tags">
+                        @foreach (var tag in Path.Related)
+                        {
+                            <button class="related-tag" @onclick="@(() => HandleRelatedClick(tag))">
+                                @tag
+                            </button>
+                        }
+                    </div>
+                </section>
+            }
+        </div>
+
+        <footer class="modal-footer">
+            @if (!string.IsNullOrEmpty(Path.IssueUrl))
+            {
+                <a href="@Path.IssueUrl" target="_blank" rel="noopener noreferrer" class="btn btn-github">
+                    <i class="fab fa-github"></i> Issue @Path.IssueNum
+                </a>
+            }
+            <button class="btn btn-secondary" @onclick="HandleClose">
+                <i class="fas fa-arrow-left"></i> Back to Map
+            </button>
+        </footer>
+    </div>
+}
+
+@code {
+    /// <summary>The research path to display. Null hides the modal.</summary>
+    [Parameter] public ResearchPath? Path { get; set; }
+
+    /// <summary>Called when the modal should close.</summary>
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    /// <summary>Called when a related tag is clicked.</summary>
+    [Parameter] public EventCallback<string> OnRelatedClick { get; set; }
+
+    private async Task HandleClose()
+    {
+        if (OnClose.HasDelegate)
+        {
+            await OnClose.InvokeAsync();
+        }
+    }
+
+    private async Task HandleBackdropClick()
+    {
+        await HandleClose();
+    }
+
+    private async Task HandleRelatedClick(string tag)
+    {
+        if (OnRelatedClick.HasDelegate)
+        {
+            await OnRelatedClick.InvokeAsync(tag);
+        }
+        await HandleClose();
+    }
+
+    private static string FormatEnumName<T>(T enumValue) where T : Enum
+    {
+        var name = enumValue.ToString();
+        return System.Text.RegularExpressions.Regex.Replace(name, "(?<!^)([A-Z])", " $1");
+    }
+}
