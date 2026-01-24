@@ -1,0 +1,196 @@
+/* Interactive Radar Component Styles */
+/* Animations ported from docs/deprecated/research-visuals-html/research_complexity_map.html */
+
+.interactive-radar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.radar-svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+/* Quadrant backgrounds */
+::deep .quadrant-bg {
+    opacity: 0.08;
+    transition: opacity 0.3s ease;
+}
+
+::deep .quadrant-bg:hover {
+    opacity: 0.12;
+}
+
+/* Concentric rings */
+::deep .ring-circle {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.15);
+    stroke-width: 1;
+}
+
+/* Quadrant dividing lines */
+::deep .quadrant-line {
+    stroke: rgba(255, 255, 255, 0.2);
+    stroke-width: 1;
+}
+
+/* Ring labels */
+::deep .ring-label-text {
+    font-size: 7px;
+    fill: rgba(255, 255, 255, 0.4);
+    text-anchor: start;
+}
+
+/* Quadrant labels */
+::deep .quadrant-label-text {
+    font-size: 9px;
+    text-anchor: middle;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+/* Center section */
+::deep .center-bg {
+    fill: rgba(46, 204, 113, 0.2);
+    stroke: #2ecc71;
+    stroke-width: 2;
+}
+
+::deep .center-label {
+    font-size: 11px;
+    fill: #2ecc71;
+    text-anchor: middle;
+    font-weight: bold;
+}
+
+::deep .center-sublabel {
+    font-size: 8px;
+    fill: #888;
+    text-anchor: middle;
+}
+
+/* Center pulse animation - radar sweep feel */
+@keyframes centerPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+::deep .center-pulse {
+    animation: centerPulse 2.5s ease-in-out infinite;
+}
+
+/* Node entrance animation - staggered by ring */
+@keyframes nodeEntrance {
+    0% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Ring-based animation delays */
+::deep .research-node {
+    cursor: pointer;
+    opacity: 0;
+    transform-origin: center;
+}
+
+::deep .research-node.node-ring-0 {
+    animation: nodeEntrance 0.5s ease-out forwards;
+}
+
+::deep .research-node.node-ring-1 {
+    animation: nodeEntrance 0.5s ease-out 0.08s forwards;
+}
+
+::deep .research-node.node-ring-2 {
+    animation: nodeEntrance 0.5s ease-out 0.16s forwards;
+}
+
+::deep .research-node.node-ring-3 {
+    animation: nodeEntrance 0.5s ease-out 0.24s forwards;
+}
+
+::deep .research-node.node-ring-4 {
+    animation: nodeEntrance 0.5s ease-out 0.32s forwards;
+}
+
+::deep .research-node.node-ring-5 {
+    animation: nodeEntrance 0.5s ease-out 0.40s forwards;
+}
+
+/* Node circle styling */
+::deep .node-circle {
+    stroke-width: 2;
+    stroke: rgba(0, 0, 0, 0.3);
+    transition: filter 0.2s ease, stroke-width 0.2s ease, transform 0.2s ease;
+}
+
+/* Invisible hit target for easier clicking */
+::deep .hit-target {
+    cursor: pointer;
+}
+
+/* Hover glow effect */
+::deep .research-node:hover .node-circle {
+    stroke-width: 3;
+    filter: brightness(1.25) drop-shadow(0 0 12px currentColor);
+}
+
+/* Selected node state */
+::deep .research-node.selected .node-circle {
+    stroke-width: 3;
+    stroke: #fff;
+    filter: brightness(1.3) drop-shadow(0 0 15px currentColor);
+}
+
+/* Related node glow (when another node is hovered) */
+::deep .research-node.related-glow .node-circle {
+    filter: brightness(1.3) drop-shadow(0 0 12px currentColor);
+}
+
+/* Dimmed nodes (filtered out) */
+::deep .research-node.dimmed {
+    opacity: 0.15 !important;
+    pointer-events: none;
+}
+
+/* Node labels */
+::deep .node-label {
+    font-size: 7px;
+    fill: #fff;
+    text-anchor: middle;
+    pointer-events: none;
+    font-weight: 600;
+}
+
+::deep .node-label-long {
+    font-size: 6px;
+    fill: rgba(255, 255, 255, 0.8);
+    text-anchor: middle;
+    pointer-events: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    ::deep .quadrant-label-text {
+        font-size: 7px;
+    }
+
+    ::deep .ring-label-text {
+        font-size: 6px;
+    }
+
+    ::deep .node-label {
+        font-size: 6px;
+    }
+
+    ::deep .node-label-long {
+        font-size: 5px;
+    }
+}

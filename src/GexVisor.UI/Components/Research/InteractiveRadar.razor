@@ -1,0 +1,165 @@
+@using GexVisor.UI.Models
+
+<div class="interactive-radar" style="width: @(Size)px; height: @(Size)px;">
+    <svg viewBox="-350 -350 700 700" class="radar-svg" preserveAspectRatio="xMidYMid meet">
+        <!-- Quadrant backgrounds -->
+        @foreach (var q in ResearchPathData.Quadrants.Where(x => x.Key != "none"))
+        {
+            var angles = QuadrantAngles[q.Key];
+            var startRad = (angles.Start - 90) * Math.PI / 180;
+            var endRad = (angles.End - 90) * Math.PI / 180;
+            var outerR = RingRadii[^1];
+            var x1 = outerR * Math.Cos(startRad);
+            var y1 = outerR * Math.Sin(startRad);
+            var x2 = outerR * Math.Cos(endRad);
+            var y2 = outerR * Math.Sin(endRad);
+            <path d="M 0 0 L @F(x1) @F(y1) A @outerR @outerR 0 0 1 @F(x2) @F(y2) Z"
+                  fill="@q.Value.Color"
+                  class="quadrant-bg" />
+        }
+
+        <!-- Concentric rings -->
+        @for (int i = 1; i < RingRadii.Length; i++)
+        {
+            <circle cx="0" cy="0" r="@RingRadii[i]" class="ring-circle" />
+        }
+
+        <!-- Quadrant dividing lines -->
+        @foreach (var q in ResearchPathData.Quadrants.Where(x => x.Key != "none"))
+        {
+            var angles = QuadrantAngles[q.Key];
+            var rad = (angles.Start - 90) * Math.PI / 180;
+            var outerR = RingRadii[^1];
+            <line x1="0" y1="0" x2="@F(outerR * Math.Cos(rad))" y2="@F(outerR * Math.Sin(rad))"
+                  class="quadrant-line" />
+        }
+
+        <!-- Ring labels -->
+        @if (ShowLabels)
+        {
+            @for (int i = 1; i <= 5; i++)
+            {
+                @SvgText("5", (-RingRadii[i] + 11).ToString(), "ring-label-text", ResearchPathData.RingNames[i])
+            }
+
+            <!-- Quadrant labels -->
+            @foreach (var q in ResearchPathData.Quadrants.Where(x => x.Key != "none"))
+            {
+                var angles = QuadrantAngles[q.Key];
+                var midAngle = (angles.Start + angles.End) / 2.0;
+                var rad = (midAngle - 90) * Math.PI / 180;
+                var r = RingRadii[^1] + 22;
+                var x = r * Math.Cos(rad);
+                var y = r * Math.Sin(rad);
+                var rotation = midAngle > 90 && midAngle < 270 ? midAngle + 180 : midAngle;
+                @SvgText(F(x), F(y), "quadrant-label-text", q.Value.Label, q.Value.Color, $"rotate({F(rotation)} {F(x)} {F(y)})")
+            }
+        }
+
+        <!-- Center pulse -->
+        <g class="center-pulse">
+            <circle cx="0" cy="0" r="45" class="center-bg" />
+            @SvgText("0", "-8", "center-label", "VALIDATED")
+            @SvgText("0", "7", "center-sublabel", $"{RadarConstants.FoundationStats.DetectionRate} / {RadarConstants.FoundationStats.Accuracy}")
+        </g>
+
+        <!-- Research nodes -->
+        @foreach (var path in DisplayPaths)
+        {
+            var (x, y) = GetNodePosition(path);
+            var statusColor = ResearchPathData.StatusColors.GetValueOrDefault(path.Status, "#888");
+            var isFiltered = FilteredPaths == null || FilteredPaths.Contains(path);
+            var isSelected = SelectedPathId == path.Id;
+            var isRelated = _hoveredPath != null && _hoveredPath.Related.Any(r =>
+                path.Title.Contains(r, StringComparison.OrdinalIgnoreCase) ||
+                path.Related.Contains(r));
+            var radius = path.Ring == 0 ? 22 : 17;
+
+            <g class="research-node node-ring-@path.Ring @(isSelected ? "selected" : "") @(!isFiltered ? "dimmed" : "") @(isRelated ? "related-glow" : "")"
+               transform="translate(@F(x), @F(y))"
+               @onclick="@(() => HandleNodeClick(path))"
+               @onclick:stopPropagation="true"
+               @onmouseenter="@(() => HandleNodeHover(path))"
+               @onmouseleave="@(() => HandleNodeHover(null))">
+                <!-- Invisible hit target for easier clicking -->
+                <circle cx="0" cy="0" r="@(radius + 8)" fill="transparent" class="hit-target" />
+                <circle cx="0" cy="0" r="@radius" fill="@statusColor" class="node-circle" />
+                @if (!string.IsNullOrEmpty(path.LabelLong))
+                {
+                    @SvgText("0", "-2", "node-label", path.Label)
+                    @SvgText("0", "6", "node-label-long", path.LabelLong)
+                }
+                else
+                {
+                    @SvgText("0", "3", "node-label", path.Label)
+                }
+                <title>@path.Title - @path.Status</title>
+            </g>
+        }
+    </svg>
+</div>
+
+@code {
+    /// <summary>Size of the radar in pixels (width and height).</summary>
+    [Parameter] public int Size { get; set; } = 600;
+
+    /// <summary>Whether to show ring and quadrant labels.</summary>
+    [Parameter] public bool ShowLabels { get; set; } = true;
+
+    /// <summary>ID of the currently selected path (for external state control).</summary>
+    [Parameter] public string? SelectedPathId { get; set; }
+
+    /// <summary>Optional filtered list of paths to highlight. Null means show all.</summary>
+    [Parameter] public IEnumerable<ResearchPath>? FilteredPaths { get; set; }
+
+    /// <summary>Optional custom list of paths to display. Defaults to all paths.</summary>
+    [Parameter] public IEnumerable<ResearchPath>? Paths { get; set; }
+
+    /// <summary>Callback when a node is clicked.</summary>
+    [Parameter] public EventCallback<ResearchPath> OnNodeClick { get; set; }
+
+    /// <summary>Callback when mouse enters/leaves a node (null on leave).</summary>
+    [Parameter] public EventCallback<ResearchPath?> OnNodeHover { get; set; }
+
+    private ResearchPath? _hoveredPath;
+
+    private IEnumerable<ResearchPath> DisplayPaths => Paths ?? ResearchPathData.Paths;
+
+    private static int[] RingRadii => RadarConstants.RingRadii;
+    private static Dictionary<string, (int Start, int End)> QuadrantAngles => RadarConstants.QuadrantAngles;
+
+    private (double X, double Y) GetNodePosition(ResearchPath path)
+    {
+        var angles = QuadrantAngles.GetValueOrDefault(path.Quadrant, (Start: 0, End: 90));
+        var angleRange = angles.End - angles.Start;
+        var normalizedAngle = angles.Start + (path.Angle / 180.0) * angleRange;
+        var rad = (normalizedAngle - 90) * Math.PI / 180;
+        var innerR = RingRadii[path.Ring];
+        var outerR = path.Ring + 1 < RingRadii.Length ? RingRadii[path.Ring + 1] : RingRadii[path.Ring] + 50;
+        var r = (innerR + outerR) / 2.0;
+        return (r * Math.Cos(rad), r * Math.Sin(rad));
+    }
+
+    private string F(double value) =>
+        value.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+
+    private MarkupString SvgText(string x, string y, string className, string content, string? fill = null, string? transform = null) =>
+        new($"<text x=\"{x}\" y=\"{y}\" class=\"{className}\"{(fill != null ? $" fill=\"{fill}\"" : "")}{(transform != null ? $" transform=\"{transform}\"" : "")}>{System.Web.HttpUtility.HtmlEncode(content)}</text>");
+
+    private async Task HandleNodeClick(ResearchPath path)
+    {
+        if (OnNodeClick.HasDelegate)
+        {
+            await OnNodeClick.InvokeAsync(path);
+        }
+    }
+
+    private async Task HandleNodeHover(ResearchPath? path)
+    {
+        _hoveredPath = path;
+        if (OnNodeHover.HasDelegate)
+        {
+            await OnNodeHover.InvokeAsync(path);
+        }
+    }
+}

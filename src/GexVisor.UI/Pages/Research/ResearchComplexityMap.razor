@@ -1,5 +1,6 @@
 @page "/research/complexity"
 @using GexVisor.UI.Models
+@using GexVisor.UI.Components.Research
 @using Microsoft.AspNetCore.Components
 
 <PageTitle>Research Complexity Map - GexVisor</PageTitle>
@@ -158,91 +159,14 @@
             }
             else
             {
-                <!-- Radar View -->
+                <!-- Radar View - using InteractiveRadar component -->
                 <div class="radar-container">
-                    <svg viewBox="-350 -350 700 700" class="radar-svg" preserveAspectRatio="xMidYMid meet">
-                        <!-- Quadrant backgrounds -->
-                        @foreach (var q in ResearchPathData.Quadrants.Where(x => x.Key != "none"))
-                        {
-                            var angles = QuadrantAngles[q.Key];
-                            var startRad = (angles.Start - 90) * Math.PI / 180;
-                            var endRad = (angles.End - 90) * Math.PI / 180;
-                            var outerR = RingRadii[^1];
-                            var x1 = outerR * Math.Cos(startRad);
-                            var y1 = outerR * Math.Sin(startRad);
-                            var x2 = outerR * Math.Cos(endRad);
-                            var y2 = outerR * Math.Sin(endRad);
-                            <path d="M 0 0 L @FormatDouble(x1) @FormatDouble(y1) A @outerR @outerR 0 0 1 @FormatDouble(x2) @FormatDouble(y2) Z"
-                                  fill="@q.Value.Color"
-                                  class="quadrant-bg" />
-                        }
-
-                        <!-- Concentric rings -->
-                        @for (int i = 1; i < RingRadii.Length; i++)
-                        {
-                            <circle cx="0" cy="0" r="@RingRadii[i]" class="ring-circle" />
-                        }
-
-                        <!-- Quadrant dividing lines -->
-                        @foreach (var q in ResearchPathData.Quadrants.Where(x => x.Key != "none"))
-                        {
-                            var angles = QuadrantAngles[q.Key];
-                            var rad = (angles.Start - 90) * Math.PI / 180;
-                            var outerR = RingRadii[^1];
-                            <line x1="0" y1="0" x2="@FormatDouble(outerR * Math.Cos(rad))" y2="@FormatDouble(outerR * Math.Sin(rad))"
-                                  class="quadrant-line" />
-                        }
-
-                        <!-- Ring labels -->
-                        @for (int i = 1; i <= 5; i++)
-                        {
-                            @SvgText("5", (-RingRadii[i] + 11).ToString(), "ring-label-text", ResearchPathData.RingNames[i])
-                        }
-
-                        <!-- Quadrant labels -->
-                        @foreach (var q in ResearchPathData.Quadrants.Where(x => x.Key != "none"))
-                        {
-                            var angles = QuadrantAngles[q.Key];
-                            var midAngle = (angles.Start + angles.End) / 2.0;
-                            var rad = (midAngle - 90) * Math.PI / 180;
-                            var r = RingRadii[^1] + 22;
-                            var x = r * Math.Cos(rad);
-                            var y = r * Math.Sin(rad);
-                            var rotation = midAngle > 90 && midAngle < 270 ? midAngle + 180 : midAngle;
-                            @SvgText(FormatDouble(x), FormatDouble(y), "quadrant-label-text", q.Value.Label, q.Value.Color, $"rotate({FormatDouble(rotation)} {FormatDouble(x)} {FormatDouble(y)})")
-                        }
-
-                        <!-- Center pulse -->
-                        <g class="center-pulse">
-                            <circle cx="0" cy="0" r="45" class="center-bg" />
-                            @SvgText("0", "-8", "center-label", "VALIDATED")
-                            @SvgText("0", "7", "center-sublabel", $"{RadarConstants.FoundationStats.DetectionRate} / {RadarConstants.FoundationStats.Accuracy}")
-                        </g>
-
-                        <!-- Research nodes -->
-                        @foreach (var path in ResearchPathData.Paths)
-                        {
-                            var (x, y) = GetNodePosition(path);
-                            var statusColor = ResearchPathData.StatusColors.GetValueOrDefault(path.Status, "#888");
-                            var isFiltered = IsPathFiltered(path);
-                            var isSelected = _selectedPath?.Id == path.Id;
-                            var radius = path.Ring == 0 ? 22 : 17;
-                            <g class="research-node @(isSelected ? "selected" : "") @(!isFiltered ? "dimmed" : "")"
-                               transform="translate(@FormatDouble(x), @FormatDouble(y))"
-                               @onclick="@(() => SelectPath(path))">
-                                <circle cx="0" cy="0" r="@radius" fill="@statusColor" class="node-circle" />
-                                @if (!string.IsNullOrEmpty(path.LabelLong))
-                                {
-                                    @SvgText("0", "-2", "node-label", path.Label)
-                                    @SvgText("0", "6", "node-label-long", path.LabelLong)
-                                }
-                                else
-                                {
-                                    @SvgText("0", "3", "node-label", path.Label)
-                                }
-                            </g>
-                        }
-                    </svg>
+                    <InteractiveRadar
+                        Size="650"
+                        SelectedPathId="@_selectedPath?.Id"
+                        FilteredPaths="@GetFilteredPaths().ToList()"
+                        OnNodeClick="@SelectPath"
+                        OnNodeHover="@HandleNodeHover" />
                 </div>
             }
         </div>
@@ -350,39 +274,19 @@
     private string? _statusFilter;
     private int? _ringFilter;
     private ResearchPath? _selectedPath;
+    private ResearchPath? _hoveredPath;
     private string? _searchTerm;
     private ViewMode _viewMode = ViewMode.Cards;
 
     private enum ViewMode { Cards, Radar }
 
-    // Use centralized radar constants
-    private static int[] RingRadii => RadarConstants.RingRadii;
-    private static Dictionary<string, (int Start, int End)> QuadrantAngles => RadarConstants.QuadrantAngles;
-
-    private (double X, double Y) GetNodePosition(ResearchPath path)
-    {
-        var angles = QuadrantAngles.GetValueOrDefault(path.Quadrant, (Start: 0, End: 90));
-        var angleRange = angles.End - angles.Start;
-        var normalizedAngle = angles.Start + (path.Angle / 180.0) * angleRange;
-        var rad = (normalizedAngle - 90) * Math.PI / 180;
-        var innerR = RingRadii[path.Ring];
-        var outerR = path.Ring + 1 < RingRadii.Length ? RingRadii[path.Ring + 1] : RingRadii[path.Ring] + 50;
-        var r = (innerR + outerR) / 2.0;
-        return (r * Math.Cos(rad), r * Math.Sin(rad));
-    }
-
-    private string FormatDouble(double value) =>
-        value.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
-
-    // Helper to render SVG text elements (since <text> is reserved in Razor)
-    private MarkupString SvgText(string x, string y, string className, string content, string? fill = null, string? transform = null) =>
-        new($"<text x=\"{x}\" y=\"{y}\" class=\"{className}\"{(fill != null ? $" fill=\"{fill}\"" : "")}{(transform != null ? $" transform=\"{transform}\"" : "")}>{System.Web.HttpUtility.HtmlEncode(content)}</text>");
-
-    private bool IsPathFiltered(ResearchPath path) =>
-        GetFilteredPaths().Contains(path);
-
     private void ToggleViewMode() =>
         _viewMode = _viewMode == ViewMode.Cards ? ViewMode.Radar : ViewMode.Cards;
+
+    private void HandleNodeHover(ResearchPath? path)
+    {
+        _hoveredPath = path;
+    }
 
     private IEnumerable<ResearchPath> GetFilteredPaths()
     {
