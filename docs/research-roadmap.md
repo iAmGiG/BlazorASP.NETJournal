@@ -333,9 +333,55 @@ Phase 5: Can AI integrate news + structure?
 
 ---
 
+## Complexity Map Visualization
+
+The `/research/complexity` page provides an interactive radar visualization of research paths,
+mapping barrier types against complexity levels.
+
+### Ring Structure (Complexity Levels)
+
+| Ring | Name | Description |
+|------|------|-------------|
+| 0 | Validated Core | 71.5% detection, 91.2% accuracy |
+| 1 | Minor Extensions | Partial implementations, low barrier |
+| 2 | Statistical Expertise | Requires specialized knowledge |
+| 3 | Infrastructure Required | Production systems, pipelines |
+| 4 | Expensive/Rare Data | $10K+/year data feeds |
+| 5 | Theoretical Barriers | Infeasible with current technology |
+
+### Quadrants (Barrier Types)
+
+| Quadrant | Color | Description |
+|----------|-------|-------------|
+| Data | Red | Expensive data feeds ($10K+/year) |
+| Knowledge | Purple | Domain expertise required |
+| Scope | Blue | Outside research focus |
+| Methodology | Orange | Approach conflicts with core thesis |
+| Compute | Green | Processing power constraints |
+
+### Status Legend
+
+| Status | Color | Meaning |
+|--------|-------|---------|
+| Implemented | Green | Complete and validated |
+| Partial | Orange | Partially complete |
+| Deferred | Blue | Planned for future |
+| Abandoned | Purple | Intentionally dropped |
+| Blocked | Orange | Waiting on external factor |
+| Infeasible | Red | Not achievable with current tech |
+| Superseded | Teal | Replaced by better approach |
+
+### Key Insight
+
+Research paths fail primarily due to **data access barriers** ($10K+ feeds) or **scope creep**
+(production vs research). Technical infeasibility is rare. The validated core proves
+LLMs reason about structure, not just memorize.
+
+---
+
 ## Related Visualizations
 
-- [Research Complexity Map](research_complexity_map.html) — Abandoned/deferred research paths
+- [Research Complexity Map](/research/complexity) — Interactive radar of research paths
 - [Data Pipeline State Diagram](data_pipeline_state_diagram.html) — Multi-tier data architecture
 - [GEX Visualizer](../gex-visualizer/index.html) — Interactive regime comparator
 

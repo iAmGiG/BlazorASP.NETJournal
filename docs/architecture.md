@@ -376,6 +376,77 @@ The Chart Viewer provides candlestick price charts with trade overlay support fo
 
 ---
 
+## Research Visualization
+
+### Overview
+
+The Research Visualization components provide an interactive radar-style visualization of research paths,
+displaying abandoned, deferred, and completed research by barrier type and complexity.
+
+### Components
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| `InteractiveRadar` | Components/Research/ | SVG radar with animated nodes, hover glow, related highlighting |
+| `RadarModal` | Components/Research/ | Detail popup for research path (barrier, unblock, related tags) |
+| `MiniRadar` | Components/Research/ | Compact radar for cards/previews |
+| `ConnectionLines` | Components/Research/ | Animated paths between related nodes (planned) |
+
+### Data Model (`Models/ResearchPath.cs`)
+
+**Enums:**
+
+- `ResearchStatus`: Implemented, Partial, Deferred, Abandoned, Blocked, Infeasible, Superseded
+- `ResearchTaxonomy`: Mechanical, Probabilistic, Narrative
+- `ResearchQuadrant`: Data, Knowledge, Scope, Methodology, Compute, None
+
+**Static Data:**
+
+- `RadarConstants` - Ring radii, quadrant angles, foundation stats (71.5% detection, 91.2% accuracy)
+- `ResearchPathData` - 16 research paths with barrier descriptions, color maps
+
+### Radar Layout
+
+```text
+              DATA ACCESS
+                  │
+     ┌────────────┼────────────┐
+     │    Ring 5  │  Ring 5    │
+     │   ┌────────┼────────┐   │
+     │   │ Ring 4 │ Ring 4 │   │
+METHODOLOGY      ◉        KNOWLEDGE
+     │   │ (core) │        │   │
+     │   └────────┼────────┘   │
+     │    Ring 1  │  Ring 1    │
+     └────────────┼────────────┘
+                  │
+            SCOPE / FOCUS
+```
+
+### Animation Features
+
+- **Node entrance cascade**: Ring-based staggered animation (0.08s delay per ring)
+- **Center pulse**: 2.5s infinite breathing animation
+- **Hover glow**: `brightness(1.25)` with `drop-shadow` on node hover
+- **Related highlighting**: Connected nodes glow when one is selected
+
+### CSS Classes
+
+| Class | Purpose |
+|-------|---------|
+| `.node-ring-{0-5}` | Animation delay by ring |
+| `.center-pulse` | Center section pulse animation |
+| `.research-node.selected` | Selected state styling |
+| `.research-node.related-glow` | Related node highlight |
+| `.research-node.dimmed` | Filtered out state |
+
+### Page Integration
+
+- `/research/complexity` - Full radar with filters and detail panel
+- `/arcade` - Hero radar (planned Phase 5)
+
+---
+
 ## localStorage Keys
 
 All persistence uses browser localStorage via `LocalStorageService`.
