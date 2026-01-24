@@ -18,7 +18,7 @@ public class RegimeDivergenceListTests : TestContext
     public void Component_WithNoEvents_DisplaysEmptyState()
     {
         // Arrange & Act
-        var cut = this.RenderComponent<RegimeDivergenceList>(parameters => parameters
+        var cut = RenderComponent<RegimeDivergenceList>(parameters => parameters
             .Add(p => p.Events, new List<RegimeDivergenceEvent>()));
 
         // Assert
@@ -30,10 +30,10 @@ public class RegimeDivergenceListTests : TestContext
     public void Component_WithEvents_DisplaysEventList()
     {
         // Arrange
-        var events = this.CreateTestEvents(3);
+        var events = CreateTestEvents(3);
 
         // Act
-        var cut = this.RenderComponent<RegimeDivergenceList>(parameters => parameters
+        var cut = RenderComponent<RegimeDivergenceList>(parameters => parameters
             .Add(p => p.Events, events));
 
         // Assert
@@ -47,13 +47,13 @@ public class RegimeDivergenceListTests : TestContext
         // Arrange
         var events = new List<RegimeDivergenceEvent>
         {
-            this.CreateEvent("2024-01-01", 50m),
-            this.CreateEvent("2024-01-03", 60m),
-            this.CreateEvent("2024-01-02", 70m),
+            CreateEvent("2024-01-01", 50m),
+            CreateEvent("2024-01-03", 60m),
+            CreateEvent("2024-01-02", 70m),
         };
 
         // Act
-        var cut = this.RenderComponent<RegimeDivergenceList>(parameters => parameters
+        var cut = RenderComponent<RegimeDivergenceList>(parameters => parameters
             .Add(p => p.Events, events));
 
         // Assert - should be sorted by date descending (2024-01-03, 2024-01-02, 2024-01-01)
@@ -71,16 +71,16 @@ public class RegimeDivergenceListTests : TestContext
         var events = new List<RegimeDivergenceEvent>
         {
             // 2 assets different = 50% (min(1,1)/2)
-            this.CreateEventWithMagnitude("2024-01-01", 2, 1, 1),
+            CreateEventWithMagnitude("2024-01-01", 2, 1, 1),
 
             // 4 assets 2-2 split = 50% (min(2,2)/4)
-            this.CreateEventWithMagnitude("2024-01-02", 4, 2, 2),
+            CreateEventWithMagnitude("2024-01-02", 4, 2, 2),
 
             // 3 assets 2-1 split = 33% (min(2,1)/3)
-            this.CreateEventWithMagnitude("2024-01-03", 3, 2, 1),
+            CreateEventWithMagnitude("2024-01-03", 3, 2, 1),
         };
 
-        var cut = this.RenderComponent<RegimeDivergenceList>(parameters => parameters
+        var cut = RenderComponent<RegimeDivergenceList>(parameters => parameters
             .Add(p => p.Events, events));
 
         // Act - change to sort by magnitude
@@ -101,10 +101,10 @@ public class RegimeDivergenceListTests : TestContext
     public void Pagination_ShowsFirst10ByDefault()
     {
         // Arrange
-        var events = this.CreateTestEvents(15);
+        var events = CreateTestEvents(15);
 
         // Act
-        var cut = this.RenderComponent<RegimeDivergenceList>(parameters => parameters
+        var cut = RenderComponent<RegimeDivergenceList>(parameters => parameters
             .Add(p => p.Events, events));
 
         // Assert
@@ -116,8 +116,8 @@ public class RegimeDivergenceListTests : TestContext
     public void Pagination_ShowAllButton_DisplaysAllEvents()
     {
         // Arrange
-        var events = this.CreateTestEvents(15);
-        var cut = this.RenderComponent<RegimeDivergenceList>(parameters => parameters
+        var events = CreateTestEvents(15);
+        var cut = RenderComponent<RegimeDivergenceList>(parameters => parameters
             .Add(p => p.Events, events));
 
         // Act - click "Show All" button
@@ -133,8 +133,8 @@ public class RegimeDivergenceListTests : TestContext
     public void Pagination_ShowLessButton_DisplaysFirst10()
     {
         // Arrange
-        var events = this.CreateTestEvents(15);
-        var cut = this.RenderComponent<RegimeDivergenceList>(parameters => parameters
+        var events = CreateTestEvents(15);
+        var cut = RenderComponent<RegimeDivergenceList>(parameters => parameters
             .Add(p => p.Events, events));
 
         // Act - click "Show All" then "Show Less"
@@ -155,10 +155,10 @@ public class RegimeDivergenceListTests : TestContext
         // Arrange - render with initial events
         var initialEvents = new List<RegimeDivergenceEvent>
         {
-            this.CreateEvent("2024-01-01", 50m),
+            CreateEvent("2024-01-01", 50m),
         };
 
-        var cut = this.RenderComponent<RegimeDivergenceList>(parameters => parameters
+        var cut = RenderComponent<RegimeDivergenceList>(parameters => parameters
             .Add(p => p.Events, initialEvents));
 
         cut.FindAll(".divergence-event").Count.Should().Be(1);
@@ -166,9 +166,9 @@ public class RegimeDivergenceListTests : TestContext
         // Act - change Events parameter
         var newEvents = new List<RegimeDivergenceEvent>
         {
-            this.CreateEvent("2024-01-01", 50m),
-            this.CreateEvent("2024-01-02", 60m),
-            this.CreateEvent("2024-01-03", 70m),
+            CreateEvent("2024-01-01", 50m),
+            CreateEvent("2024-01-02", 60m),
+            CreateEvent("2024-01-03", 70m),
         };
 
         cut.SetParametersAndRender(parameters => parameters
@@ -185,13 +185,13 @@ public class RegimeDivergenceListTests : TestContext
         var events = new List<RegimeDivergenceEvent>
         {
             // 3 assets 2-1 split = 33% (min(2,1)/3)
-            this.CreateEventWithMagnitude("2024-01-01", 3, 2, 1),
+            CreateEventWithMagnitude("2024-01-01", 3, 2, 1),
 
             // 4 assets 2-2 split = 50% (min(2,2)/4)
-            this.CreateEventWithMagnitude("2024-01-02", 4, 2, 2),
+            CreateEventWithMagnitude("2024-01-02", 4, 2, 2),
         };
 
-        var cut = this.RenderComponent<RegimeDivergenceList>(parameters => parameters
+        var cut = RenderComponent<RegimeDivergenceList>(parameters => parameters
             .Add(p => p.Events, events));
 
         // Initial order: date descending (2024-01-02 first)
@@ -215,7 +215,7 @@ public class RegimeDivergenceListTests : TestContext
         var events = new List<RegimeDivergenceEvent>();
         for (int i = 1; i <= count; i++)
         {
-            events.Add(this.CreateEvent($"2024-01-{i:D2}", 50m + i));
+            events.Add(CreateEvent($"2024-01-{i:D2}", 50m + i));
         }
 
         return events;
@@ -242,6 +242,9 @@ public class RegimeDivergenceListTests : TestContext
 
     private RegimeDivergenceEvent CreateEventWithMagnitude(string date, int totalAssets, int positiveCount, int negativeCount)
     {
+        // totalAssets parameter kept for API clarity/future use
+        _ = totalAssets;
+
         var assetRegimes = new Dictionary<string, GammaRegime>();
         var assetGexValues = new Dictionary<string, decimal>();
 

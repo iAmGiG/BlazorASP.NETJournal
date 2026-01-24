@@ -17,7 +17,7 @@ public class CorrelationMatrixTests : TestContext
     public void Component_WithNoCorrelations_DisplaysEmptyState()
     {
         // Arrange & Act
-        var cut = this.RenderComponent<CorrelationMatrix>(parameters => parameters
+        var cut = RenderComponent<CorrelationMatrix>(parameters => parameters
             .Add(p => p.Correlations, null));
 
         // Assert
@@ -29,7 +29,7 @@ public class CorrelationMatrixTests : TestContext
     public void Component_WithEmptyList_DisplaysEmptyState()
     {
         // Arrange & Act
-        var cut = this.RenderComponent<CorrelationMatrix>(parameters => parameters
+        var cut = RenderComponent<CorrelationMatrix>(parameters => parameters
             .Add(p => p.Correlations, new List<CorrelationMetrics>()));
 
         // Assert
@@ -42,13 +42,13 @@ public class CorrelationMatrixTests : TestContext
         // Arrange
         var correlations = new List<CorrelationMetrics>
         {
-            this.CreateCorrelation("SPY", "QQQ", 0.85m),
-            this.CreateCorrelation("SPY", "IWM", 0.72m),
-            this.CreateCorrelation("QQQ", "IWM", 0.68m),
+            CreateCorrelation("SPY", "QQQ", 0.85m),
+            CreateCorrelation("SPY", "IWM", 0.72m),
+            CreateCorrelation("QQQ", "IWM", 0.68m),
         };
 
         // Act
-        var cut = this.RenderComponent<CorrelationMatrix>(parameters => parameters
+        var cut = RenderComponent<CorrelationMatrix>(parameters => parameters
             .Add(p => p.Correlations, correlations));
 
         // Assert - should have 3 unique symbols (SPY, QQQ, IWM) sorted alphabetically
@@ -65,11 +65,11 @@ public class CorrelationMatrixTests : TestContext
         // Arrange
         var correlations = new List<CorrelationMetrics>
         {
-            this.CreateCorrelation("SPY", "QQQ", 0.85m),
+            CreateCorrelation("SPY", "QQQ", 0.85m),
         };
 
         // Act
-        var cut = this.RenderComponent<CorrelationMatrix>(parameters => parameters
+        var cut = RenderComponent<CorrelationMatrix>(parameters => parameters
             .Add(p => p.Correlations, correlations));
 
         // Assert
@@ -83,11 +83,11 @@ public class CorrelationMatrixTests : TestContext
         // Arrange
         var correlations = new List<CorrelationMetrics>
         {
-            this.CreateCorrelation("SPY", "QQQ", 0.85m),
+            CreateCorrelation("SPY", "QQQ", 0.85m),
         };
 
         // Act
-        var cut = this.RenderComponent<CorrelationMatrix>(parameters => parameters
+        var cut = RenderComponent<CorrelationMatrix>(parameters => parameters
             .Add(p => p.Correlations, correlations));
 
         // Assert
@@ -103,11 +103,11 @@ public class CorrelationMatrixTests : TestContext
         // Arrange
         var correlations = new List<CorrelationMetrics>
         {
-            this.CreateCorrelation("SPY", "QQQ", 0.85m), // Strong: >= 0.7
+            CreateCorrelation("SPY", "QQQ", 0.85m), // Strong: >= 0.7
         };
 
         // Act
-        var cut = this.RenderComponent<CorrelationMatrix>(parameters => parameters
+        var cut = RenderComponent<CorrelationMatrix>(parameters => parameters
             .Add(p => p.Correlations, correlations));
 
         // Assert - should have "strong" CSS class
@@ -121,11 +121,11 @@ public class CorrelationMatrixTests : TestContext
         // Arrange
         var correlations = new List<CorrelationMetrics>
         {
-            this.CreateCorrelation("SPY", "QQQ", 0.55m), // Moderate: 0.4-0.7
+            CreateCorrelation("SPY", "QQQ", 0.55m), // Moderate: 0.4-0.7
         };
 
         // Act
-        var cut = this.RenderComponent<CorrelationMatrix>(parameters => parameters
+        var cut = RenderComponent<CorrelationMatrix>(parameters => parameters
             .Add(p => p.Correlations, correlations));
 
         // Assert - should have "moderate" CSS class
@@ -139,11 +139,11 @@ public class CorrelationMatrixTests : TestContext
         // Arrange
         var correlations = new List<CorrelationMetrics>
         {
-            this.CreateCorrelation("SPY", "QQQ", 0.25m), // Weak: < 0.4
+            CreateCorrelation("SPY", "QQQ", 0.25m), // Weak: < 0.4
         };
 
         // Act
-        var cut = this.RenderComponent<CorrelationMatrix>(parameters => parameters
+        var cut = RenderComponent<CorrelationMatrix>(parameters => parameters
             .Add(p => p.Correlations, correlations));
 
         // Assert - should have "weak" CSS class
@@ -157,10 +157,10 @@ public class CorrelationMatrixTests : TestContext
         // Arrange - render with initial correlations
         var initialCorrelations = new List<CorrelationMetrics>
         {
-            this.CreateCorrelation("SPY", "QQQ", 0.85m),
+            CreateCorrelation("SPY", "QQQ", 0.85m),
         };
 
-        var cut = this.RenderComponent<CorrelationMatrix>(parameters => parameters
+        var cut = RenderComponent<CorrelationMatrix>(parameters => parameters
             .Add(p => p.Correlations, initialCorrelations));
 
         // Verify initial symbols (QQQ, SPY)
@@ -171,8 +171,8 @@ public class CorrelationMatrixTests : TestContext
         // Act - change Correlations parameter to NEW list reference
         var newCorrelations = new List<CorrelationMetrics>
         {
-            this.CreateCorrelation("IWM", "DIA", 0.75m),
-            this.CreateCorrelation("IWM", "SPY", 0.68m),
+            CreateCorrelation("IWM", "DIA", 0.75m),
+            CreateCorrelation("IWM", "SPY", 0.68m),
         };
 
         cut.SetParametersAndRender(parameters => parameters
@@ -190,10 +190,10 @@ public class CorrelationMatrixTests : TestContext
         // Arrange - render with correlations
         var correlations = new List<CorrelationMetrics>
         {
-            this.CreateCorrelation("SPY", "QQQ", 0.85m),
+            CreateCorrelation("SPY", "QQQ", 0.85m),
         };
 
-        var cut = this.RenderComponent<CorrelationMatrix>(parameters => parameters
+        var cut = RenderComponent<CorrelationMatrix>(parameters => parameters
             .Add(p => p.Correlations, correlations));
 
         // Verify symbols exist

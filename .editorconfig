@@ -267,3 +267,21 @@ dotnet_diagnostic.IDE0058.severity = silent
 dotnet_diagnostic.IDE0160.severity = warning
 dotnet_diagnostic.IDE0161.severity = none
 
+# StyleCop rules - disabled to avoid conflict with naming conventions and codebase style
+dotnet_diagnostic.SA1101.severity = none  # Don't require 'this.' prefix (conflicts with IDE0003)
+dotnet_diagnostic.SA1117.severity = none  # Parameter placement flexibility
+dotnet_diagnostic.SA1202.severity = none  # Member ordering - allow flexible ordering
+dotnet_diagnostic.SA1204.severity = none  # Static member ordering - allow flexible ordering
+dotnet_diagnostic.SA1214.severity = none  # Readonly field ordering - allow flexible ordering
+dotnet_diagnostic.SA1309.severity = none  # Allow underscore prefix (conflicts with IDE1006)
+dotnet_diagnostic.SA1312.severity = none  # Variable naming - allow underscore discard
+dotnet_diagnostic.SA1316.severity = none  # Tuple element casing - allow lowercase for data tuples
+dotnet_diagnostic.SA1600.severity = suggestion  # Docs are optional for tests
+dotnet_diagnostic.SA1611.severity = suggestion  # Parameter docs are optional
+dotnet_diagnostic.SA1616.severity = suggestion  # Return value docs are optional
+dotnet_diagnostic.SA1649.severity = none  # File name doesn't need to match type name
+
+# Test naming - allow underscores in test method names
+[*Tests.cs]
+dotnet_diagnostic.CA1707.severity = none
+

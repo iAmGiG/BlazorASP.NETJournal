@@ -1,0 +1,81 @@
+@using GexVisor.UI.Models
+@using GexVisor.UI.Services
+@using GexVisor.UI.Configuration
+@inject IAlertService AlertService
+@implements IDisposable
+
+<div class="alert-container" role="region" aria-label="Notifications">
+    @foreach (var alert in AlertService.ActiveAlerts.Take(AppConstants.Alerts.MaxVisibleToasts))
+    {
+        <AlertToast Alert="@alert" OnDismissClicked="DismissAlert" />
+    }
+</div>
+
+@code {
+    private System.Timers.Timer? _autoDismissTimer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AlertService.LoadPreferencesAsync();
+        AlertService.OnAlertTriggered += OnAlertTriggered;
+        AlertService.OnAlertDismissed += OnAlertDismissed;
+
+        // Start monitoring when component mounts
+        AlertService.StartMonitoring();
+
+        // Set up auto-dismiss timer
+        if (AlertService.Preferences.AutoDismissSeconds > 0)
+        {
+            _autoDismissTimer = new System.Timers.Timer(1000);
+            _autoDismissTimer.Elapsed += CheckAutoDismiss;
+            _autoDismissTimer.AutoReset = true;
+            _autoDismissTimer.Start();
+        }
+    }
+
+    private void OnAlertTriggered(Alert alert)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnAlertDismissed(Guid alertId)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void DismissAlert(Guid alertId)
+    {
+        AlertService.DismissAlert(alertId);
+    }
+
+    private void CheckAutoDismiss(object? sender, System.Timers.ElapsedEventArgs e)
+    {
+        var autoDismissTime = TimeSpan.FromSeconds(AlertService.Preferences.AutoDismissSeconds);
+        var toDismiss = AlertService.ActiveAlerts
+            .Where(a => DateTime.UtcNow - a.TriggeredAt >= autoDismissTime)
+            .Select(a => a.Id)
+            .ToList();
+
+        if (toDismiss.Count > 0)
+        {
+            InvokeAsync(() =>
+            {
+                foreach (var id in toDismiss)
+                {
+                    AlertService.DismissAlert(id);
+                }
+                StateHasChanged();
+            });
+        }
+    }
+
+    public void Dispose()
+    {
+        AlertService.OnAlertTriggered -= OnAlertTriggered;
+        AlertService.OnAlertDismissed -= OnAlertDismissed;
+        AlertService.StopMonitoring();
+
+        _autoDismissTimer?.Stop();
+        _autoDismissTimer?.Dispose();
+    }
+}

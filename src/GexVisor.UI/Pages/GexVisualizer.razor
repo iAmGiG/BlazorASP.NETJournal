@@ -2,6 +2,7 @@
 @using GexVisor.UI.Services
 @using GexVisor.UI.Models
 @using GexVisor.UI.Utilities
+@using GexVisor.UI.Components.Alerts
 @inject IJSRuntime JS
 @inject ILocalStorageService Storage
 @implements IDisposable
@@ -74,6 +75,7 @@
 
 <KeyboardShortcutsOverlay IsVisible="_showHelp" OnClose="HideHelp" />
 <AnnotationPanel />
+<AlertManager />
 
 @code {
     [Inject] private IGexStateService StateService { get; set; } = default!;

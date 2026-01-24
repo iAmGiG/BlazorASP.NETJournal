@@ -13,7 +13,7 @@ namespace GexVisor.UI.Tests.Services;
 /// </summary>
 public class GexExportServiceTests
 {
-    private readonly GexExportService service = new();
+    private readonly GexExportService _service = new();
 
     [Fact]
     public void ExportTimelineToCsv_CreatesValidCsvWithHeader()
@@ -22,7 +22,7 @@ public class GexExportServiceTests
         var timeline = CreateTestTimeline(3);
 
         // Act
-        var csv = this.service.ExportTimelineToCsv(timeline, "SPY");
+        var csv = _service.ExportTimelineToCsv(timeline, "SPY");
 
         // Assert
         var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
@@ -37,7 +37,7 @@ public class GexExportServiceTests
         var timeline = CreateTestTimeline(1);
 
         // Act
-        var csv = this.service.ExportTimelineToCsv(timeline, "SPY");
+        var csv = _service.ExportTimelineToCsv(timeline, "SPY");
 
         // Assert
         var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
@@ -63,7 +63,7 @@ public class GexExportServiceTests
         };
 
         // Act
-        var csv = this.service.ExportTimelineToCsv(timeline, "SPY");
+        var csv = _service.ExportTimelineToCsv(timeline, "SPY");
 
         // Assert
         csv.Should().Contain("\"Label, with comma\"");
@@ -79,7 +79,7 @@ public class GexExportServiceTests
         };
 
         // Act
-        var csv = this.service.ExportTimelineToCsv(timeline, "SPY");
+        var csv = _service.ExportTimelineToCsv(timeline, "SPY");
 
         // Assert
         csv.Should().Contain("\"Label with \"\"quotes\"\"\"");
@@ -92,7 +92,7 @@ public class GexExportServiceTests
         var timeline = new List<GexDataPoint>();
 
         // Act
-        var csv = this.service.ExportTimelineToCsv(timeline, "SPY");
+        var csv = _service.ExportTimelineToCsv(timeline, "SPY");
 
         // Assert
         var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
@@ -109,7 +109,7 @@ public class GexExportServiceTests
         };
 
         // Act
-        var csv = this.service.ExportTimelineToCsv(timeline, "SPY");
+        var csv = _service.ExportTimelineToCsv(timeline, "SPY");
 
         // Assert
         csv.Should().Contain("2024-03-15");
@@ -122,7 +122,7 @@ public class GexExportServiceTests
         var timeline = CreateTestTimeline(2);
 
         // Act
-        var json = this.service.ExportTimelineToJson(timeline, "SPY");
+        var json = _service.ExportTimelineToJson(timeline, "SPY");
 
         // Assert
         var action = () => JsonDocument.Parse(json);
@@ -136,7 +136,7 @@ public class GexExportServiceTests
         var timeline = CreateTestTimeline(1);
 
         // Act
-        var json = this.service.ExportTimelineToJson(timeline, "QQQ");
+        var json = _service.ExportTimelineToJson(timeline, "QQQ");
 
         // Assert
         using var doc = JsonDocument.Parse(json);
@@ -150,7 +150,7 @@ public class GexExportServiceTests
         var timeline = CreateTestTimeline(1);
 
         // Act
-        var json = this.service.ExportTimelineToJson(timeline, "SPY");
+        var json = _service.ExportTimelineToJson(timeline, "SPY");
 
         // Assert
         using var doc = JsonDocument.Parse(json);
@@ -164,7 +164,7 @@ public class GexExportServiceTests
         var timeline = CreateTestTimeline(5);
 
         // Act
-        var json = this.service.ExportTimelineToJson(timeline, "SPY");
+        var json = _service.ExportTimelineToJson(timeline, "SPY");
 
         // Assert
         using var doc = JsonDocument.Parse(json);
@@ -182,7 +182,7 @@ public class GexExportServiceTests
         };
 
         // Act
-        var json = this.service.ExportTimelineToJson(timeline, "SPY");
+        var json = _service.ExportTimelineToJson(timeline, "SPY");
 
         // Assert
         using var doc = JsonDocument.Parse(json);
@@ -197,7 +197,7 @@ public class GexExportServiceTests
         var strikes = CreateTestStrikes(5);
 
         // Act
-        var csv = this.service.ExportStrikeGammasToCsv(strikes, "SPY", 450m);
+        var csv = _service.ExportStrikeGammasToCsv(strikes, "SPY", 450m);
 
         // Assert
         var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
@@ -217,7 +217,7 @@ public class GexExportServiceTests
         };
 
         // Act
-        var csv = this.service.ExportStrikeGammasToCsv(strikes, "SPY", 450m);
+        var csv = _service.ExportStrikeGammasToCsv(strikes, "SPY", 450m);
 
         // Assert
         var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
@@ -236,7 +236,7 @@ public class GexExportServiceTests
         };
 
         // Act
-        var csv = this.service.ExportStrikeGammasToCsv(strikes, "SPY", 450m);
+        var csv = _service.ExportStrikeGammasToCsv(strikes, "SPY", 450m);
 
         // Assert
         csv.Should().Contain("10"); // 460 - 450 = 10
@@ -249,7 +249,7 @@ public class GexExportServiceTests
         var strikes = CreateTestStrikes(3);
 
         // Act
-        var json = this.service.ExportStrikeGammasToJson(strikes, "SPY", 450m);
+        var json = _service.ExportStrikeGammasToJson(strikes, "SPY", 450m);
 
         // Assert
         var action = () => JsonDocument.Parse(json);
@@ -263,7 +263,7 @@ public class GexExportServiceTests
         var strikes = CreateTestStrikes(1);
 
         // Act
-        var json = this.service.ExportStrikeGammasToJson(strikes, "SPY", 453.50m);
+        var json = _service.ExportStrikeGammasToJson(strikes, "SPY", 453.50m);
 
         // Assert
         using var doc = JsonDocument.Parse(json);
@@ -280,7 +280,7 @@ public class GexExportServiceTests
         };
 
         // Act
-        var json = this.service.ExportStrikeGammasToJson(strikes, "SPY", 450m);
+        var json = _service.ExportStrikeGammasToJson(strikes, "SPY", 450m);
 
         // Assert
         using var doc = JsonDocument.Parse(json);

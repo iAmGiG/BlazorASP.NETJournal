@@ -410,4 +410,56 @@ public static class AppConstants
         /// </summary>
         public const string MarkerStroke = "#ffffff";
     }
+
+    /// <summary>
+    /// Alert system configuration constants.
+    /// </summary>
+    public static class Alerts
+    {
+        /// <summary>
+        /// Polling interval for alert checking in milliseconds.
+        /// </summary>
+        public const int CheckIntervalMs = 5000;
+
+        /// <summary>
+        /// Default cooldown between same-type alerts in seconds.
+        /// Prevents alert spam during volatile periods.
+        /// </summary>
+        public const int DefaultCooldownSeconds = 300;
+
+        /// <summary>
+        /// Default auto-dismiss delay for toasts in seconds.
+        /// </summary>
+        public const int DefaultAutoDismissSeconds = 30;
+
+        /// <summary>
+        /// Maximum concurrent toasts displayed at once.
+        /// </summary>
+        public const int MaxVisibleToasts = 5;
+
+        /// <summary>
+        /// Maximum alerts retained in history.
+        /// </summary>
+        public const int MaxHistoryCount = 50;
+
+        /// <summary>
+        /// Default upper GEX threshold in billions.
+        /// </summary>
+        public const decimal DefaultGexUpperThreshold = 5.0m;
+
+        /// <summary>
+        /// Default lower GEX threshold in billions.
+        /// </summary>
+        public const decimal DefaultGexLowerThreshold = -2.0m;
+
+        /// <summary>
+        /// Default price movement percentage threshold.
+        /// </summary>
+        public const decimal DefaultPriceMovementThreshold = 1.0m;
+
+        /// <summary>
+        /// Toast animation duration in milliseconds.
+        /// </summary>
+        public const int ToastAnimationMs = 300;
+    }
 }

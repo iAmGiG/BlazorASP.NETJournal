@@ -22,18 +22,18 @@ namespace GexVisor.Api.Tests.LoadTests;
 [Trait("Category", "LoadTest")]
 public class GexApiLoadTests : IClassFixture<WebApplicationFactory<Program>>, IAsyncLifetime
 {
-    private readonly WebApplicationFactory<Program> factory;
-    private readonly ITestOutputHelper output;
-    private HttpClient client = null!;
-    private readonly string testDbPath;
+    private readonly WebApplicationFactory<Program> _factory;
+    private readonly ITestOutputHelper _output;
+    private HttpClient _client = null!;
+    private readonly string _testDbPath;
 
     public GexApiLoadTests(WebApplicationFactory<Program> factory, ITestOutputHelper output)
     {
-        this.output = output;
-        this.testDbPath = Path.Combine(Path.GetTempPath(), $"gexvisor_loadtest_{Guid.NewGuid()}.db");
+        _output = output;
+        _testDbPath = Path.Combine(Path.GetTempPath(), $"gexvisor_loadtest_{Guid.NewGuid()}.db");
 
         // Configure factory with mocked external services
-        this.factory = factory.WithWebHostBuilder(builder =>
+        _factory = factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureTestServices(services =>
             {
@@ -45,7 +45,7 @@ public class GexApiLoadTests : IClassFixture<WebApplicationFactory<Program>>, IA
 
                 // Replace cache service with test-specific database
                 services.AddSingleton<ICacheService>(sp =>
-                    new SqliteCacheService(this.testDbPath, sp.GetService<Microsoft.Extensions.Logging.ILogger<SqliteCacheService>>()));
+                    new SqliteCacheService(_testDbPath, sp.GetService<Microsoft.Extensions.Logging.ILogger<SqliteCacheService>>()));
 
                 // Mock external market data service to avoid real API calls
                 var mockMarketService = new Mock<IMarketDataService>();
@@ -85,22 +85,22 @@ public class GexApiLoadTests : IClassFixture<WebApplicationFactory<Program>>, IA
     /// <inheritdoc/>
     public Task InitializeAsync()
     {
-        this.client = this.factory.CreateClient();
+        _client = _factory.CreateClient();
         return Task.CompletedTask;
     }
 
     /// <inheritdoc/>
     public async Task DisposeAsync()
     {
-        this.client?.Dispose();
+        _client?.Dispose();
 
         // Cleanup test database
         await Task.Delay(100); // Allow connections to close
         try
         {
-            if (File.Exists(this.testDbPath))
+            if (File.Exists(_testDbPath))
             {
-                File.Delete(this.testDbPath);
+                File.Delete(_testDbPath);
             }
         }
         catch
@@ -122,10 +122,10 @@ public class GexApiLoadTests : IClassFixture<WebApplicationFactory<Program>>, IA
         var sw = Stopwatch.StartNew();
 
         // Warm up cache with one request
-        await this.client.GetAsync("/api/gex/SPY");
+        await _client.GetAsync("/api/gex/SPY");
 
         // Get initial cache stats
-        var initialStats = await this.GetCacheStatsAsync();
+        var initialStats = await GetCacheStatsAsync();
 
         // Act - simulate concurrent users
         var tasks = Enumerable.Range(0, userCount).Select(async _ =>
@@ -133,7 +133,7 @@ public class GexApiLoadTests : IClassFixture<WebApplicationFactory<Program>>, IA
             var requestSw = Stopwatch.StartNew();
             try
             {
-                var response = await this.client.GetAsync("/api/gex/SPY");
+                var response = await _client.GetAsync("/api/gex/SPY");
                 requestSw.Stop();
 
                 if (response.IsSuccessStatusCode)
@@ -158,7 +158,7 @@ public class GexApiLoadTests : IClassFixture<WebApplicationFactory<Program>>, IA
         sw.Stop();
 
         // Get final cache stats
-        var finalStats = await this.GetCacheStatsAsync();
+        var finalStats = await GetCacheStatsAsync();
 
         // Calculate metrics
         var metrics = LoadTestMetrics.FromLatencies($"Concurrent GEX ({userCount} users)", latencies, sw.Elapsed);
@@ -169,7 +169,7 @@ public class GexApiLoadTests : IClassFixture<WebApplicationFactory<Program>>, IA
         metrics.CacheMissesAfter = finalStats.misses;
 
         // Output results
-        this.output.WriteLine(metrics.ToString());
+        _output.WriteLine(metrics.ToString());
 
         // Assert
         Assert.True(metrics.SuccessRate >= 95, $"Success rate {metrics.SuccessRate:F1}% below 95%");
@@ -181,15 +181,15 @@ public class GexApiLoadTests : IClassFixture<WebApplicationFactory<Program>>, IA
     public async Task RapidRefresh_AllRequestsSucceed()
     {
         // Arrange
-        const int requestCount = 100;
+        const int RequestCount = 100;
         var latencies = new List<double>();
         var sw = Stopwatch.StartNew();
 
         // Act - rapid sequential requests (simulates user spam-refreshing)
-        for (int i = 0; i < requestCount; i++)
+        for (int i = 0; i < RequestCount; i++)
         {
             var requestSw = Stopwatch.StartNew();
-            var response = await this.client.GetAsync("/api/gex/SPY");
+            var response = await _client.GetAsync("/api/gex/SPY");
             requestSw.Stop();
 
             if (response.IsSuccessStatusCode)
@@ -203,10 +203,10 @@ public class GexApiLoadTests : IClassFixture<WebApplicationFactory<Program>>, IA
         // Calculate metrics
         var metrics = LoadTestMetrics.FromLatencies("Rapid Refresh (100 requests)", latencies, sw.Elapsed);
 
-        this.output.WriteLine(metrics.ToString());
+        _output.WriteLine(metrics.ToString());
 
         // Assert - all requests should succeed
-        Assert.Equal(requestCount, metrics.SuccessCount);
+        Assert.Equal(RequestCount, metrics.SuccessCount);
 
         // Throughput should be reasonable (> 10 req/s)
         Assert.True(metrics.RequestsPerSecond > 10, $"Throughput {metrics.RequestsPerSecond:F1} req/s is too low");
@@ -218,7 +218,7 @@ public class GexApiLoadTests : IClassFixture<WebApplicationFactory<Program>>, IA
     {
         // Arrange
         var symbols = new[] { "SPY", "QQQ", "IWM", "AAPL", "MSFT" };
-        const int requestsPerSymbol = 20;
+        const int RequestsPerSymbol = 20;
         var latencies = new List<double>();
         var sw = Stopwatch.StartNew();
 
@@ -226,12 +226,12 @@ public class GexApiLoadTests : IClassFixture<WebApplicationFactory<Program>>, IA
         var tasks = new List<Task>();
         foreach (var symbol in symbols)
         {
-            for (int i = 0; i < requestsPerSymbol; i++)
+            for (int i = 0; i < RequestsPerSymbol; i++)
             {
                 tasks.Add(Task.Run(async () =>
                 {
                     var requestSw = Stopwatch.StartNew();
-                    var response = await this.client.GetAsync($"/api/gex/{symbol}");
+                    var response = await _client.GetAsync($"/api/gex/{symbol}");
                     requestSw.Stop();
 
                     if (response.IsSuccessStatusCode)
@@ -249,10 +249,10 @@ public class GexApiLoadTests : IClassFixture<WebApplicationFactory<Program>>, IA
         sw.Stop();
 
         // Calculate metrics
-        var totalRequests = symbols.Length * requestsPerSymbol;
-        var metrics = LoadTestMetrics.FromLatencies($"Multi-Symbol ({symbols.Length} symbols x {requestsPerSymbol})", latencies, sw.Elapsed);
+        var totalRequests = symbols.Length * RequestsPerSymbol;
+        var metrics = LoadTestMetrics.FromLatencies($"Multi-Symbol ({symbols.Length} symbols x {RequestsPerSymbol})", latencies, sw.Elapsed);
 
-        this.output.WriteLine(metrics.ToString());
+        _output.WriteLine(metrics.ToString());
 
         // Assert
         Assert.True(metrics.SuccessCount >= totalRequests * 0.95, $"Only {metrics.SuccessCount}/{totalRequests} succeeded");
@@ -269,14 +269,14 @@ public class GexApiLoadTests : IClassFixture<WebApplicationFactory<Program>>, IA
         // Act
         for (int i = 0; i < requestCount; i++)
         {
-            var response = await this.client.GetAsync("/api/market/quote/SPY");
+            var response = await _client.GetAsync("/api/market/quote/SPY");
             if (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.NotFound)
             {
                 completedCount++;
             }
         }
 
-        this.output.WriteLine($"Quote Endpoint Test: {completedCount}/{requestCount} requests completed properly");
+        _output.WriteLine($"Quote Endpoint Test: {completedCount}/{requestCount} requests completed properly");
 
         // Assert - all requests should complete without server errors
         Assert.Equal(requestCount, completedCount);
@@ -287,9 +287,9 @@ public class GexApiLoadTests : IClassFixture<WebApplicationFactory<Program>>, IA
     public async Task CacheStats_EndpointExists_ReturnsResponse()
     {
         // Arrange & Act - basic endpoint test
-        var response = await this.client.GetAsync("/api/cache/stats");
+        var response = await _client.GetAsync("/api/cache/stats");
 
-        this.output.WriteLine($"Cache Stats Endpoint: {response.StatusCode}");
+        _output.WriteLine($"Cache Stats Endpoint: {response.StatusCode}");
 
         // Assert - endpoint should exist (may return error if cache isn't configured, but shouldn't 404)
         Assert.NotEqual(HttpStatusCode.NotFound, response.StatusCode);
@@ -299,7 +299,7 @@ public class GexApiLoadTests : IClassFixture<WebApplicationFactory<Program>>, IA
     {
         try
         {
-            var response = await this.client.GetAsync("/api/cache/stats");
+            var response = await _client.GetAsync("/api/cache/stats");
             if (response.IsSuccessStatusCode)
             {
                 var json = await response.Content.ReadAsStringAsync();

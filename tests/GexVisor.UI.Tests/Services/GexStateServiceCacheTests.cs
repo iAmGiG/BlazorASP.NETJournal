@@ -16,20 +16,20 @@ namespace GexVisor.UI.Tests.Services;
 /// </summary>
 public class GexStateServiceCacheTests
 {
-    private readonly Mock<ILocalStorageService> mockStorage;
-    private readonly Mock<HttpMessageHandler> mockHandler;
-    private readonly HttpClient httpClient;
-    private readonly GexStateService service;
+    private readonly Mock<ILocalStorageService> _mockStorage;
+    private readonly Mock<HttpMessageHandler> _mockHandler;
+    private readonly HttpClient _httpClient;
+    private readonly GexStateService _service;
 
     public GexStateServiceCacheTests()
     {
-        this.mockStorage = new Mock<ILocalStorageService>();
-        this.mockHandler = new Mock<HttpMessageHandler>();
-        this.httpClient = new HttpClient(this.mockHandler.Object)
+        _mockStorage = new Mock<ILocalStorageService>();
+        _mockHandler = new Mock<HttpMessageHandler>();
+        _httpClient = new HttpClient(_mockHandler.Object)
         {
             BaseAddress = new Uri("http://test/"),
         };
-        this.service = new GexStateService(this.httpClient, this.mockStorage.Object);
+        _service = new GexStateService(_httpClient, _mockStorage.Object);
     }
 
     [Fact]
@@ -37,13 +37,13 @@ public class GexStateServiceCacheTests
     {
         // Arrange
         var gexResult = CreateTestGexResult();
-        this.SetupSuccessResponse(gexResult);
+        SetupSuccessResponse(gexResult);
 
         // Act
-        await this.service.RefreshLiveDataAsync("SPY");
+        await _service.RefreshLiveDataAsync("SPY");
 
         // Assert
-        this.mockStorage.Verify(
+        _mockStorage.Verify(
             s => s.SetAsync(
                 It.Is<string>(k => k == "gexvisor.liveGex.SPY"),
                 It.IsAny<CachedGexData>()),
@@ -55,14 +55,14 @@ public class GexStateServiceCacheTests
     {
         // Arrange
         var gexResult = CreateTestGexResult();
-        this.SetupSuccessResponse(gexResult);
+        SetupSuccessResponse(gexResult);
 
         // Act
-        await this.service.RefreshLiveDataAsync("SPY");
+        await _service.RefreshLiveDataAsync("SPY");
 
         // Assert
-        this.service.IsLiveDataFromCache.Should().BeFalse();
-        this.service.IsLiveDataStale.Should().BeFalse();
+        _service.IsLiveDataFromCache.Should().BeFalse();
+        _service.IsLiveDataStale.Should().BeFalse();
     }
 
     [Fact]
@@ -77,17 +77,17 @@ public class GexStateServiceCacheTests
             FetchedAt = DateTime.UtcNow.AddMinutes(-2),
             IsCached = false,
         };
-        this.SetupErrorResponse(HttpStatusCode.InternalServerError);
-        this.mockStorage
+        SetupErrorResponse(HttpStatusCode.InternalServerError);
+        _mockStorage
             .Setup(s => s.GetAsync<CachedGexData>("gexvisor.liveGex.SPY"))
             .ReturnsAsync(cachedData);
 
         // Act
-        await this.service.RefreshLiveDataAsync("SPY");
+        await _service.RefreshLiveDataAsync("SPY");
 
         // Assert
-        this.service.IsLiveDataFromCache.Should().BeTrue();
-        this.service.LiveGexData.Should().NotBeNull();
+        _service.IsLiveDataFromCache.Should().BeTrue();
+        _service.LiveGexData.Should().NotBeNull();
     }
 
     [Fact]
@@ -102,46 +102,46 @@ public class GexStateServiceCacheTests
             FetchedAt = DateTime.UtcNow.AddMinutes(-2),
             IsCached = false,
         };
-        this.SetupNetworkError();
-        this.mockStorage
+        SetupNetworkError();
+        _mockStorage
             .Setup(s => s.GetAsync<CachedGexData>("gexvisor.liveGex.SPY"))
             .ReturnsAsync(cachedData);
 
         // Act
-        await this.service.RefreshLiveDataAsync("SPY");
+        await _service.RefreshLiveDataAsync("SPY");
 
         // Assert
-        this.service.IsLiveDataFromCache.Should().BeTrue();
-        this.service.LiveDataError.Should().Contain("using cached data");
+        _service.IsLiveDataFromCache.Should().BeTrue();
+        _service.LiveDataError.Should().Contain("using cached data");
     }
 
     [Fact]
     public async Task RefreshLiveDataAsync_OnError_NoCacheAvailable_SetsNullData()
     {
         // Arrange
-        this.SetupErrorResponse(HttpStatusCode.InternalServerError);
-        this.mockStorage
+        SetupErrorResponse(HttpStatusCode.InternalServerError);
+        _mockStorage
             .Setup(s => s.GetAsync<CachedGexData>(It.IsAny<string>()))
             .ReturnsAsync((CachedGexData?)null);
 
         // Act
-        await this.service.RefreshLiveDataAsync("SPY");
+        await _service.RefreshLiveDataAsync("SPY");
 
         // Assert
-        this.service.LiveGexData.Should().BeNull();
-        this.service.IsLiveDataFromCache.Should().BeFalse();
+        _service.LiveGexData.Should().BeNull();
+        _service.IsLiveDataFromCache.Should().BeFalse();
     }
 
     [Fact]
     public async Task LoadCachedGexDataAsync_ReturnsNullWhenNoCache()
     {
         // Arrange
-        this.mockStorage
+        _mockStorage
             .Setup(s => s.GetAsync<CachedGexData>(It.IsAny<string>()))
             .ReturnsAsync((CachedGexData?)null);
 
         // Act
-        var result = await this.service.LoadCachedGexDataAsync("SPY");
+        var result = await _service.LoadCachedGexDataAsync("SPY");
 
         // Assert
         result.Should().BeNull();
@@ -159,12 +159,12 @@ public class GexStateServiceCacheTests
             FetchedAt = DateTime.UtcNow,
             IsCached = false,
         };
-        this.mockStorage
+        _mockStorage
             .Setup(s => s.GetAsync<CachedGexData>("gexvisor.liveGex.SPY"))
             .ReturnsAsync(cachedData);
 
         // Act
-        var result = await this.service.LoadCachedGexDataAsync("SPY");
+        var result = await _service.LoadCachedGexDataAsync("SPY");
 
         // Assert
         result.Should().NotBeNull();
@@ -176,10 +176,10 @@ public class GexStateServiceCacheTests
     public async Task ClearCachedGexDataAsync_SpecificSymbol_RemovesKey()
     {
         // Arrange & Act
-        await this.service.ClearCachedGexDataAsync("SPY");
+        await _service.ClearCachedGexDataAsync("SPY");
 
         // Assert
-        this.mockStorage.Verify(
+        _mockStorage.Verify(
             s => s.RemoveAsync("gexvisor.liveGex.SPY"),
             Times.Once);
     }
@@ -188,7 +188,7 @@ public class GexStateServiceCacheTests
     public async Task ClearCachedGexDataAsync_AllSymbols_RemovesMatchingKeys()
     {
         // Arrange
-        this.mockStorage
+        _mockStorage
             .Setup(s => s.GetKeysAsync())
             .ReturnsAsync(new[]
             {
@@ -199,13 +199,13 @@ public class GexStateServiceCacheTests
             });
 
         // Act
-        await this.service.ClearCachedGexDataAsync();
+        await _service.ClearCachedGexDataAsync();
 
         // Assert
-        this.mockStorage.Verify(s => s.RemoveAsync("gexvisor.liveGex.SPY"), Times.Once);
-        this.mockStorage.Verify(s => s.RemoveAsync("gexvisor.liveGex.QQQ"), Times.Once);
-        this.mockStorage.Verify(s => s.RemoveAsync("gexvisor.settings"), Times.Never);
-        this.mockStorage.Verify(s => s.RemoveAsync("other.key"), Times.Never);
+        _mockStorage.Verify(s => s.RemoveAsync("gexvisor.liveGex.SPY"), Times.Once);
+        _mockStorage.Verify(s => s.RemoveAsync("gexvisor.liveGex.QQQ"), Times.Once);
+        _mockStorage.Verify(s => s.RemoveAsync("gexvisor.settings"), Times.Never);
+        _mockStorage.Verify(s => s.RemoveAsync("other.key"), Times.Never);
     }
 
     [Fact]
@@ -213,15 +213,15 @@ public class GexStateServiceCacheTests
     {
         // Arrange
         var gexResult = CreateTestGexResult();
-        this.SetupSuccessResponse(gexResult);
+        SetupSuccessResponse(gexResult);
         var before = DateTime.UtcNow;
 
         // Act
-        await this.service.RefreshLiveDataAsync("SPY");
+        await _service.RefreshLiveDataAsync("SPY");
 
         // Assert
-        this.service.LiveDataFetchedAt.Should().NotBeNull();
-        this.service.LiveDataFetchedAt.Should().BeOnOrAfter(before);
+        _service.LiveDataFetchedAt.Should().NotBeNull();
+        _service.LiveDataFetchedAt.Should().BeOnOrAfter(before);
     }
 
     [Fact]
@@ -229,13 +229,13 @@ public class GexStateServiceCacheTests
     {
         // Arrange
         var gexResult = CreateTestGexResult();
-        this.SetupSuccessResponse(gexResult);
+        SetupSuccessResponse(gexResult);
 
         // Act
-        await this.service.RefreshLiveDataAsync("spy");
+        await _service.RefreshLiveDataAsync("spy");
 
         // Assert
-        this.mockStorage.Verify(
+        _mockStorage.Verify(
             s => s.SetAsync(
                 It.Is<string>(k => k == "gexvisor.liveGex.SPY"),
                 It.IsAny<CachedGexData>()),
@@ -268,7 +268,7 @@ public class GexStateServiceCacheTests
             Content = JsonContent.Create(result),
         };
 
-        this.mockHandler
+        _mockHandler
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
@@ -281,7 +281,7 @@ public class GexStateServiceCacheTests
     {
         var response = new HttpResponseMessage(statusCode);
 
-        this.mockHandler
+        _mockHandler
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
@@ -292,7 +292,7 @@ public class GexStateServiceCacheTests
 
     private void SetupNetworkError()
     {
-        this.mockHandler
+        _mockHandler
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",

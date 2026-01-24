@@ -17,7 +17,7 @@ public class RegimeContextCardTests : TestContext
     public void Component_WithNullDecision_DoesNotRenderCard()
     {
         // Arrange & Act
-        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, null));
 
         // Assert
@@ -34,7 +34,7 @@ public class RegimeContextCardTests : TestContext
         };
 
         // Act
-        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -52,7 +52,7 @@ public class RegimeContextCardTests : TestContext
         };
 
         // Act
-        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -74,7 +74,7 @@ public class RegimeContextCardTests : TestContext
         };
 
         // Act
-        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -91,7 +91,7 @@ public class RegimeContextCardTests : TestContext
         };
 
         // Act
-        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -108,7 +108,7 @@ public class RegimeContextCardTests : TestContext
         };
 
         // Act
-        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -125,7 +125,7 @@ public class RegimeContextCardTests : TestContext
         };
 
         // Act
-        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -145,7 +145,7 @@ public class RegimeContextCardTests : TestContext
         };
 
         // Act
-        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -165,7 +165,7 @@ public class RegimeContextCardTests : TestContext
         };
 
         // Act
-        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -182,7 +182,7 @@ public class RegimeContextCardTests : TestContext
         };
 
         // Act
-        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -203,7 +203,7 @@ public class RegimeContextCardTests : TestContext
         };
 
         // Act
-        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -224,7 +224,7 @@ public class RegimeContextCardTests : TestContext
         };
 
         // Act
-        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -243,7 +243,7 @@ public class RegimeContextCardTests : TestContext
         };
 
         // Act
-        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -261,7 +261,7 @@ public class RegimeContextCardTests : TestContext
         };
 
         // Act
-        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert
@@ -283,7 +283,7 @@ public class RegimeContextCardTests : TestContext
         };
 
         // Act
-        var cut = this.RenderComponent<RegimeContextCard>(parameters => parameters
+        var cut = RenderComponent<RegimeContextCard>(parameters => parameters
             .Add(p => p.Decision, decision));
 
         // Assert

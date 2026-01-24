@@ -18,7 +18,7 @@ public class ComparisonServiceTests
     public void ToggleSymbol_AddsSymbolWhenNotSelected()
     {
         // Arrange
-        var service = this.CreateService();
+        var service = CreateService();
 
         // Act
         service.ToggleSymbol("SPY");
@@ -33,7 +33,7 @@ public class ComparisonServiceTests
     public void ToggleSymbol_RemovesSymbolWhenAlreadySelected()
     {
         // Arrange
-        var service = this.CreateService();
+        var service = CreateService();
         service.ToggleSymbol("SPY");
 
         // Act
@@ -49,7 +49,7 @@ public class ComparisonServiceTests
     public void ToggleSymbol_EnforcesMaximum4Symbols()
     {
         // Arrange
-        var service = this.CreateService();
+        var service = CreateService();
         service.ToggleSymbol("SPY");
         service.ToggleSymbol("QQQ");
         service.ToggleSymbol("IWM");
@@ -68,7 +68,7 @@ public class ComparisonServiceTests
     public void ToggleSymbol_FiresOnSelectionChanged()
     {
         // Arrange
-        var service = this.CreateService();
+        var service = CreateService();
         var eventFired = false;
         service.OnSelectionChanged += () => eventFired = true;
 
@@ -83,7 +83,7 @@ public class ComparisonServiceTests
     public void IsValidSelection_WithZeroSymbols_ReturnsFalse()
     {
         // Arrange
-        var service = this.CreateService();
+        var service = CreateService();
 
         // Assert
         service.IsValidSelection.Should().BeFalse();
@@ -94,7 +94,7 @@ public class ComparisonServiceTests
     public void IsValidSelection_WithOneSymbol_ReturnsFalse()
     {
         // Arrange
-        var service = this.CreateService();
+        var service = CreateService();
         service.ToggleSymbol("SPY");
 
         // Assert
@@ -106,7 +106,7 @@ public class ComparisonServiceTests
     public void IsValidSelection_WithTwoSymbols_ReturnsTrue()
     {
         // Arrange
-        var service = this.CreateService();
+        var service = CreateService();
         service.ToggleSymbol("SPY");
         service.ToggleSymbol("QQQ");
 
@@ -119,7 +119,7 @@ public class ComparisonServiceTests
     public void IsValidSelection_WithFourSymbols_ReturnsTrue()
     {
         // Arrange
-        var service = this.CreateService();
+        var service = CreateService();
         service.ToggleSymbol("SPY");
         service.ToggleSymbol("QQQ");
         service.ToggleSymbol("IWM");
@@ -134,7 +134,7 @@ public class ComparisonServiceTests
     public void GetValidationMessage_WithZeroSymbols_ReturnsMessage()
     {
         // Arrange
-        var service = this.CreateService();
+        var service = CreateService();
 
         // Act
         var message = service.GetValidationMessage();
@@ -147,7 +147,7 @@ public class ComparisonServiceTests
     public void GetValidationMessage_WithOneSymbol_ReturnsMessage()
     {
         // Arrange
-        var service = this.CreateService();
+        var service = CreateService();
         service.ToggleSymbol("SPY");
 
         // Act
@@ -161,7 +161,7 @@ public class ComparisonServiceTests
     public void GetValidationMessage_WithValidSelection_ReturnsNull()
     {
         // Arrange
-        var service = this.CreateService();
+        var service = CreateService();
         service.ToggleSymbol("SPY");
         service.ToggleSymbol("QQQ");
 
@@ -176,7 +176,7 @@ public class ComparisonServiceTests
     public void ClearSelection_RemovesAllSymbols()
     {
         // Arrange
-        var service = this.CreateService();
+        var service = CreateService();
         service.ToggleSymbol("SPY");
         service.ToggleSymbol("QQQ");
 
@@ -193,7 +193,7 @@ public class ComparisonServiceTests
     public void ClearSelection_FiresOnSelectionChanged()
     {
         // Arrange
-        var service = this.CreateService();
+        var service = CreateService();
         service.ToggleSymbol("SPY");
         var eventFired = false;
         service.OnSelectionChanged += () => eventFired = true;
@@ -209,7 +209,7 @@ public class ComparisonServiceTests
     public void GetAsset_ReturnsNullIfNotLoaded()
     {
         // Arrange
-        var service = this.CreateService();
+        var service = CreateService();
 
         // Act
         var asset = service.GetAsset("INVALID");
@@ -243,7 +243,7 @@ public class ComparisonServiceTests
                 new() { Date = DateOnly.Parse("2024-01-07", CultureInfo.InvariantCulture), Price = 455, Gex = 800, CallGex = 500, PutGex = 300, ZeroGamma = 450, MaxGamma = 465, Regime = "Positive Gamma", CallOi = 480000, PutOi = 420000, Contracts = 900000, Quality = 0.94m },
                 new() { Date = DateOnly.Parse("2024-01-08", CultureInfo.InvariantCulture), Price = 460, Gex = 900, CallGex = 550, PutGex = 350, ZeroGamma = 452, MaxGamma = 467, Regime = "Positive Gamma", CallOi = 490000, PutOi = 410000, Contracts = 900000, Quality = 0.95m },
                 new() { Date = DateOnly.Parse("2024-01-09", CultureInfo.InvariantCulture), Price = 465, Gex = 1000, CallGex = 600, PutGex = 400, ZeroGamma = 454, MaxGamma = 469, Regime = "Positive Gamma", CallOi = 500000, PutOi = 400000, Contracts = 900000, Quality = 0.96m },
-                new() { Date = DateOnly.Parse("2024-01-10", CultureInfo.InvariantCulture), Price = 470, Gex = 1100, CallGex = 650, PutGex = 450, ZeroGamma = 456, MaxGamma = 471, Regime = "Positive Gamma", CallOi = 510000, PutOi = 390000, Contracts = 900000, Quality = 0.97m }
+                new() { Date = DateOnly.Parse("2024-01-10", CultureInfo.InvariantCulture), Price = 470, Gex = 1100, CallGex = 650, PutGex = 450, ZeroGamma = 456, MaxGamma = 471, Regime = "Positive Gamma", CallOi = 510000, PutOi = 390000, Contracts = 900000, Quality = 0.97m },
             },
         };
     }
@@ -256,7 +256,7 @@ public class ComparisonServiceTests
         var mock = new Mock<IGexDataService>();
         mock.Setup(x => x.LoadSymbolAsync("SPY")).ReturnsAsync(CreateMockTimeline("SPY"));
         mock.Setup(x => x.LoadSymbolAsync("QQQ")).ReturnsAsync(CreateMockTimeline("QQQ"));
-        var service = this.CreateService(mock);
+        var service = CreateService(mock);
 
         // Act
         var result = await service.LoadSymbolsAsync(new List<string> { "SPY", "QQQ" });
@@ -278,7 +278,7 @@ public class ComparisonServiceTests
         mock.Setup(x => x.LoadSymbolAsync("QQQ")).ReturnsAsync(CreateMockTimeline("QQQ"));
         mock.Setup(x => x.LoadSymbolAsync("IWM")).ReturnsAsync(CreateMockTimeline("IWM"));
         mock.Setup(x => x.LoadSymbolAsync("DIA")).ReturnsAsync(CreateMockTimeline("DIA"));
-        var service = this.CreateService(mock);
+        var service = CreateService(mock);
 
         // Act
         var result = await service.LoadSymbolsAsync(new List<string> { "SPY", "QQQ", "IWM", "DIA" });
@@ -293,7 +293,7 @@ public class ComparisonServiceTests
     public async Task LoadSymbolsAsync_WithLessThanTwoSymbols_ThrowsException()
     {
         // Arrange
-        var service = this.CreateService();
+        var service = CreateService();
 
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(
@@ -304,7 +304,7 @@ public class ComparisonServiceTests
     public async Task LoadSymbolsAsync_WithMoreThanFourSymbols_ThrowsException()
     {
         // Arrange
-        var service = this.CreateService();
+        var service = CreateService();
 
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(
@@ -318,7 +318,7 @@ public class ComparisonServiceTests
         var mock = new Mock<IGexDataService>();
         mock.Setup(x => x.LoadSymbolAsync("SPY")).ReturnsAsync(CreateMockTimeline("SPY"));
         mock.Setup(x => x.LoadSymbolAsync("INVALID")).ReturnsAsync((GexTimeline?)null);
-        var service = this.CreateService(mock);
+        var service = CreateService(mock);
 
         // Act
         var result = await service.LoadSymbolsAsync(new List<string> { "SPY", "INVALID" });
@@ -336,7 +336,7 @@ public class ComparisonServiceTests
         // Arrange
         var mock = new Mock<IGexDataService>();
         mock.Setup(x => x.LoadSymbolAsync(It.IsAny<string>())).ReturnsAsync((GexTimeline?)null);
-        var service = this.CreateService(mock);
+        var service = CreateService(mock);
 
         // Act
         var result = await service.LoadSymbolsAsync(new List<string> { "INVALID1", "INVALID2" });
@@ -355,7 +355,7 @@ public class ComparisonServiceTests
         mock.Setup(x => x.LoadSymbolAsync("SPY")).ReturnsAsync(CreateMockTimeline("SPY"));
         mock.Setup(x => x.LoadSymbolAsync("QQQ")).ReturnsAsync(CreateMockTimeline("QQQ"));
         mock.Setup(x => x.LoadSymbolAsync("INVALID")).ReturnsAsync((GexTimeline?)null);
-        var service = this.CreateService(mock);
+        var service = CreateService(mock);
 
         // Act
         var result = await service.LoadSymbolsAsync(new List<string> { "SPY", "QQQ", "INVALID" });
@@ -375,7 +375,7 @@ public class ComparisonServiceTests
         var mock = new Mock<IGexDataService>();
         mock.Setup(x => x.LoadSymbolAsync("SPY")).ReturnsAsync(CreateMockTimeline("SPY"));
         mock.Setup(x => x.LoadSymbolAsync("QQQ")).ThrowsAsync(new Exception("Network error"));
-        var service = this.CreateService(mock);
+        var service = CreateService(mock);
 
         // Act
         var result = await service.LoadSymbolsAsync(new List<string> { "SPY", "QQQ" });
@@ -394,7 +394,7 @@ public class ComparisonServiceTests
         var mock = new Mock<IGexDataService>();
         mock.Setup(x => x.LoadSymbolAsync("SPY")).ReturnsAsync(CreateMockTimeline("SPY"));
         mock.Setup(x => x.LoadSymbolAsync("QQQ")).ReturnsAsync(CreateMockTimeline("QQQ"));
-        var service = this.CreateService(mock);
+        var service = CreateService(mock);
         var eventFired = false;
         service.OnSelectionChanged += () => eventFired = true;
 
@@ -411,7 +411,7 @@ public class ComparisonServiceTests
         // Arrange
         var mock = new Mock<IGexDataService>();
         mock.Setup(x => x.LoadSymbolAsync(It.IsAny<string>())).ReturnsAsync((string s) => CreateMockTimeline(s));
-        var service = this.CreateService(mock);
+        var service = CreateService(mock);
 
         // Load first set
         await service.LoadSymbolsAsync(new List<string> { "SPY", "QQQ" });

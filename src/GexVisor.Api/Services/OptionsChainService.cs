@@ -215,6 +215,10 @@ public class OptionsChainService : IOptionsChainService
         DateTime? expirationDate)
     {
         // TODO: Implement Polygon.io integration
+        // Suppress unused parameter warnings until implementation
+        _ = symbol;
+        _ = expirationDate;
+
         _logger.LogDebug("Polygon provider not yet implemented");
         await Task.CompletedTask;
         return null;

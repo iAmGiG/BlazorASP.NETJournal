@@ -40,4 +40,7 @@ builder.Services.AddScoped<ComparisonAnalysisService>();
 // Chart Services
 builder.Services.AddScoped<IPriceDataService, PriceDataService>();
 
+// Alert Services
+builder.Services.AddScoped<IAlertService, AlertService>();
+
 await builder.Build().RunAsync();

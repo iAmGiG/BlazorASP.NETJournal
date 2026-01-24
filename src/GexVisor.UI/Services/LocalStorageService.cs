@@ -240,4 +240,8 @@ public static class StorageKeys
     /// Get storage key for a symbol's cached live GEX data.
     /// </summary>
     public static string LiveGex(string symbol) => $"{LiveGexPrefix}{symbol.ToUpperInvariant()}";
+
+    // Alert system
+    public const string AlertPreferences = "gexvisor.alertPreferences";
+    public const string AlertHistory = "gexvisor.alertHistory";
 }

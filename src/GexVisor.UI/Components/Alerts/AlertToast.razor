@@ -1,0 +1,45 @@
+@using GexVisor.UI.Models
+@using GexVisor.UI.Configuration
+
+<div class="alert-toast @GetSeverityClass()" role="alert" aria-live="assertive">
+    <div class="toast-icon">
+        @GetIcon()
+    </div>
+    <div class="toast-content">
+        <div class="toast-title">@Alert.Title</div>
+        <div class="toast-message">@Alert.Message</div>
+        <div class="toast-time">@Alert.TriggeredAt.ToLocalTime().ToString("HH:mm:ss")</div>
+    </div>
+    <button class="toast-dismiss" @onclick="OnDismiss" aria-label="Dismiss alert">
+        <i class="fas fa-times"></i>
+    </button>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Alert Alert { get; set; } = default!;
+
+    [Parameter]
+    public EventCallback<Guid> OnDismissClicked { get; set; }
+
+    private string GetSeverityClass() => Alert.Severity switch
+    {
+        AlertSeverity.Critical => "critical",
+        AlertSeverity.Warning => "warning",
+        _ => "info"
+    };
+
+    private MarkupString GetIcon() => Alert.Type switch
+    {
+        AlertType.ZeroGammaCross => new MarkupString("<i class=\"fas fa-exchange-alt\"></i>"),
+        AlertType.RegimeChange => new MarkupString("<i class=\"fas fa-sync-alt\"></i>"),
+        AlertType.GexThreshold => new MarkupString("<i class=\"fas fa-chart-line\"></i>"),
+        AlertType.PriceMovement => new MarkupString("<i class=\"fas fa-arrow-up-right-dots\"></i>"),
+        _ => new MarkupString("<i class=\"fas fa-bell\"></i>")
+    };
+
+    private async Task OnDismiss()
+    {
+        await OnDismissClicked.InvokeAsync(Alert.Id);
+    }
+}
