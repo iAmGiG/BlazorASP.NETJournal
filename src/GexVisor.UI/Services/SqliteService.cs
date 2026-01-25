@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using Microsoft.JSInterop;
 
@@ -185,7 +186,34 @@ public class SqliteService : IAsyncDisposable
             return element.Deserialize<T>();
         }
 
-        return value is T typed ? typed : default;
+        // Handle null values
+        if (value == null)
+        {
+            return default;
+        }
+
+        // Direct cast if types match
+        if (value is T typed)
+        {
+            return typed;
+        }
+
+        // Use Convert.ChangeType for numeric conversions (e.g., long -> int, double -> decimal)
+        // This handles cases where QueryAsync returns long but user expects int
+        try
+        {
+            return (T)Convert.ChangeType(value, typeof(T), CultureInfo.InvariantCulture);
+        }
+        catch (InvalidCastException)
+        {
+            // Type conversion failed, return default
+            return default;
+        }
+        catch (FormatException)
+        {
+            // Value format incompatible with target type
+            return default;
+        }
     }
 
     private void EnsureInitialized()

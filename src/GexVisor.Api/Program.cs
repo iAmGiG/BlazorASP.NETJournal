@@ -3,6 +3,8 @@ using GexVisor.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+const string DefaultGitHubClientId = "Iv23li5YORDVpgCnEURy";
+
 // API Configuration Service (loads API keys from config/config.json + environment)
 builder.Services.AddSingleton<IApiConfigService, ApiConfigService>();
 
@@ -58,7 +60,7 @@ var github = app.MapGroup("/api/github");
 // Device Flow: Get device code
 github.MapPost("/device/code", async (HttpContext ctx, IHttpClientFactory httpFactory, IConfiguration config) =>
 {
-    var clientId = config["GitHub:ClientId"] ?? "Iv23li5YORDVpgCnEURy";
+    var clientId = config["GitHub:ClientId"] ?? DefaultGitHubClientId;
 
     var http = httpFactory.CreateClient("GitHub");
     var content = new FormUrlEncodedContent(new Dictionary<string, string>
@@ -78,7 +80,7 @@ github.MapPost("/device/code", async (HttpContext ctx, IHttpClientFactory httpFa
 // Device Flow: Poll for token
 github.MapPost("/device/token", async (HttpContext ctx, IHttpClientFactory httpFactory, IConfiguration config) =>
 {
-    var clientId = config["GitHub:ClientId"] ?? "Iv23li5YORDVpgCnEURy";
+    var clientId = config["GitHub:ClientId"] ?? DefaultGitHubClientId;
 
     using var reader = new StreamReader(ctx.Request.Body);
     var body = await reader.ReadToEndAsync();
@@ -111,7 +113,7 @@ github.MapPost("/device/token", async (HttpContext ctx, IHttpClientFactory httpF
 // Token refresh
 github.MapPost("/token/refresh", async (HttpContext ctx, IHttpClientFactory httpFactory, IConfiguration config) =>
 {
-    var clientId = config["GitHub:ClientId"] ?? "Iv23li5YORDVpgCnEURy";
+    var clientId = config["GitHub:ClientId"] ?? DefaultGitHubClientId;
 
     using var reader = new StreamReader(ctx.Request.Body);
     var body = await reader.ReadToEndAsync();
