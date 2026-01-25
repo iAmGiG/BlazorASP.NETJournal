@@ -4,9 +4,25 @@ This guide covers how to build, run, and develop GexVisor locally.
 
 ## Prerequisites
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) or later
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (version 10.0.102 or later)
 - A modern web browser (Chrome, Firefox, Edge)
 - Git
+
+### Migrating from .NET 8/9
+
+If upgrading from an older .NET version:
+
+1. **Update SDK**: Download .NET 10 SDK from the link above
+2. **Verify installation**: Run `dotnet --version` (should show 10.0.102+)
+3. **Update global.json** (if present): Ensure SDK version is 10.0.102+
+4. **Restore packages**: Run `dotnet restore` to update dependencies
+5. **Rebuild**: Run `dotnet build` to verify compatibility
+6. **Run tests**: Run `dotnet test` to ensure all 352 tests pass
+
+**Known Changes:**
+
+- NetAnalyzers updated to v10.0.100 (resolves SDK compatibility warnings)
+- No breaking API changes from .NET 9 to .NET 10 in this codebase
 
 ## Quick Start
 
