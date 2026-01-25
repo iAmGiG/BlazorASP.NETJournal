@@ -1,7 +1,9 @@
 @using GexVisor.Core
 @using GexVisor.UI.Models
+@using GexVisor.UI.Services
 @using GexVisor.UI.Components.Charts
 @inject IJSRuntime JS
+@inject IPersonalAnalyticsService AnalyticsService
 
 @* Modal for viewing detailed trade information *@
 
@@ -174,6 +176,62 @@
                         }
                     </section>
                 }
+
+                @* Self-Tracking Section *@
+                <section class="detail-section tracking-section">
+                    <div class="tracking-header" @onclick="ToggleTracking">
+                        <h3>
+                            <i class="fas fa-brain"></i> Self-Tracking
+                        </h3>
+                        <button class="btn-toggle">
+                            <i class="fas @(_showTracking ? "fa-chevron-up" : "fa-chevron-down")"></i>
+                        </button>
+                    </div>
+                    @if (_showTracking)
+                    {
+                        <div class="tracking-content">
+                            <div class="tracking-grid">
+                                <div class="tracking-field">
+                                    <label>Emotional State</label>
+                                    <select @bind="_trackingData.Emotion" @bind:after="SaveTrackingData">
+                                        <option value="">Select...</option>
+                                        @foreach (var state in Enum.GetValues<EmotionalState>())
+                                        {
+                                            <option value="@state">@GetEmotionDisplay(state)</option>
+                                        }
+                                    </select>
+                                    <span class="field-hint">How did you feel when entering this trade?</span>
+                                </div>
+                                <div class="tracking-field">
+                                    <label>Confidence Level</label>
+                                    <div class="confidence-slider">
+                                        <input type="range" min="1" max="10"
+                                               value="@(_trackingData.ConfidenceLevel ?? 5)"
+                                               @onchange="OnConfidenceChanged" />
+                                        <div class="confidence-value">
+                                            <span class="value">@(_trackingData.ConfidenceLevel ?? 5)</span>
+                                            <span class="scale">/10</span>
+                                        </div>
+                                    </div>
+                                    <span class="field-hint">1 = Low confidence, 10 = Very confident</span>
+                                </div>
+                            </div>
+                            <div class="tracking-field full-width">
+                                <label>Lesson Learned</label>
+                                <textarea rows="3"
+                                          placeholder="What did you learn from this trade? What would you do differently?"
+                                          @bind="_trackingData.LessonLearned"
+                                          @bind:after="SaveTrackingData"></textarea>
+                            </div>
+                            @if (_trackingSaved)
+                            {
+                                <div class="save-indicator">
+                                    <i class="fas fa-check-circle"></i> Saved
+                                </div>
+                            }
+                        </div>
+                    }
+                </section>
             </div>
 
             <div class="modal-footer">
@@ -204,13 +262,115 @@
     private string selectedTimeframe = "1d";
     private bool showChart = true;
 
+    // Self-tracking state
+    private bool _showTracking = true;
+    private bool _trackingSaved = false;
+    private MutableTrackingData _trackingData = new();
+    private System.Timers.Timer? _saveIndicatorTimer;
+
+    // Mutable wrapper for binding
+    private class MutableTrackingData
+    {
+        public EmotionalState? Emotion { get; set; }
+        public int? ConfidenceLevel { get; set; }
+        public string? LessonLearned { get; set; }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IsVisible && Trade != null)
+        {
+            await LoadTrackingData();
+        }
+    }
+
+    private async Task LoadTrackingData()
+    {
+        var existing = AnalyticsService.GetTrackingData(Trade!.Id);
+        if (existing != null)
+        {
+            _trackingData = new MutableTrackingData
+            {
+                Emotion = existing.Emotion,
+                ConfidenceLevel = existing.ConfidenceLevel,
+                LessonLearned = existing.LessonLearned
+            };
+        }
+        else
+        {
+            _trackingData = new MutableTrackingData();
+        }
+        await Task.CompletedTask;
+    }
+
+    private void ToggleTracking()
+    {
+        _showTracking = !_showTracking;
+    }
+
     private void ToggleChart()
     {
         showChart = !showChart;
     }
 
+    private async Task OnConfidenceChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var value))
+        {
+            _trackingData.ConfidenceLevel = value;
+            await SaveTrackingData();
+        }
+    }
+
+    private async Task SaveTrackingData()
+    {
+        if (Trade == null) return;
+
+        var data = new TradeTrackingData
+        {
+            TradeId = Trade.Id,
+            Emotion = _trackingData.Emotion,
+            ConfidenceLevel = _trackingData.ConfidenceLevel,
+            LessonLearned = _trackingData.LessonLearned,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        await AnalyticsService.SaveTrackingDataAsync(data);
+        ShowSaveIndicator();
+    }
+
+    private void ShowSaveIndicator()
+    {
+        _trackingSaved = true;
+        StateHasChanged();
+
+        _saveIndicatorTimer?.Dispose();
+        _saveIndicatorTimer = new System.Timers.Timer(2000);
+        _saveIndicatorTimer.Elapsed += (_, _) =>
+        {
+            _trackingSaved = false;
+            InvokeAsync(StateHasChanged);
+            _saveIndicatorTimer?.Dispose();
+        };
+        _saveIndicatorTimer.Start();
+    }
+
+    private static string GetEmotionDisplay(EmotionalState state) => state switch
+    {
+        EmotionalState.Calm => "😌 Calm",
+        EmotionalState.Confident => "💪 Confident",
+        EmotionalState.Anxious => "😰 Anxious",
+        EmotionalState.Excited => "🤩 Excited",
+        EmotionalState.Fearful => "😨 Fearful",
+        EmotionalState.Greedy => "🤑 Greedy",
+        EmotionalState.Frustrated => "😤 Frustrated",
+        EmotionalState.Neutral => "😐 Neutral",
+        _ => state.ToString()
+    };
+
     private void Close()
     {
+        _saveIndicatorTimer?.Dispose();
         OnClose.InvokeAsync();
     }
 
@@ -544,5 +704,156 @@
             flex-wrap: wrap;
             gap: 0.5rem;
         }
+    }
+
+    /* Self-Tracking Section */
+    .tracking-section {
+        background: var(--surface-1);
+        border-radius: 8px;
+        padding: 1rem 1.25rem;
+        border: 1px solid var(--border-color);
+    }
+
+    .tracking-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    .tracking-header h3 {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0;
+    }
+
+    .tracking-header h3 i {
+        color: var(--accent);
+    }
+
+    .tracking-content {
+        margin-top: 1.25rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .tracking-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .tracking-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .tracking-field.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .tracking-field label {
+        font-weight: 500;
+        color: var(--text-color);
+        font-size: 0.9rem;
+    }
+
+    .tracking-field select,
+    .tracking-field textarea {
+        padding: 0.625rem 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        background: var(--surface-2);
+        color: var(--text-color);
+        font-size: 0.95rem;
+        width: 100%;
+    }
+
+    .tracking-field select:focus,
+    .tracking-field textarea:focus {
+        outline: none;
+        border-color: var(--accent);
+    }
+
+    .tracking-field textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .field-hint {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    .confidence-slider {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .confidence-slider input[type="range"] {
+        flex: 1;
+        height: 6px;
+        border-radius: 3px;
+        background: var(--surface-3);
+        -webkit-appearance: none;
+        appearance: none;
+    }
+
+    .confidence-slider input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--accent);
+        cursor: pointer;
+    }
+
+    .confidence-slider input[type="range"]::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--accent);
+        cursor: pointer;
+        border: none;
+    }
+
+    .confidence-value {
+        display: flex;
+        align-items: baseline;
+        min-width: 3rem;
+    }
+
+    .confidence-value .value {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--accent);
+    }
+
+    .confidence-value .scale {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    .save-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: #10b98120;
+        color: #10b981;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-top: 0.75rem;
+        animation: fadeIn 0.2s ease;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-5px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 </style>

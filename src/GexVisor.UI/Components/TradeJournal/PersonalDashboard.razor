@@ -1,0 +1,531 @@
+@using GexVisor.UI.Models
+@using GexVisor.UI.Services
+@inject IPersonalAnalyticsService AnalyticsService
+@inject IGoalService GoalService
+@inject TradeLogService TradeLogService
+@implements IDisposable
+
+<div class="personal-dashboard">
+    @if (_isLoading)
+    {
+        <div class="loading-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Loading analytics...</span>
+        </div>
+    }
+    else if (!_hasData)
+    {
+        <div class="empty-state">
+            <i class="fas fa-chart-pie"></i>
+            <h3>No Trade Data Available</h3>
+            <p>Import trades to see your personal analytics and performance metrics.</p>
+        </div>
+    }
+    else
+    {
+        @* Period Selector *@
+        <div class="period-selector">
+            <button class="@GetPeriodClass(30)" @onclick="() => SetPeriod(30)">30 Days</button>
+            <button class="@GetPeriodClass(90)" @onclick="() => SetPeriod(90)">90 Days</button>
+            <button class="@GetPeriodClass(180)" @onclick="() => SetPeriod(180)">6 Months</button>
+            <button class="@GetPeriodClass(365)" @onclick="() => SetPeriod(365)">1 Year</button>
+            <button class="@GetPeriodClass(0)" @onclick="() => SetPeriod(0)">All Time</button>
+        </div>
+
+        @* Performance Summary Cards *@
+        <div class="metrics-grid">
+            <div class="metric-card @GetPnLClass(_currentMetrics.TotalPnL)">
+                <div class="metric-label">Total P&L</div>
+                <div class="metric-value">@FormatCurrency(_currentMetrics.TotalPnL)</div>
+                <div class="metric-sub">@_currentMetrics.TradeCount trades</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Win Rate</div>
+                <div class="metric-value @GetWinRateClass(_currentMetrics.WinRate)">@_currentMetrics.WinRate.ToString("F1")%</div>
+                <div class="metric-sub">@_currentMetrics.WinningTrades W / @_currentMetrics.LosingTrades L</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Profit Factor</div>
+                <div class="metric-value @GetProfitFactorClass(_currentMetrics.ProfitFactor)">@_currentMetrics.ProfitFactor.ToString("F2")</div>
+                <div class="metric-sub">Gross profit / loss ratio</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Avg P&L / Trade</div>
+                <div class="metric-value @GetPnLClass(_currentMetrics.AveragePnL)">@FormatCurrency(_currentMetrics.AveragePnL)</div>
+                <div class="metric-sub">Best: @FormatCurrency(_currentMetrics.BestTrade)</div>
+            </div>
+        </div>
+
+        @* P&L Trend Chart *@
+        <div class="chart-section">
+            <h3><i class="fas fa-chart-line"></i> P&L Trend</h3>
+            <div class="chart-container">
+                <ApexChart TItem="PerformanceMetrics"
+                           Options="_pnlChartOptions"
+                           Height="280">
+                    <ApexPointSeries TItem="PerformanceMetrics"
+                                     Items="_trendData"
+                                     SeriesType="SeriesType.Area"
+                                     Name="Cumulative P&L"
+                                     XValue="@(e => e.EndDate.ToDateTime(TimeOnly.MinValue))"
+                                     YValue="@(e => e.TotalPnL)" />
+                </ApexChart>
+            </div>
+        </div>
+
+        @* Two Column Layout *@
+        <div class="two-column-grid">
+            @* Time Heatmap *@
+            <div class="chart-section">
+                <h3><i class="fas fa-th"></i> Performance by Time</h3>
+                <div class="heatmap-container">
+                    @foreach (var dayName in new[] { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" })
+                    {
+                        <div class="heatmap-row">
+                            <div class="heatmap-label">@dayName</div>
+                            @for (int hour = 9; hour <= 16; hour++)
+                            {
+                                var cell = GetHeatmapCell((int)Enum.Parse<DayOfWeek>(dayName + "day", true), hour);
+                                <div class="heatmap-cell @GetHeatmapClass(cell)" title="@GetHeatmapTooltip(cell, dayName, hour)">
+                                    @if (cell.TradeCount > 0)
+                                    {
+                                        <span>@cell.TradeCount</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    <div class="heatmap-hours">
+                        <div class="heatmap-label"></div>
+                        @for (int hour = 9; hour <= 16; hour++)
+                        {
+                            <div class="hour-label">@hour</div>
+                        }
+                    </div>
+                </div>
+                <div class="heatmap-legend">
+                    <span class="legend-label">Loss</span>
+                    <div class="legend-gradient"></div>
+                    <span class="legend-label">Profit</span>
+                </div>
+            </div>
+
+            @* Habit Metrics *@
+            <div class="chart-section">
+                <h3><i class="fas fa-fire"></i> Trading Habits</h3>
+                <div class="habit-metrics">
+                    <div class="habit-item">
+                        <div class="habit-icon"><i class="fas fa-calendar-day"></i></div>
+                        <div class="habit-content">
+                            <div class="habit-value">@_habitMetrics.AverageTradesPerDay.ToString("F1")</div>
+                            <div class="habit-label">Avg Trades/Day</div>
+                        </div>
+                    </div>
+                    <div class="habit-item">
+                        <div class="habit-icon streak-win"><i class="fas fa-trophy"></i></div>
+                        <div class="habit-content">
+                            <div class="habit-value">@_habitMetrics.LongestWinStreak</div>
+                            <div class="habit-label">Best Win Streak</div>
+                        </div>
+                    </div>
+                    <div class="habit-item">
+                        <div class="habit-icon streak-loss"><i class="fas fa-chart-line-down"></i></div>
+                        <div class="habit-content">
+                            <div class="habit-value">@_habitMetrics.LongestLossStreak</div>
+                            <div class="habit-label">Worst Loss Streak</div>
+                        </div>
+                    </div>
+                    <div class="habit-item">
+                        <div class="habit-icon @(_habitMetrics.IsCurrentStreakWinning ? "streak-win" : "streak-loss")">
+                            <i class="fas @(_habitMetrics.IsCurrentStreakWinning ? "fa-arrow-up" : "fa-arrow-down")"></i>
+                        </div>
+                        <div class="habit-content">
+                            <div class="habit-value">@Math.Abs(_habitMetrics.CurrentStreak)</div>
+                            <div class="habit-label">Current @(_habitMetrics.IsCurrentStreakWinning ? "Win" : "Loss") Streak</div>
+                        </div>
+                    </div>
+                    <div class="habit-item wide">
+                        <div class="habit-icon"><i class="fas fa-clock"></i></div>
+                        <div class="habit-content">
+                            <div class="habit-value">@_habitMetrics.MostActiveDay @_habitMetrics.MostActiveHour:00</div>
+                            <div class="habit-label">Most Active Time</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Top Patterns *@
+        @if (_topPatterns.Count > 0)
+        {
+            <div class="chart-section">
+                <h3><i class="fas fa-shapes"></i> Top Trading Patterns</h3>
+                <div class="patterns-grid">
+                    @foreach (var pattern in _topPatterns)
+                    {
+                        <div class="pattern-card">
+                            <div class="pattern-name">@pattern.Pattern</div>
+                            <div class="pattern-stats">
+                                <span class="@GetWinRateClass(pattern.WinRate)">@pattern.WinRate.ToString("F0")% WR</span>
+                                <span class="@GetPnLClass(pattern.TotalPnL)">@FormatCurrency(pattern.TotalPnL)</span>
+                                <span class="pattern-count">@pattern.Count trades</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        @* Goals Section *@
+        <div class="chart-section">
+            <div class="section-header">
+                <h3><i class="fas fa-bullseye"></i> Active Goals</h3>
+                <button class="btn-add-goal" @onclick="() => _showGoalModal = true">
+                    <i class="fas fa-plus"></i> Add Goal
+                </button>
+            </div>
+            @if (_activeGoals.Count == 0)
+            {
+                <div class="empty-goals">
+                    <p>No active goals. Set a goal to track your trading progress!</p>
+                </div>
+            }
+            else
+            {
+                <div class="goals-grid">
+                    @foreach (var goal in _activeGoals.Take(4))
+                    {
+                        <div class="goal-card @(goal.IsAchieved ? "achieved" : "") @(goal.IsOverdue ? "overdue" : "")">
+                            <div class="goal-header">
+                                <span class="goal-type">@goal.Type</span>
+                                @if (goal.IsAchieved)
+                                {
+                                    <i class="fas fa-check-circle goal-achieved-icon"></i>
+                                }
+                                @if (goal.IsOverdue)
+                                {
+                                    <i class="fas fa-exclamation-circle goal-overdue-icon"></i>
+                                }
+                            </div>
+                            <div class="goal-title">@goal.Title</div>
+                            <div class="goal-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: @goal.ProgressPercent%"></div>
+                                </div>
+                                <div class="progress-text">
+                                    <span>@goal.CurrentDisplay</span>
+                                    <span>/ @goal.TargetDisplay</span>
+                                </div>
+                            </div>
+                            @if (goal.DaysRemaining.HasValue)
+                            {
+                                <div class="goal-due @(goal.DaysRemaining < 0 ? "overdue" : goal.DaysRemaining < 7 ? "soon" : "")">
+                                    @if (goal.DaysRemaining < 0)
+                                    {
+                                        <span>@Math.Abs(goal.DaysRemaining.Value) days overdue</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@goal.DaysRemaining days remaining</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        @* Lessons Learned *@
+        @if (_recentLessons.Count > 0)
+        {
+            <div class="chart-section">
+                <h3><i class="fas fa-lightbulb"></i> Recent Lessons</h3>
+                <div class="lessons-list">
+                    @foreach (var lesson in _recentLessons.Take(5))
+                    {
+                        <div class="lesson-card">
+                            <div class="lesson-meta">
+                                <span class="lesson-date">@lesson.RecordedAt.ToString("MMM dd")</span>
+                                @if (lesson.Ticker != null)
+                                {
+                                    <span class="lesson-ticker">@lesson.Ticker</span>
+                                }
+                                @if (lesson.TradePnL.HasValue)
+                                {
+                                    <span class="lesson-pnl @GetPnLClass(lesson.TradePnL.Value)">@FormatCurrency(lesson.TradePnL.Value)</span>
+                                }
+                            </div>
+                            <div class="lesson-text">@lesson.Lesson</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+
+    @* Goal Creation Modal *@
+    @if (_showGoalModal)
+    {
+        <div class="modal-backdrop" @onclick="() => _showGoalModal = false">
+            <div class="modal-content goal-modal" @onclick:stopPropagation="true">
+                <div class="modal-header">
+                    <h2>Create New Goal</h2>
+                    <button class="close-btn" @onclick="() => _showGoalModal = false">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Goal Title</label>
+                        <input type="text" @bind="_newGoalTitle" placeholder="e.g., Reach $1000 profit" />
+                    </div>
+                    <div class="form-group">
+                        <label>Goal Type</label>
+                        <select @bind="_newGoalType">
+                            <option value="@GoalType.TotalPnL">Total P&L</option>
+                            <option value="@GoalType.WinRate">Win Rate %</option>
+                            <option value="@GoalType.TradeCount">Trade Count</option>
+                            <option value="@GoalType.WinningDaysStreak">Winning Days Streak</option>
+                            <option value="@GoalType.LessonsLearned">Lessons Learned</option>
+                            <option value="@GoalType.AveragePnL">Average P&L</option>
+                            <option value="@GoalType.Custom">Custom</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Target Value</label>
+                        <input type="number" @bind="_newGoalTarget" step="any" />
+                        <span class="input-hint">@GetTargetHint()</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Due Date (Optional)</label>
+                        <input type="date" @bind="_newGoalDueDate" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" @onclick="() => _showGoalModal = false">Cancel</button>
+                    <button class="btn-primary" @onclick="CreateGoal" disabled="@(!CanCreateGoal())">
+                        <i class="fas fa-plus"></i> Create Goal
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool _isLoading = true;
+    private bool _hasData = false;
+    private int _selectedPeriodDays = 90;
+
+    private PerformanceMetrics _currentMetrics = PerformanceMetrics.Empty(DateOnly.FromDateTime(DateTime.UtcNow), DateOnly.FromDateTime(DateTime.UtcNow));
+    private List<PerformanceMetrics> _trendData = [];
+    private List<HeatmapCell> _heatmapData = [];
+    private HabitMetrics _habitMetrics = new();
+    private List<(string Pattern, decimal WinRate, int Count, decimal TotalPnL)> _topPatterns = [];
+    private List<TradingGoal> _activeGoals = [];
+    private List<LessonEntry> _recentLessons = [];
+
+    private ApexChartOptions<PerformanceMetrics> _pnlChartOptions = new();
+
+    // Goal creation state
+    private bool _showGoalModal = false;
+    private string _newGoalTitle = "";
+    private GoalType _newGoalType = GoalType.TotalPnL;
+    private decimal _newGoalTarget = 0;
+    private DateTime? _newGoalDueDate;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+        AnalyticsService.OnAnalyticsChanged += RefreshData;
+        GoalService.OnGoalsChanged += RefreshGoals;
+    }
+
+    private async Task LoadDataAsync()
+    {
+        _isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            await AnalyticsService.LoadTrackingDataAsync();
+            await GoalService.LoadAsync();
+            await GoalService.RecalculateProgressAsync();
+
+            _hasData = TradeLogService.GetAllTrades().Any();
+
+            if (_hasData)
+            {
+                RefreshAllData();
+            }
+
+            ConfigureChartOptions();
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void RefreshData()
+    {
+        RefreshAllData();
+        StateHasChanged();
+    }
+
+    private void RefreshGoals()
+    {
+        _activeGoals = GoalService.AllGoals.Where(g => g.Status == GoalStatus.Active).ToList();
+        StateHasChanged();
+    }
+
+    private void RefreshAllData()
+    {
+        var endDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        var startDate = _selectedPeriodDays == 0
+            ? DateOnly.MinValue
+            : endDate.AddDays(-_selectedPeriodDays);
+
+        _currentMetrics = AnalyticsService.CalculatePerformance(startDate, endDate);
+        _trendData = AnalyticsService.GetPerformanceTrend(startDate, endDate, TrendPeriod.Weekly);
+        _heatmapData = AnalyticsService.GenerateHeatmap();
+        _habitMetrics = AnalyticsService.CalculateHabitMetrics();
+        _topPatterns = AnalyticsService.GetTopPatterns(5);
+        _activeGoals = GoalService.AllGoals.Where(g => g.Status == GoalStatus.Active).ToList();
+        _recentLessons = AnalyticsService.GetRecentLessons(5);
+    }
+
+    private void SetPeriod(int days)
+    {
+        _selectedPeriodDays = days;
+        RefreshAllData();
+        StateHasChanged();
+    }
+
+    private string GetPeriodClass(int days) =>
+        _selectedPeriodDays == days ? "period-btn active" : "period-btn";
+
+    private void ConfigureChartOptions()
+    {
+        _pnlChartOptions = new ApexChartOptions<PerformanceMetrics>
+        {
+            Theme = new Theme { Mode = Mode.Dark },
+            Chart = new Chart
+            {
+                Background = "transparent",
+                Toolbar = new Toolbar { Show = false }
+            },
+            Stroke = new Stroke
+            {
+                Curve = Curve.Smooth,
+                Width = 2
+            },
+            Fill = new Fill
+            {
+                Type = FillType.Gradient,
+                Gradient = new FillGradient
+                {
+                    ShadeIntensity = 1,
+                    OpacityFrom = 0.45,
+                    OpacityTo = 0.05
+                }
+            },
+            Colors = ["#3b82f6"],
+            Grid = new Grid
+            {
+                BorderColor = "rgba(255, 255, 255, 0.1)",
+                StrokeDashArray = 3
+            },
+            Xaxis = new XAxis
+            {
+                Type = XAxisType.Datetime,
+                Labels = new XAxisLabels
+                {
+                    Style = new AxisLabelStyle { Colors = "#888" }
+                }
+            },
+            Yaxis =
+            [
+                new YAxis
+                {
+                    Labels = new YAxisLabels
+                    {
+                        Style = new AxisLabelStyle { Colors = "#888" },
+                        Formatter = "function(val) { return '$' + val.toFixed(0); }"
+                    }
+                }
+            ],
+            Tooltip = new Tooltip { Theme = Mode.Dark }
+        };
+    }
+
+    private HeatmapCell GetHeatmapCell(int dayOfWeek, int hour)
+    {
+        return _heatmapData.FirstOrDefault(c => c.DayOfWeek == dayOfWeek && c.HourOfDay == hour)
+            ?? new HeatmapCell { DayOfWeek = dayOfWeek, HourOfDay = hour };
+    }
+
+    private static string GetHeatmapClass(HeatmapCell cell)
+    {
+        if (cell.TradeCount == 0) return "empty";
+        if (cell.AveragePnL > 100) return "profit-high";
+        if (cell.AveragePnL > 0) return "profit-low";
+        if (cell.AveragePnL > -100) return "loss-low";
+        return "loss-high";
+    }
+
+    private static string GetHeatmapTooltip(HeatmapCell cell, string day, int hour)
+    {
+        if (cell.TradeCount == 0) return $"{day} {hour}:00 - No trades";
+        return $"{day} {hour}:00\n{cell.TradeCount} trades\nAvg P&L: ${cell.AveragePnL:F0}\nWin Rate: {cell.WinRate:F0}%";
+    }
+
+    private static string GetPnLClass(decimal pnl) => pnl >= 0 ? "positive" : "negative";
+    private static string GetWinRateClass(decimal winRate) => winRate >= 50 ? "positive" : "negative";
+    private static string GetProfitFactorClass(decimal pf) => pf >= 1 ? "positive" : "negative";
+
+    private static string FormatCurrency(decimal value) =>
+        value >= 0 ? $"${value:N0}" : $"-${Math.Abs(value):N0}";
+
+    private string GetTargetHint() => _newGoalType switch
+    {
+        GoalType.TotalPnL => "e.g., 1000 for $1,000 profit",
+        GoalType.WinRate => "e.g., 60 for 60% win rate",
+        GoalType.TradeCount => "e.g., 50 trades",
+        GoalType.WinningDaysStreak => "e.g., 5 consecutive days",
+        GoalType.LessonsLearned => "e.g., 10 lessons documented",
+        GoalType.AveragePnL => "e.g., 50 for $50/trade average",
+        GoalType.Custom => "Enter your custom target value",
+        _ => ""
+    };
+
+    private bool CanCreateGoal() =>
+        !string.IsNullOrWhiteSpace(_newGoalTitle) && _newGoalTarget != 0;
+
+    private async Task CreateGoal()
+    {
+        if (!CanCreateGoal()) return;
+
+        var goal = new TradingGoal
+        {
+            Title = _newGoalTitle,
+            Type = _newGoalType,
+            TargetValue = _newGoalTarget,
+            DueDate = _newGoalDueDate.HasValue ? DateOnly.FromDateTime(_newGoalDueDate.Value) : null
+        };
+
+        await GoalService.AddAsync(goal);
+
+        // Reset form
+        _newGoalTitle = "";
+        _newGoalTarget = 0;
+        _newGoalDueDate = null;
+        _showGoalModal = false;
+    }
+
+    public void Dispose()
+    {
+        AnalyticsService.OnAnalyticsChanged -= RefreshData;
+        GoalService.OnGoalsChanged -= RefreshGoals;
+    }
+}

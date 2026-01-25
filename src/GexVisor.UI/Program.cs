@@ -44,4 +44,8 @@ builder.Services.AddScoped<IPriceDataService, PriceDataService>();
 // Alert Services
 builder.Services.AddScoped<IAlertService, AlertService>();
 
+// Personal Analytics Services
+builder.Services.AddScoped<IPersonalAnalyticsService, PersonalAnalyticsService>();
+builder.Services.AddScoped<IGoalService, GoalService>();
+
 await builder.Build().RunAsync();

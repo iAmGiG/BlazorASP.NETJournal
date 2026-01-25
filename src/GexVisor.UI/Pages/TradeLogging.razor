@@ -19,34 +19,55 @@
             <h1>Trade Journal</h1>
         </div>
         <div class="header-actions">
-            <button class="btn-primary" @onclick="ShowImportModal">
-                <i class="fas fa-upload"></i> Import Trades
-            </button>
-            <div class="export-dropdown">
-                <button class="btn-secondary" @onclick="() => _showExportMenu = !_showExportMenu">
-                    Export ▾
+            @if (_activeTab == "trades")
+            {
+                <button class="btn-primary" @onclick="ShowImportModal">
+                    <i class="fas fa-upload"></i> Import Trades
                 </button>
-                @if (_showExportMenu)
-                {
-                    <div class="dropdown-menu">
-                        <button @onclick="ExportJson">JSON</button>
-                        <button @onclick="ExportCsv">CSV</button>
-                    </div>
-                }
-            </div>
+                <div class="export-dropdown">
+                    <button class="btn-secondary" @onclick="() => _showExportMenu = !_showExportMenu">
+                        Export ▾
+                    </button>
+                    @if (_showExportMenu)
+                    {
+                        <div class="dropdown-menu">
+                            <button @onclick="ExportJson">JSON</button>
+                            <button @onclick="ExportCsv">CSV</button>
+                        </div>
+                    }
+                </div>
+            }
         </div>
     </header>
 
-    @* Summary Stats *@
-    <TradeSummaryBar Summary="@_summary" />
+    @* Tab Navigation *@
+    <div class="tab-navigation">
+        <button class="tab-btn @(_activeTab == "trades" ? "active" : "")" @onclick='() => _activeTab = "trades"'>
+            <i class="fas fa-list"></i> Trades
+        </button>
+        <button class="tab-btn @(_activeTab == "analytics" ? "active" : "")" @onclick='() => _activeTab = "analytics"'>
+            <i class="fas fa-chart-pie"></i> Analytics
+        </button>
+    </div>
 
-    @* Filters *@
-    <TradeFilters AvailableSymbols="@TradeService.GetAllSymbols()"
-                  OnFiltersChanged="@HandleFiltersChanged" />
+    @if (_activeTab == "trades")
+    {
+        @* Summary Stats *@
+        <TradeSummaryBar Summary="@_summary" />
 
-    @* Trade Grid *@
-    <TradeGrid Trades="@GetFilteredTrades()"
-               OnTradeClick="@ShowTradeDetail" />
+        @* Filters *@
+        <TradeFilters AvailableSymbols="@TradeService.GetAllSymbols()"
+                      OnFiltersChanged="@HandleFiltersChanged" />
+
+        @* Trade Grid *@
+        <TradeGrid Trades="@GetFilteredTrades()"
+                   OnTradeClick="@ShowTradeDetail" />
+    }
+    else
+    {
+        @* Personal Analytics Dashboard *@
+        <PersonalDashboard />
+    }
 
     @* Trade Detail Modal *@
     <TradeDetailModal IsVisible="@_showDetailModal"
@@ -131,6 +152,7 @@
 @code {
     private TradeLogSummary _summary = new();
     private FilterState _currentFilters = new();
+    private string _activeTab = "trades";
     private bool _showExportMenu = false;
     private bool _showImportModal = false;
     private bool _showDetailModal = false;
@@ -430,6 +452,46 @@
 
     .btn-secondary:hover {
         background: var(--surface-3);
+    }
+
+    /* Tab Navigation */
+    .tab-navigation {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 0.5rem;
+    }
+
+    .tab-btn {
+        padding: 0.75rem 1.25rem;
+        border: none;
+        background: transparent;
+        color: var(--text-muted);
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 1rem;
+        border-radius: 6px 6px 0 0;
+        transition: all 0.15s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .tab-btn:hover {
+        color: var(--text-color);
+        background: var(--surface-1);
+    }
+
+    .tab-btn.active {
+        color: var(--accent);
+        background: var(--surface-1);
+        border-bottom: 2px solid var(--accent);
+        margin-bottom: -1px;
+    }
+
+    .tab-btn i {
+        font-size: 0.9rem;
     }
 
     .export-dropdown {
