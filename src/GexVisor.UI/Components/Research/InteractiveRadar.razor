@@ -1,6 +1,7 @@
 @using GexVisor.UI.Models
+@implements IDisposable
 
-<div class="interactive-radar" style="width: @(Size)px; height: @(Size)px;">
+<div class="interactive-radar" style="width: @(Size)px; height: @(Size)px;" @onmousemove="HandleMouseMove">
     <svg viewBox="-350 -350 700 700" class="radar-svg" preserveAspectRatio="xMidYMid meet">
         <!-- Connection lines (rendered before nodes) -->
         <ConnectionLines SelectedPath="@SelectedPath"
@@ -86,8 +87,11 @@
                @onclick="@(() => HandleNodeClick(path))"
                @onclick:stopPropagation="true"
                @onmouseenter="@(() => HandleNodeHover(path))"
-               @onmouseleave="@(() => HandleNodeHover(null))">
-                <!-- Invisible hit target for easier clicking -->
+               @onmouseleave="@(() => HandleNodeHover(null))"
+               @ontouchstart="@((e) => HandleTouchStart(e, path))"
+               @ontouchend="@((e) => HandleTouchEnd(e, path))"
+               @ontouchmove="@HandleTouchMove">
+                <!-- Invisible hit target for easier clicking/touching -->
                 <circle cx="0" cy="0" r="@(radius + 8)" fill="transparent" class="hit-target" />
                 <circle cx="0" cy="0" r="@radius" fill="@statusColor" class="node-circle" />
                 @if (!string.IsNullOrEmpty(path.LabelLong))
@@ -103,6 +107,12 @@
             </g>
         }
     </svg>
+
+    <!-- Desktop Tooltip -->
+    <RadarTooltip Path="@_hoveredPath"
+                  IsVisible="@(_hoveredPath != null && string.IsNullOrEmpty(SelectedPathId))"
+                  X="@_tooltipX"
+                  Y="@_tooltipY" />
 </div>
 
 @code {
@@ -134,6 +144,10 @@
     [Parameter] public EventCallback<ResearchPath?> OnFocusChange { get; set; }
 
     private ResearchPath? _hoveredPath;
+    private double _tooltipX;
+    private double _tooltipY;
+    private System.Threading.Timer? _longPressTimer;
+    private ResearchPath? _touchedPath;
 
     private IEnumerable<ResearchPath> DisplayPaths => Paths ?? ResearchPathData.Paths;
 
@@ -169,4 +183,86 @@
             await OnNodeHover.InvokeAsync(path);
         }
     }
+
+    private void HandleMouseMove(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+    {
+        // Position tooltip with offset to avoid cursor overlap
+        _tooltipX = e.ClientX + 15;
+        _tooltipY = e.ClientY + 15;
+
+        // Simple boundary detection to prevent tooltip from going off-screen
+        // Assume typical viewport widths - tooltip is max 250px wide
+        if (_tooltipX + 260 > 1920) // Conservative estimate
+        {
+            _tooltipX = e.ClientX - 270;
+        }
+
+        if (_tooltipY + 100 > 1080) // Conservative estimate
+        {
+            _tooltipY = e.ClientY - 110;
+        }
+    }
+
+    private void HandleTouchStart(Microsoft.AspNetCore.Components.Web.TouchEventArgs e, ResearchPath path)
+    {
+        _touchedPath = path;
+
+        // Start long-press timer (500ms)
+        _longPressTimer?.Dispose();
+        _longPressTimer = new System.Threading.Timer(_ =>
+        {
+            // Long-press detected: show tooltip for 2 seconds
+            InvokeAsync(() =>
+            {
+                _hoveredPath = _touchedPath;
+                StateHasChanged();
+            });
+
+            // Hide tooltip after 2 seconds
+            System.Threading.Timer? hideTimer = null;
+            hideTimer = new System.Threading.Timer(_ =>
+            {
+                InvokeAsync(() =>
+                {
+                    _hoveredPath = null;
+                    StateHasChanged();
+                });
+                hideTimer?.Dispose();
+            }, null, 2000, System.Threading.Timeout.Infinite);
+
+            _longPressTimer?.Dispose();
+            _longPressTimer = null;
+        }, null, 500, System.Threading.Timeout.Infinite);
+    }
+
+    private async Task HandleTouchEnd(Microsoft.AspNetCore.Components.Web.TouchEventArgs e, ResearchPath path)
+    {
+        // If timer still running, it's a tap (not long-press)
+        if (_longPressTimer != null)
+        {
+            _longPressTimer.Dispose();
+            _longPressTimer = null;
+
+            // Tap action: select the node
+            await HandleNodeClick(path);
+        }
+
+        _touchedPath = null;
+    }
+
+    private void HandleTouchMove(Microsoft.AspNetCore.Components.Web.TouchEventArgs e)
+    {
+        // Cancel long-press if finger moves
+        if (_longPressTimer != null)
+        {
+            _longPressTimer.Dispose();
+            _longPressTimer = null;
+        }
+    }
+
+    public void Dispose()
+    {
+        _longPressTimer?.Dispose();
+    }
 }
+

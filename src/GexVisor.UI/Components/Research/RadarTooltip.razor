@@ -1,0 +1,49 @@
+@using GexVisor.UI.Models
+
+@if (Path != null && IsVisible)
+{
+    <div class="radar-tooltip" style="left: @(X)px; top: @(Y)px;">
+        <div class="tooltip-title">@Path.Title</div>
+        <div class="tooltip-status" style="color: @GetStatusColor()">
+            @FormatEnumName(Path.Status)
+        </div>
+        <div class="tooltip-description">
+            @GetDescriptionPreview()
+        </div>
+    </div>
+}
+
+@code {
+    /// <summary>The research path to display in the tooltip.</summary>
+    [Parameter] public ResearchPath? Path { get; set; }
+
+    /// <summary>Whether the tooltip is visible.</summary>
+    [Parameter] public bool IsVisible { get; set; }
+
+    /// <summary>X coordinate in pixels.</summary>
+    [Parameter] public double X { get; set; }
+
+    /// <summary>Y coordinate in pixels.</summary>
+    [Parameter] public double Y { get; set; }
+
+    private string GetStatusColor()
+    {
+        if (Path == null) return "#888";
+        return ResearchPathData.StatusColors.GetValueOrDefault(Path.Status, "#888");
+    }
+
+    private string GetDescriptionPreview()
+    {
+        if (Path == null) return "";
+        var desc = Path.Description;
+        return desc.Length > 100 ? desc[..100] + "..." : desc;
+    }
+
+    private static string FormatEnumName<T>(T enumValue) where T : Enum
+    {
+        var name = enumValue.ToString();
+        return System.Text.RegularExpressions.Regex
+            .Replace(name, "(?<!^)([A-Z])", " $1")
+            .ToUpperInvariant();
+    }
+}
