@@ -26,7 +26,8 @@ tools.
 
 ### Prerequisites
 
-- **.NET 10.0 SDK** or later
+- **.NET 10 SDK** (10.0.102 or later)
+- **Node.js 18+**
 - Visual Studio 2022, Visual Studio Code, or JetBrains Rider
 - Git
 
@@ -79,7 +80,6 @@ GexVisor/
 ├── docs/                         # Documentation
 │   └── research-visuals/         # Interactive research visualizations
 ├── .editorconfig                 # Code style settings
-├── .pre-commit-config.yaml       # Git hooks configuration
 ├── GexVisor.NET.sln              # Solution file
 ├── CONTRIBUTING.md               # Development guide
 └── README.md                     # This file
@@ -94,7 +94,7 @@ This project enforces code quality through:
 - **EditorConfig:** Consistent formatting across editors
   (.NET, Markdown, YAML, JSON)
 - **Pre-commit hooks:** Automatic validation before commits
-  (markdown, YAML, C#)
+  (Husky.Net)
 - **GitHub Actions:** CI pipeline (linting, build, code quality)
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed development instructions.

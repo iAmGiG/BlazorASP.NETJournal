@@ -7,7 +7,8 @@ up your development environment and follow our code standards.
 
 ### Prerequisites
 
-- .NET 10.0 SDK or later
+- .NET 10 SDK (10.0.102 or later)
+- Node.js 18+ (for development tools)
 - Visual Studio 2022, Visual Studio Code, or JetBrains Rider
 - Git
 
@@ -49,16 +50,15 @@ All C# code follows the `.editorconfig` specification:
 
 ### Pre-Commit Hooks
 
-Pre-commit hooks validate code before you push it. This prevents bad commits from reaching the remote repository.
+This repository uses **Husky.Net** to validate code before you push it. This prevents bad commits from reaching the remote repository.
 
 #### Installation
 
-Install pre-commit framework:
-
-**macOS/Linux:**
+Restore local tools and install hooks:
 
 ```bash
-brew install pre-commit
+dotnet tool restore
+dotnet husky install
 ```
 
 **Windows:**
