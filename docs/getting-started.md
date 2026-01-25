@@ -191,3 +191,7 @@ dotnet restore
 - [GitHub Integration](github-integration.md) - Connect to GitHub Projects
 - [Research Roadmap](research-roadmap.md) - Understand the research context
 - [Architecture Decisions](adr/) - Review technical decisions
+
+---
+
+_Last Updated: 2026-01-24_

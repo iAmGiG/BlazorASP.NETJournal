@@ -95,3 +95,7 @@ For autogen-trader format, direction is inferred from P&L and price movement:
 - **Analytics** - Win rate, P&L statistics, tag performance breakdown
 - **Export** - JSON and CSV export formats
 - **GEX Visualizer integration** - Ctrl+Enter hotkey to create trade from current visualization
+
+---
+
+_Last Updated: 2026-01-24_

@@ -211,3 +211,7 @@ Add to `.csproj`:
 - [Roslynator](https://github.com/dotnet/roslynator)
 - [Husky.Net](https://github.com/alirezanet/Husky.Net)
 - [markdownlint](https://github.com/DavidAnson/markdownlint)
+
+---
+
+_Last Updated: 2026-01-24_

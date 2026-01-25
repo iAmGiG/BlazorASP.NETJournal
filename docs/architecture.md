@@ -670,3 +670,7 @@ Tracked in GitHub issues:
 - [state-diagrams.md](state-diagrams.md) - ASCII state machines
 - [github-integration.md](github-integration.md) - GitHub API details
 - [adr/](adr/) - Architecture Decision Records
+
+---
+
+_Last Updated: 2026-01-24_

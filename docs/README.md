@@ -27,22 +27,22 @@ New to GexVisor? Start here:
 
 ## Application Routes
 
-| Route | Description |
-|-------|-------------|
-| `/` | Home - module selection |
-| `/gex` | GEX Visualizer - interactive gamma exposure analysis |
-| `/arcade` | Research Arcade - gateway to research visualizations |
-| `/research/pipeline` | Data pipeline state diagram |
-| `/research/patterns` | Pattern discovery (KDD process) |
-| `/research/complexity` | Research complexity map |
-| `/research/paper2` | Structural agreement test |
-| `/trading` | Paper trading simulator |
-| `/tradelogging` | Trade Journal - autotrader log import and analysis |
-| `/comparison` | Comparison Dashboard - multi-asset regime analysis |
-| `/backtests` | Backtest results tracker |
-| `/notebook` | Research notebook |
-| `/tasks` | Task board (local + GitHub) |
-| `/chart-test` | Chart library test page |
+| Route | Description | Environment |
+|-------|-------------|-------------|
+| `/` | Home - module selection | Production |
+| `/gex` | GEX Visualizer - interactive gamma exposure analysis | Production |
+| `/arcade` | Research Arcade - gateway to research visualizations | Production |
+| `/research/pipeline` | Data pipeline state diagram | Production |
+| `/research/patterns` | Pattern discovery (KDD process) | Production |
+| `/research/complexity` | Research complexity map | Production |
+| `/research/paper2` | Structural agreement test | Production |
+| `/trading` | Paper trading simulator | Production |
+| `/tradelogging` | Trade Journal - autotrader log import and analysis | Production |
+| `/comparison` | Comparison Dashboard - multi-asset regime analysis | Production |
+| `/backtests` | Backtest results tracker | Production |
+| `/notebook` | Research notebook | Production |
+| `/tasks` | Task board (local + GitHub) | Production |
+| `/chart-test` | Chart library test sandbox | Development Only |
 
 **Note:** Research visualizations are accessible via both:
 - `/arcade` - Arcade-style visualization launcher

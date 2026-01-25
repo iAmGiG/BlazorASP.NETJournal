@@ -333,3 +333,7 @@ To add write-back support (currently read-only):
 - [GitHub GraphQL API](https://docs.github.com/en/graphql)
 - [GitHub OAuth Device Flow](https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps#device-flow)
 - [Personal Access Tokens](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
+
+---
+
+_Last Updated: 2026-01-24_

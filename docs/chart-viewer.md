@@ -176,3 +176,7 @@ Same limits apply as Live Data feature:
 - [#131 Trade Chart Component](https://github.com/iAmGiG/GexVisor/issues/131) - Chart with trade markers
 - [#132 Trade Journal Integration](https://github.com/iAmGiG/GexVisor/issues/132) - Modal integration
 - [#133 Export and Sharing](https://github.com/iAmGiG/GexVisor/issues/133) - Export features
+
+---
+
+_Last Updated: 2026-01-24_
