@@ -25,16 +25,16 @@ Live mode shows actual dealer hedging pressure derived from current open interes
 
 Before enabling live data, ensure:
 
-1. **API Backend Running**: Start the GexVisor.Api backend
+1. **API Backend Running**: Start the GexVisor.Api backend (see [API Setup Guide](api-setup.md) for details)
    ```bash
    dotnet run --project src/GexVisor.Api
    ```
 
-2. **API Key Configured**: Alpha Vantage API key in `appsettings.json` or environment variable
+2. **API Key Configured**: Alpha Vantage API key in `appsettings.json` or environment variable (see [API Setup Guide](api-setup.md#configuration))
    ```json
    {
-     "AlphaVantage": {
-       "ApiKey": "your-key-here"
+     "ApiKeys": {
+       "AlphaVantage": "your-key-here"
      }
    }
    ```
