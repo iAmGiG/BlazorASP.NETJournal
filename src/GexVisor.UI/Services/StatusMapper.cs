@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using GexVisor.UI.Configuration;
 
 namespace GexVisor.UI.Services;
 
@@ -7,14 +8,13 @@ namespace GexVisor.UI.Services;
 /// Service for normalizing GitHub project status names into standard columns.
 /// Enables unified view across multiple projects with different status naming conventions.
 /// </summary>
-public class StatusMapper
+public partial class StatusMapper
 {
     private readonly ILocalStorageService _storage;
 
-    private const string StorageKey = "gexvisor.statusMappings";
-
-    // Compiled regex for performance - used in hot path (status inference)
-    private static readonly Regex _hyphenUnderscoreNormalizer = new(@"[-_]+", RegexOptions.Compiled);
+    // Regex source generator for .NET 10 performance and AOT compatibility
+    [GeneratedRegex("[-_]+")]
+    private static partial Regex HyphenUnderscoreNormalizer();
 
     /// <summary>
     /// Standard normalized status columns.
@@ -70,7 +70,7 @@ public class StatusMapper
         foreach (var (status, patterns) in _defaultInferenceRules)
         {
             _normalizedDefaultPatterns[status] = patterns
-                .Select(p => (p, _hyphenUnderscoreNormalizer.Replace(p, " ")))
+                .Select(p => (p, HyphenUnderscoreNormalizer().Replace(p, " ")))
                 .ToArray();
         }
     }
@@ -90,7 +90,7 @@ public class StatusMapper
     /// </summary>
     public async Task LoadAsync()
     {
-        var stored = await _storage.GetAsync<StatusMappingsStore>(StorageKey);
+        var stored = await _storage.GetAsync<StatusMappingsStore>(AppConstants.Storage.StatusMappingsKey);
         if (stored?.ProjectMappings != null)
         {
             _customMappings = stored.ProjectMappings;
@@ -131,10 +131,18 @@ public class StatusMapper
     {
         var lower = rawStatus.ToLowerInvariant().Trim();
         // Normalize once before loop to avoid repeated regex operations
-        var normalizedText = _hyphenUnderscoreNormalizer.Replace(lower, " ");
+        var normalizedText = HyphenUnderscoreNormalizer().Replace(lower, " ");
 
-        foreach (var (normalizedStatus, patterns) in _normalizedDefaultPatterns)
+        // Iterate in deterministic order (Backlog -> In Progress -> Done)
+        // This is critical because "not started" (Backlog) contains "started" (In Progress).
+        // If In Progress is checked first, "not started" would incorrectly match as In Progress.
+        foreach (var normalizedStatus in NormalizedStatus.All)
         {
+            if (!_normalizedDefaultPatterns.TryGetValue(normalizedStatus, out var patterns))
+            {
+                continue;
+            }
+
             foreach (var (pattern, normalizedPattern) in patterns)
             {
                 // Exact match has highest priority
@@ -206,16 +214,22 @@ public class StatusMapper
         // Check inference rules
         var lower = rawStatus.ToLowerInvariant().Trim();
         // Normalize once before loop to avoid repeated regex operations
-        var normalizedText = _hyphenUnderscoreNormalizer.Replace(lower, " ");
+        var normalizedText = HyphenUnderscoreNormalizer().Replace(lower, " ");
 
-        foreach (var (normalizedStatus, patterns) in _normalizedDefaultPatterns)
+        foreach (var normalizedStatus in NormalizedStatus.All)
         {
+            if (!_normalizedDefaultPatterns.TryGetValue(normalizedStatus, out var patterns))
+            {
+                continue;
+            }
+
             foreach (var (pattern, normalizedPattern) in patterns)
             {
                 if (lower == pattern)
                 {
                     return (normalizedStatus, true, false);
                 }
+
                 if (MatchesWithWordBoundary(normalizedText, normalizedPattern))
                 {
                     return (normalizedStatus, false, false);
@@ -252,6 +266,7 @@ public class StatusMapper
             {
                 _customMappings.Remove(projectId);
             }
+
             await SaveAsync();
         }
     }
@@ -315,7 +330,7 @@ public class StatusMapper
         {
             ProjectMappings = _customMappings
         };
-        await _storage.SetAsync(StorageKey, store);
+        await _storage.SetAsync(AppConstants.Storage.StatusMappingsKey, store);
     }
 }
 

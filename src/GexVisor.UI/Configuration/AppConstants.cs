@@ -462,4 +462,16 @@ public static class AppConstants
         /// </summary>
         public const int ToastAnimationMs = 300;
     }
+
+    /// <summary>
+    /// LocalStorage persistence keys.
+    /// Centralizes storage key strings to prevent typos and enable easier refactoring.
+    /// </summary>
+    public static class Storage
+    {
+        /// <summary>
+        /// Storage key for GitHub status mappings (StatusMapper service).
+        /// </summary>
+        public const string StatusMappingsKey = "gexvisor.statusMappings";
+    }
 }
