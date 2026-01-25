@@ -189,7 +189,7 @@ State flow from raw data files to visualization.
 ```
 
 **Data flow per symbol:**
-1. `wwwroot/data/{symbol}_gex.json` loaded
+1. `wwwroot/data/{symbol}.json` loaded (e.g., `spy.json`, `aapl.json`)
 2. Parsed to `GexTimeline` model
 3. Regime analysis computed
 4. Available via `GexStateService`
