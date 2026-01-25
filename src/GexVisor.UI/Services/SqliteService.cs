@@ -11,8 +11,9 @@ namespace GexVisor.UI.Services;
 public class SqliteService : IAsyncDisposable
 {
     private readonly IJSRuntime _js;
-    private bool _initialized;
     private readonly List<string> _openDatabases = [];
+    private Task? _initTask;
+    private bool _initialized;
 
     public SqliteService(IJSRuntime js)
     {
@@ -21,14 +22,15 @@ public class SqliteService : IAsyncDisposable
 
     /// <summary>
     /// Initialize the sql.js library. Must be called before any database operations.
+    /// Thread-safe: caches the initialization Task to prevent duplicate JS calls.
     /// </summary>
-    public async Task InitAsync()
+    public Task InitAsync()
     {
-        if (_initialized)
-        {
-            return;
-        }
+        return _initTask ??= InitCoreAsync();
+    }
 
+    private async Task InitCoreAsync()
+    {
         await _js.InvokeVoidAsync("SqlJsInterop.init");
         _initialized = true;
     }
