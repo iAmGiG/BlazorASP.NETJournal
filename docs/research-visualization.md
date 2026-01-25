@@ -277,11 +277,44 @@ The validated core (Ring 0) achieved:
 
 These metrics represent the baseline performance of the GEX analysis system.
 
+## Data Loading
+
+Research path data is loaded from JSON via `IResearchPathService`:
+
+**Data Source:** `wwwroot/data/research-paths.json`
+
+**Service Interface:**
+```csharp
+public interface IResearchPathService
+{
+    ResearchPath[] Paths { get; }
+    Task<ResearchPath[]> LoadPathsAsync();
+    Task<ResearchPath?> GetPathByIdAsync(string id);
+}
+```
+
+**Usage in Components:**
+```razor
+@inject IResearchPathService ResearchPathService
+
+@code {
+    private ResearchPath[] _paths = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _paths = await ResearchPathService.LoadPathsAsync();
+    }
+}
+```
+
+**Benefits:**
+- Content updates without recompilation
+- Caching after first load
+- Consistent data across all radar components
+
 ## Future Enhancements
 
 **Planned (not yet implemented):**
-- Animated connection lines between related nodes
-- MiniRadar component for cards/previews
 - Export to PNG/SVG for presentations
 - Historical view (show radar state over time as research progressed)
 
@@ -323,4 +356,4 @@ These metrics represent the baseline performance of the GEX analysis system.
 
 ---
 
-_Last Updated: 2026-01-24_
+_Last Updated: 2026-01-25_

@@ -4,13 +4,14 @@ Detailed technical documentation of the GexVisor system architecture.
 
 ## Service Inventory
 
-GexVisor has 28 services organized into 7 functional domains:
+GexVisor has 29 services organized into 8 functional domains:
 
 - **Core Services** (3): State management, data loading, local storage
 - **Journal Services** (7): Trade logging, paper trading, research notes
 - **GitHub Integration** (4): OAuth, project queries, status mapping
 - **Cross-Asset Analysis** (2): Symbol comparison, correlation analysis
 - **Alert Services** (1): GEX threshold monitoring, regime change alerts
+- **Research Services** (1): Research path data loading
 - **Utilities** (4): Tags, SQLite, parsers, persistence
 - **Live Data Services** (7): Market data, options chains, GEX calculation, caching
 
@@ -85,6 +86,25 @@ All inherit from `BaseEntryService<T>` using the Template Method pattern.
 - Auto-dismiss timer (default 30 seconds)
 - LocalStorage persistence for preferences
 - Toast notification UI via AlertManager component
+
+### Research Services (1)
+
+| Service | Lifetime | Interface | Responsibility |
+|---------|----------|-----------|----------------|
+| `ResearchPathService` | Scoped | ✅ `IResearchPathService` | Load research paths from JSON, caching |
+
+**IResearchPathService Interface Methods:**
+
+- `LoadPathsAsync()` - Load all research paths (cached after first call)
+- `GetPathByIdAsync(string id)` - Get specific path by ID
+- `Paths` - Property returning cached paths array
+
+**Data Source:** `wwwroot/data/research-paths.json`
+
+**Benefits:**
+
+- Content updates without recompilation
+- Consistent data across InteractiveRadar, MiniRadar, ResearchArcade, ResearchComplexityMap
 
 ### Live Data Services (7)
 
@@ -224,6 +244,9 @@ builder.Services.AddScoped<DecisionMetadataParser>();
 
 // Alert services (#159)
 builder.Services.AddScoped<IAlertService, AlertService>();
+
+// Research services (#176)
+builder.Services.AddScoped<IResearchPathService, ResearchPathService>();
 
 // Live market data services (Epic #145)
 builder.Services.AddSingleton<IApiConfigService, ApiConfigService>();
@@ -411,7 +434,12 @@ displaying abandoned, deferred, and completed research by barrier type and compl
 **Static Data:**
 
 - `RadarConstants` - Ring radii, quadrant angles, foundation stats (71.5% detection, 91.2% accuracy)
-- `ResearchPathData` - 16 research paths with barrier descriptions, color maps
+- Color dictionaries for status and quadrant styling
+
+**JSON Data Source:**
+
+- `wwwroot/data/research-paths.json` - 15 research paths with barrier descriptions
+- Loaded via `IResearchPathService` (see Research Services section)
 
 ### Radar Layout
 
@@ -614,7 +642,13 @@ Tracked in GitHub issues:
 | #162 | Historical GEX Calculation Backfill | Medium |
 | #110 | Self-Tracking Metrics Dashboard (Epic) | Medium |
 | #175 | Complete ResearchPath enum migration | Low |
-| #176 | Extract ResearchPathData to JSON | Low |
+
+### Recently Closed (Session 25)
+
+| Issue | Title                                      | Resolution                                 |
+|-------|--------------------------------------------|--------------------------------------------|
+| #176  | Extract ResearchPathData to JSON           | IResearchPathService, JSON data file       |
+| #177  | Interactive Research Radar Enhancement     | Epic complete (6 phases)                   |
 
 ### Recently Closed (Session 22)
 
@@ -673,4 +707,4 @@ Tracked in GitHub issues:
 
 ---
 
-_Last Updated: 2026-01-24_
+_Last Updated: 2026-01-25_
