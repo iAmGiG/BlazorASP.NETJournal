@@ -5,7 +5,7 @@
     <div class="radar-tooltip" style="left: @(X)px; top: @(Y)px;">
         <div class="tooltip-title">@Path.Title</div>
         <div class="tooltip-status" style="color: @GetStatusColor()">
-            @FormatEnumName(Path.Status)
+            @RadarHelpers.FormatEnumName(Path.Status).ToUpperInvariant()
         </div>
         <div class="tooltip-description">
             @GetDescriptionPreview()
@@ -37,13 +37,5 @@
         if (Path == null) return "";
         var desc = Path.Description;
         return desc.Length > 100 ? desc[..100] + "..." : desc;
-    }
-
-    private static string FormatEnumName<T>(T enumValue) where T : Enum
-    {
-        var name = enumValue.ToString();
-        return System.Text.RegularExpressions.Regex
-            .Replace(name, "(?<!^)([A-Z])", " $1")
-            .ToUpperInvariant();
     }
 }

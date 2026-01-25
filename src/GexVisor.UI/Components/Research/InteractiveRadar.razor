@@ -1,4 +1,5 @@
 @using GexVisor.UI.Models
+@using GexVisor.UI.Configuration
 @implements IDisposable
 
 <div class="interactive-radar" style="width: @(Size)px; height: @(Size)px;" @onmousemove="HandleMouseMove">
@@ -11,7 +12,7 @@
         <!-- Quadrant backgrounds -->
         @foreach (var q in ResearchPathData.Quadrants.Where(x => x.Key != ResearchQuadrant.None))
         {
-            var angles = QuadrantAngles[q.Key];
+            var angles = RadarHelpers.GetQuadrantAngles(q.Key);
             var startRad = (angles.Start - 90) * Math.PI / 180;
             var endRad = (angles.End - 90) * Math.PI / 180;
             var outerR = RingRadii[^1];
@@ -33,7 +34,7 @@
         <!-- Quadrant dividing lines -->
         @foreach (var q in ResearchPathData.Quadrants.Where(x => x.Key != ResearchQuadrant.None))
         {
-            var angles = QuadrantAngles[q.Key];
+            var angles = RadarHelpers.GetQuadrantAngles(q.Key);
             var rad = (angles.Start - 90) * Math.PI / 180;
             var outerR = RingRadii[^1];
             <line x1="0" y1="0" x2="@F(outerR * Math.Cos(rad))" y2="@F(outerR * Math.Sin(rad))"
@@ -51,7 +52,7 @@
             <!-- Quadrant labels -->
             @foreach (var q in ResearchPathData.Quadrants.Where(x => x.Key != ResearchQuadrant.None))
             {
-                var angles = QuadrantAngles[q.Key];
+                var angles = RadarHelpers.GetQuadrantAngles(q.Key);
                 var midAngle = (angles.Start + angles.End) / 2.0;
                 var rad = (midAngle - 90) * Math.PI / 180;
                 var r = RingRadii[^1] + 22;
@@ -66,7 +67,7 @@
         <g class="center-pulse">
             <circle cx="0" cy="0" r="45" class="center-bg" />
             @SvgText("0", "-8", "center-label", "VALIDATED")
-            @SvgText("0", "7", "center-sublabel", $"{RadarConstants.FoundationStats.DetectionRate} / {RadarConstants.FoundationStats.Accuracy}")
+            @SvgText("0", "7", "center-sublabel", "71.5% / 91.2%")
         </g>
 
         <!-- Research nodes -->
@@ -146,7 +147,7 @@
     private ResearchPath? _hoveredPath;
     private double _tooltipX;
     private double _tooltipY;
-    private System.Threading.Timer? _longPressTimer;
+    private CancellationTokenSource? _longPressCts;
     private ResearchPath? _touchedPath;
 
     private IEnumerable<ResearchPath> DisplayPaths => Paths ?? [];
@@ -155,8 +156,7 @@
         ? null
         : DisplayPaths.FirstOrDefault(p => p.Id == SelectedPathId);
 
-    private static int[] RingRadii => RadarConstants.RingRadii;
-    private static Dictionary<ResearchQuadrant, (int Start, int End)> QuadrantAngles => RadarConstants.QuadrantAngles;
+    private static int[] RingRadii => RadarHelpers.RingRadii;
 
     private (double X, double Y) GetNodePosition(ResearchPath path) =>
         RadarHelpers.GetNodePosition(path);
@@ -165,7 +165,7 @@
         RadarHelpers.FormatSvg(value);
 
     private MarkupString SvgText(string x, string y, string className, string content, string? fill = null, string? transform = null) =>
-        new($"<text x=\"{x}\" y=\"{y}\" class=\"{className}\"{(fill != null ? $" fill=\"{fill}\"" : "")}{(transform != null ? $" transform=\"{transform}\"" : "")}>{System.Web.HttpUtility.HtmlEncode(content)}</text>");
+        new($"<text x=\"{x}\" y=\"{y}\" class=\"{className}\"{(fill != null ? $" fill=\"{fill}\"" : "")}{(transform != null ? $" transform=\"{transform}\"" : "")}>{System.Net.WebUtility.HtmlEncode(content)}</text>");
 
     private async Task HandleNodeClick(ResearchPath path)
     {
@@ -206,63 +206,56 @@
     private void HandleTouchStart(Microsoft.AspNetCore.Components.Web.TouchEventArgs e, ResearchPath path)
     {
         _touchedPath = path;
+        _longPressCts?.Cancel();
+        _longPressCts = new CancellationTokenSource();
 
-        // Start long-press timer (500ms)
-        _longPressTimer?.Dispose();
-        _longPressTimer = new System.Threading.Timer(_ =>
+        _ = LongPressTask(_longPressCts.Token, path);
+    }
+
+    private async Task LongPressTask(CancellationToken token, ResearchPath path)
+    {
+        try
         {
+            // Wait for long press duration
+            await Task.Delay(500, token);
+            if (token.IsCancellationRequested) return;
+
             // Long-press detected: show tooltip for 2 seconds
-            InvokeAsync(() =>
-            {
-                _hoveredPath = _touchedPath;
-                StateHasChanged();
-            });
+            _hoveredPath = path;
+            StateHasChanged();
 
-            // Hide tooltip after 2 seconds
-            System.Threading.Timer? hideTimer = null;
-            hideTimer = new System.Threading.Timer(_ =>
-            {
-                InvokeAsync(() =>
-                {
-                    _hoveredPath = null;
-                    StateHasChanged();
-                });
-                hideTimer?.Dispose();
-            }, null, 2000, System.Threading.Timeout.Infinite);
+            // Wait then hide
+            await Task.Delay(2000, token);
+            if (token.IsCancellationRequested) return;
 
-            _longPressTimer?.Dispose();
-            _longPressTimer = null;
-        }, null, 500, System.Threading.Timeout.Infinite);
+            _hoveredPath = null;
+            StateHasChanged();
+        }
+        catch (TaskCanceledException)
+        {
+            // Ignore cancellation
+        }
     }
 
     private async Task HandleTouchEnd(Microsoft.AspNetCore.Components.Web.TouchEventArgs e, ResearchPath path)
     {
-        // If timer still running, it's a tap (not long-press)
-        if (_longPressTimer != null)
+        // If we haven't triggered the long press yet (token not cancelled by timeout logic), it's a tap
+        if (_longPressCts != null && !_longPressCts.IsCancellationRequested && _hoveredPath != path)
         {
-            _longPressTimer.Dispose();
-            _longPressTimer = null;
-
-            // Tap action: select the node
+            _longPressCts.Cancel();
             await HandleNodeClick(path);
         }
-
         _touchedPath = null;
     }
 
     private void HandleTouchMove(Microsoft.AspNetCore.Components.Web.TouchEventArgs e)
     {
-        // Cancel long-press if finger moves
-        if (_longPressTimer != null)
-        {
-            _longPressTimer.Dispose();
-            _longPressTimer = null;
-        }
+        _longPressCts?.Cancel();
     }
 
     public void Dispose()
     {
-        _longPressTimer?.Dispose();
+        _longPressCts?.Cancel();
+        _longPressCts?.Dispose();
     }
 }
-

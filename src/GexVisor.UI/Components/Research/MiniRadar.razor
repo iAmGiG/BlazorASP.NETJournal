@@ -1,5 +1,6 @@
 @using GexVisor.UI.Models
 @using GexVisor.UI.Services
+@using GexVisor.UI.Configuration
 @inject IResearchPathService ResearchPathService
 
 <div class="mini-radar" style="width: @(Size)px; height: @(Size)px;">
@@ -7,7 +8,7 @@
         <!-- Quadrant backgrounds -->
         @foreach (var q in ResearchPathData.Quadrants.Where(x => x.Key != ResearchQuadrant.None))
         {
-            var angles = QuadrantAngles[q.Key];
+            var angles = RadarHelpers.GetQuadrantAngles(q.Key);
             var startRad = (angles.Start - 90) * Math.PI / 180;
             var endRad = (angles.End - 90) * Math.PI / 180;
             var outerR = RingRadii[^1];
@@ -29,7 +30,7 @@
         <!-- Quadrant dividing lines -->
         @foreach (var q in ResearchPathData.Quadrants.Where(x => x.Key != ResearchQuadrant.None))
         {
-            var angles = QuadrantAngles[q.Key];
+            var angles = RadarHelpers.GetQuadrantAngles(q.Key);
             var rad = (angles.Start - 90) * Math.PI / 180;
             var outerR = RingRadii[^1];
             <line x1="0" y1="0" x2="@F(outerR * Math.Cos(rad))" y2="@F(outerR * Math.Sin(rad))"
@@ -39,7 +40,7 @@
         <!-- Center -->
         <g class="center-pulse">
             <circle cx="0" cy="0" r="40" class="center-bg" />
-            @SvgText("0", "-5", "center-label", RadarConstants.FoundationStats.DetectionRate)
+            @SvgText("0", "-5", "center-label", "71.5%")
             @SvgText("0", "10", "center-sublabel", "VALIDATED")
         </g>
 
@@ -83,31 +84,21 @@
 
     private ResearchPath[] _paths = [];
 
-    private static int[] RingRadii => RadarConstants.RingRadii;
-    private static Dictionary<ResearchQuadrant, (int Start, int End)> QuadrantAngles => RadarConstants.QuadrantAngles;
+    private static int[] RingRadii => RadarHelpers.RingRadii;
 
     protected override async Task OnInitializedAsync()
     {
         _paths = await ResearchPathService.LoadPathsAsync();
     }
 
-    private (double X, double Y) GetNodePosition(ResearchPath path)
-    {
-        var angles = QuadrantAngles.GetValueOrDefault(path.Quadrant, (Start: 0, End: 90));
-        var angleRange = angles.End - angles.Start;
-        var normalizedAngle = angles.Start + (path.Angle / 180.0) * angleRange;
-        var rad = (normalizedAngle - 90) * Math.PI / 180;
-        var innerR = RingRadii[path.Ring];
-        var outerR = path.Ring + 1 < RingRadii.Length ? RingRadii[path.Ring + 1] : RingRadii[path.Ring] + 50;
-        var r = (innerR + outerR) / 2.0;
-        return (r * Math.Cos(rad), r * Math.Sin(rad));
-    }
+    private static (double X, double Y) GetNodePosition(ResearchPath path) =>
+        RadarHelpers.GetNodePosition(path);
 
     private string F(double value) =>
         value.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
 
     private MarkupString SvgText(string x, string y, string className, string content) =>
-        new($"<text x=\"{x}\" y=\"{y}\" class=\"{className}\">{System.Web.HttpUtility.HtmlEncode(content)}</text>");
+        new($"<text x=\"{x}\" y=\"{y}\" class=\"{className}\">{System.Net.WebUtility.HtmlEncode(content)}</text>");
 
     private async Task HandleNodeClick(ResearchPath path)
     {

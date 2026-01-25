@@ -17,10 +17,10 @@
 
         <div class="modal-badges">
             <span class="badge status-badge" style="background: @statusColor">
-                @FormatEnumName(Path.Status)
+                @RadarHelpers.FormatEnumName(Path.Status)
             </span>
             <span class="badge taxonomy-badge" style="background: @taxonomyColors.Item1; color: @taxonomyColors.Item2">
-                @FormatEnumName(Path.Taxonomy)
+                @RadarHelpers.FormatEnumName(Path.Taxonomy)
             </span>
             <span class="badge ring-badge">
                 Ring @Path.Ring
@@ -121,11 +121,5 @@
             await OnRelatedClick.InvokeAsync(tag);
         }
         await HandleClose();
-    }
-
-    private static string FormatEnumName<T>(T enumValue) where T : Enum
-    {
-        var name = enumValue.ToString();
-        return System.Text.RegularExpressions.Regex.Replace(name, "(?<!^)([A-Z])", " $1");
     }
 }
