@@ -1,0 +1,80 @@
+@using GexVisor.UI.Models
+
+@if (SelectedPath != null)
+{
+    @foreach (var connection in GetConnections())
+    {
+        <path d="@connection.PathData"
+              class="connection-line visible"
+              stroke="rgba(100, 180, 255, 0.5)"
+              stroke-width="2"
+              fill="none"
+              pointer-events="none" />
+    }
+}
+
+@code {
+    /// <summary>The currently selected research path to show connections from.</summary>
+    [Parameter] public ResearchPath? SelectedPath { get; set; }
+
+    /// <summary>All research paths to find connections within.</summary>
+    [Parameter] public IEnumerable<ResearchPath>? AllPaths { get; set; }
+
+    /// <summary>SVG viewBox size (must match radar size for correct positioning).</summary>
+    [Parameter] public int Size { get; set; } = 600;
+
+    private record Connection(string PathData, ResearchPath Target);
+
+    private IEnumerable<Connection> GetConnections()
+    {
+        if (SelectedPath == null || AllPaths == null)
+        {
+            yield break;
+        }
+
+        foreach (var path in AllPaths.Where(p => p.Id != SelectedPath.Id))
+        {
+            // Word-level matching: check if any word from selected path's Related tags
+            // appears in this path's Related tags
+            var sharedConcepts = SelectedPath.Related
+                .SelectMany(selectedTag => path.Related
+                    .Where(pathTag =>
+                    {
+                        // Split both tags into words and compare (case-insensitive)
+                        var selectedWords = selectedTag.ToLower().Split(' ');
+                        var pathWords = pathTag.ToLower().Split(' ');
+                        return selectedWords.Any(sw => pathWords.Any(pw => pw.Contains(sw) || sw.Contains(pw)));
+                    }))
+                .Any();
+
+            if (!sharedConcepts)
+            {
+                continue;
+            }
+
+            var (x1, y1) = RadarHelpers.GetNodePosition(SelectedPath);
+            var (x2, y2) = RadarHelpers.GetNodePosition(path);
+
+            // Calculate quadratic Bezier control point with perpendicular offset
+            var midX = (x1 + x2) / 2.0;
+            var midY = (y1 + y2) / 2.0;
+            var dist = Math.Sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+
+            // Curve amount: 20% of distance
+            var curve = dist * 0.2;
+
+            // Perpendicular offset from line direction
+            var perpX = -(y2 - y1) / dist * curve;
+            var perpY = (x2 - x1) / dist * curve;
+
+            // Control point
+            var cx = midX + perpX;
+            var cy = midY + perpY;
+
+            yield return new Connection(
+                $"M {RadarHelpers.FormatSvg(x1)} {RadarHelpers.FormatSvg(y1)} Q {RadarHelpers.FormatSvg(cx)} {RadarHelpers.FormatSvg(cy)} {RadarHelpers.FormatSvg(x2)} {RadarHelpers.FormatSvg(y2)}",
+                path
+            );
+        }
+    }
+}

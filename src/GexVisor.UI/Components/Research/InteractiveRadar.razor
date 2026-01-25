@@ -2,6 +2,11 @@
 
 <div class="interactive-radar" style="width: @(Size)px; height: @(Size)px;">
     <svg viewBox="-350 -350 700 700" class="radar-svg" preserveAspectRatio="xMidYMid meet">
+        <!-- Connection lines (rendered before nodes) -->
+        <ConnectionLines SelectedPath="@SelectedPath"
+                         AllPaths="@DisplayPaths"
+                         Size="@Size" />
+
         <!-- Quadrant backgrounds -->
         @foreach (var q in ResearchPathData.Quadrants.Where(x => x.Key != ResearchQuadrant.None))
         {
@@ -125,23 +130,18 @@
 
     private IEnumerable<ResearchPath> DisplayPaths => Paths ?? ResearchPathData.Paths;
 
+    private ResearchPath? SelectedPath => string.IsNullOrEmpty(SelectedPathId)
+        ? null
+        : DisplayPaths.FirstOrDefault(p => p.Id == SelectedPathId);
+
     private static int[] RingRadii => RadarConstants.RingRadii;
     private static Dictionary<ResearchQuadrant, (int Start, int End)> QuadrantAngles => RadarConstants.QuadrantAngles;
 
-    private (double X, double Y) GetNodePosition(ResearchPath path)
-    {
-        var angles = QuadrantAngles.GetValueOrDefault(path.Quadrant, (Start: 0, End: 90));
-        var angleRange = angles.End - angles.Start;
-        var normalizedAngle = angles.Start + (path.Angle / 180.0) * angleRange;
-        var rad = (normalizedAngle - 90) * Math.PI / 180;
-        var innerR = RingRadii[path.Ring];
-        var outerR = path.Ring + 1 < RingRadii.Length ? RingRadii[path.Ring + 1] : RingRadii[path.Ring] + 50;
-        var r = (innerR + outerR) / 2.0;
-        return (r * Math.Cos(rad), r * Math.Sin(rad));
-    }
+    private (double X, double Y) GetNodePosition(ResearchPath path) =>
+        RadarHelpers.GetNodePosition(path);
 
     private string F(double value) =>
-        value.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+        RadarHelpers.FormatSvg(value);
 
     private MarkupString SvgText(string x, string y, string className, string content, string? fill = null, string? transform = null) =>
         new($"<text x=\"{x}\" y=\"{y}\" class=\"{className}\"{(fill != null ? $" fill=\"{fill}\"" : "")}{(transform != null ? $" transform=\"{transform}\"" : "")}>{System.Web.HttpUtility.HtmlEncode(content)}</text>");
