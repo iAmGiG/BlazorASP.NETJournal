@@ -4,7 +4,15 @@ Detailed technical documentation of the GexVisor system architecture.
 
 ## Service Inventory
 
-GexVisor has 28 services organized into 7 functional domains.
+GexVisor has 28 services organized into 7 functional domains:
+
+- **Core Services** (3): State management, data loading, local storage
+- **Journal Services** (7): Trade logging, paper trading, research notes
+- **GitHub Integration** (4): OAuth, project queries, status mapping
+- **Cross-Asset Analysis** (2): Symbol comparison, correlation analysis
+- **Alert Services** (1): GEX threshold monitoring, regime change alerts
+- **Utilities** (4): Tags, SQLite, parsers, persistence
+- **Live Data Services** (7): Market data, options chains, GEX calculation, caching
 
 ### Core Services (3)
 
@@ -82,7 +90,7 @@ All inherit from `BaseEntryService<T>` using the Template Method pattern.
 
 | Service | Lifetime | Interface | Responsibility |
 |---------|----------|-----------|----------------|
-| `ApiConfigService` | Singleton | ✅ `IApiConfigService` | API key management (config.json + env vars) |
+| `ApiConfigService` | Singleton | ✅ `IApiConfigService` | API key management (appsettings.json + env vars) |
 | `MarketDataService` | Singleton | ✅ `IMarketDataService` | Quote/bar fetching with provider fallback |
 | `OptionsChainService` | Singleton | ✅ `IOptionsChainService` | Options chain fetching from Alpha Vantage |
 | `GexCalculationService` | Singleton | ✅ `IGexCalculationService` | GEX calculation engine |

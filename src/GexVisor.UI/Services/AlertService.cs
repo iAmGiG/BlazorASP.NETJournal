@@ -8,6 +8,13 @@ namespace GexVisor.UI.Services;
 /// Service for monitoring GEX conditions and triggering alerts.
 /// Subscribes to GexStateService and evaluates alert conditions on each update.
 /// </summary>
+/// <remarks>
+/// Thread Safety: This service is NOT thread-safe and assumes execution on a single thread
+/// (Blazor UI synchronization context). If IGexStateService fires OnStateChanged from a
+/// background thread, callers must marshal to the UI thread via InvokeAsync before
+/// invoking this service's event handlers. Concurrent access to CheckConditions(),
+/// TryTriggerAlert(), or DismissAlert() will result in race conditions.
+/// </remarks>
 public class AlertService : IAlertService
 {
     private readonly IGexStateService _gexState;

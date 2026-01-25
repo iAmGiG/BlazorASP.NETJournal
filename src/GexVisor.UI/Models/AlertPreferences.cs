@@ -1,3 +1,5 @@
+using GexVisor.UI.Configuration;
+
 namespace GexVisor.UI.Models;
 
 /// <summary>
@@ -22,22 +24,22 @@ public record AlertPreferences
     public bool PriceMovementEnabled { get; init; } = true;
 
     /// <summary>Upper GEX threshold in billions (alert when exceeded).</summary>
-    public decimal GexUpperThreshold { get; init; } = 5.0m;
+    public decimal GexUpperThreshold { get; init; } = AppConstants.Alerts.DefaultGexUpperThreshold;
 
     /// <summary>Lower GEX threshold in billions (alert when dropped below).</summary>
-    public decimal GexLowerThreshold { get; init; } = -2.0m;
+    public decimal GexLowerThreshold { get; init; } = AppConstants.Alerts.DefaultGexLowerThreshold;
 
     /// <summary>Price movement percentage threshold for alerts.</summary>
-    public decimal PriceMovementThreshold { get; init; } = 1.0m;
+    public decimal PriceMovementThreshold { get; init; } = AppConstants.Alerts.DefaultPriceMovementThreshold;
 
     /// <summary>Cooldown period between alerts of same type (seconds).</summary>
-    public int AlertCooldownSeconds { get; init; } = 300;
+    public int AlertCooldownSeconds { get; init; } = AppConstants.Alerts.DefaultCooldownSeconds;
 
     /// <summary>Auto-dismiss alerts after this many seconds (0 = manual dismiss only).</summary>
-    public int AutoDismissSeconds { get; init; } = 30;
+    public int AutoDismissSeconds { get; init; } = AppConstants.Alerts.DefaultAutoDismissSeconds;
 
     /// <summary>Maximum alerts to keep in history.</summary>
-    public int MaxHistoryCount { get; init; } = 50;
+    public int MaxHistoryCount { get; init; } = AppConstants.Alerts.MaxHistoryCount;
 
     /// <summary>
     /// Creates default preferences.

@@ -29,14 +29,18 @@ The application will start at `https://localhost:5001` (or the port shown in the
 ```
 GexVisor/
 ├── src/
-│   └── GexVisor.UI/           # Blazor WebAssembly application
-│       ├── Components/        # Reusable Blazor components
-│       ├── Models/            # Data models and types
-│       ├── Pages/             # Routable page components
-│       ├── Services/          # Application services
-│       └── wwwroot/           # Static assets (CSS, data files)
+│   ├── GexVisor.UI/           # Blazor WebAssembly application
+│   │   ├── Components/        # Reusable Blazor components
+│   │   ├── Models/            # Data models and types
+│   │   ├── Pages/             # Routable page components
+│   │   ├── Services/          # Application services
+│   │   └── wwwroot/           # Static assets (CSS, data files)
+│   ├── GexVisor.Api/          # Backend API for live data
+│   └── GexVisor.Core/         # Shared models and interfaces
 ├── tests/
-│   └── GexVisor.UI.Tests/     # Unit and component tests
+│   ├── GexVisor.UI.Tests/     # UI unit and component tests (243 tests)
+│   ├── GexVisor.Api.Tests/    # API unit tests (74 tests)
+│   └── GexVisor.Core.Tests/   # Core unit tests (35 tests)
 └── docs/                      # Documentation
 ```
 

@@ -166,7 +166,7 @@ Same limits apply as Live Data feature:
 
 - [Architecture](architecture.md) - PriceDataService and chart pipeline
 - [Live Data](live-data.md) - Market data providers
-- [ADR-0008](adr/ADR-0008-chart-library.md) - Chart library selection rationale
+- [ADR-0008](adr/0008-chart-library-selection.md) - Chart library selection rationale
 
 ## Related Issues
 

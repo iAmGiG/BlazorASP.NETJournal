@@ -98,9 +98,10 @@ GitHub Actions automatically run on:
 
 ## Analyzers Installed
 
-### Microsoft.CodeAnalysis.NetAnalyzers (v8.0.0)
+### Microsoft.CodeAnalyzers.NetAnalyzers (v10.0.100)
 - Built-in .NET code analysis
 - Performance, security, design rules
+- Updated from v8.0.0 to resolve SDK 10.0.102 compatibility warnings
 
 ### StyleCop.Analyzers (v1.2.0-beta.556)
 - Code style enforcement
