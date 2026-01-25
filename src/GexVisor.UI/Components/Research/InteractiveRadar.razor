@@ -149,7 +149,7 @@
     private System.Threading.Timer? _longPressTimer;
     private ResearchPath? _touchedPath;
 
-    private IEnumerable<ResearchPath> DisplayPaths => Paths ?? ResearchPathData.Paths;
+    private IEnumerable<ResearchPath> DisplayPaths => Paths ?? [];
 
     private ResearchPath? SelectedPath => string.IsNullOrEmpty(SelectedPathId)
         ? null

@@ -2,3 +2,4 @@
 # Run tools/export_data.py to generate
 *.json
 !.gitignore
+!research-paths.json

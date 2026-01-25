@@ -1,7 +1,9 @@
 @page "/arcade"
 @using GexVisor.UI.Components.Research
 @using GexVisor.UI.Models
+@using GexVisor.UI.Services
 @using Microsoft.AspNetCore.Components.Web
+@inject IResearchPathService ResearchPathService
 
 <PageTitle>Research Arcade - GexVisor</PageTitle>
 
@@ -50,13 +52,14 @@
             <div class="radar-wrapper" tabindex="0" @onkeydown="HandleKeyDown">
                 <InteractiveRadar Size="500"
                                   ShowLabels="true"
+                                  Paths="@_paths"
                                   SelectedPathId="@_selectedPath?.Id"
                                   FocusedPathId="@_focusedPath?.Id"
                                   OnNodeClick="SelectPath"
                                   OnFocusChange="HandleFocusChange" />
 
                 <ConnectionLines SelectedPath="@_selectedPath"
-                                 AllPaths="@ResearchPathData.Paths"
+                                 AllPaths="@_paths"
                                  Size="500" />
             </div>
 
@@ -208,8 +211,14 @@
 @code {
     private const string GammaSymbol = "\u0393";
 
+    private ResearchPath[] _paths = [];
     private ResearchPath? _selectedPath;
     private ResearchPath? _focusedPath;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _paths = await ResearchPathService.LoadPathsAsync();
+    }
 
     private void SelectPath(ResearchPath path)
     {
@@ -228,26 +237,25 @@
 
     private void HandleKeyDown(KeyboardEventArgs e)
     {
-        var pathsList = ResearchPathData.Paths.ToList();
-        if (pathsList.Count == 0) return;
+        if (_paths.Length == 0) return;
 
         // Find current focus index
         var currentIndex = _focusedPath != null
-            ? pathsList.FindIndex(p => p.Id == _focusedPath.Id)
+            ? Array.FindIndex(_paths, p => p.Id == _focusedPath.Id)
             : -1;
 
         switch (e.Key)
         {
             case "ArrowRight":
             case "ArrowDown":
-                currentIndex = (currentIndex + 1) % pathsList.Count;
-                _focusedPath = pathsList[currentIndex];
+                currentIndex = (currentIndex + 1) % _paths.Length;
+                _focusedPath = _paths[currentIndex];
                 break;
 
             case "ArrowLeft":
             case "ArrowUp":
-                currentIndex = currentIndex <= 0 ? pathsList.Count - 1 : currentIndex - 1;
-                _focusedPath = pathsList[currentIndex];
+                currentIndex = currentIndex <= 0 ? _paths.Length - 1 : currentIndex - 1;
+                _focusedPath = _paths[currentIndex];
                 break;
 
             case "Enter":

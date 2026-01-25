@@ -1,4 +1,6 @@
 @using GexVisor.UI.Models
+@using GexVisor.UI.Services
+@inject IResearchPathService ResearchPathService
 
 <div class="mini-radar" style="width: @(Size)px; height: @(Size)px;">
     <svg viewBox="-350 -350 700 700" class="mini-radar-svg" preserveAspectRatio="xMidYMid meet">
@@ -42,7 +44,7 @@
         </g>
 
         <!-- Research nodes -->
-        @foreach (var path in ResearchPathData.Paths)
+        @foreach (var path in _paths)
         {
             var (x, y) = GetNodePosition(path);
             var statusColor = ResearchPathData.StatusColors.GetValueOrDefault(path.Status, "#888");
@@ -79,8 +81,15 @@
     [Parameter] public string? SelectedPathId { get; set; }
     [Parameter] public EventCallback<ResearchPath> OnNodeClick { get; set; }
 
+    private ResearchPath[] _paths = [];
+
     private static int[] RingRadii => RadarConstants.RingRadii;
     private static Dictionary<ResearchQuadrant, (int Start, int End)> QuadrantAngles => RadarConstants.QuadrantAngles;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _paths = await ResearchPathService.LoadPathsAsync();
+    }
 
     private (double X, double Y) GetNodePosition(ResearchPath path)
     {

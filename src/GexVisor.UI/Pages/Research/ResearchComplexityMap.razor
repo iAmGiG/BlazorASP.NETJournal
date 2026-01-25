@@ -1,7 +1,9 @@
 @page "/research/complexity"
 @using GexVisor.UI.Models
 @using GexVisor.UI.Components.Research
+@using GexVisor.UI.Services
 @using Microsoft.AspNetCore.Components
+@inject IResearchPathService ResearchPathService
 
 <PageTitle>Research Complexity Map - GexVisor</PageTitle>
 
@@ -47,7 +49,7 @@
             <div class="foundation-label">Trading Days</div>
         </div>
         <div class="foundation-stat">
-            <div class="foundation-value">@ResearchPathData.Paths.Length</div>
+            <div class="foundation-value">@_paths.Length</div>
             <div class="foundation-label">Research Paths</div>
         </div>
     </div>
@@ -163,6 +165,7 @@
                 <div class="radar-container" tabindex="0" @onkeydown="HandleRadarKeyDown">
                     <InteractiveRadar
                         Size="650"
+                        Paths="@_paths"
                         SelectedPathId="@_selectedPath?.Id"
                         FocusedPathId="@_focusedPath?.Id"
                         FilteredPaths="@GetFilteredPaths().ToList()"
@@ -287,6 +290,7 @@
 </div>
 
 @code {
+    private ResearchPath[] _paths = [];
     private ResearchQuadrant? _barrierFilter;
     private ResearchStatus? _statusFilter;
     private int? _ringFilter;
@@ -297,6 +301,11 @@
     private ViewMode _viewMode = ViewMode.Cards;
 
     private enum ViewMode { Cards, Radar }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _paths = await ResearchPathService.LoadPathsAsync();
+    }
 
     private void ToggleViewMode() =>
         _viewMode = _viewMode == ViewMode.Cards ? ViewMode.Radar : ViewMode.Cards;
@@ -352,7 +361,7 @@
 
     private IEnumerable<ResearchPath> GetFilteredPaths()
     {
-        var paths = ResearchPathData.Paths.AsEnumerable();
+        var paths = _paths.AsEnumerable();
 
         if (_barrierFilter != null)
         {
