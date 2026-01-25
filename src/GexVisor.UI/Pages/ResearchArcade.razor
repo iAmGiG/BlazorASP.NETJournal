@@ -1,5 +1,7 @@
 @page "/arcade"
 @using GexVisor.UI.Components.Research
+@using GexVisor.UI.Models
+@using Microsoft.AspNetCore.Components.Web
 
 <PageTitle>Research Arcade - GexVisor</PageTitle>
 
@@ -36,6 +38,43 @@
     <section class="validation-section">
         <PatternValidationTracker />
     </section>
+
+    <!-- Hero Radar Section -->
+    <section class="hero-radar-section">
+        <div class="hero-radar-container">
+            <h2 class="hero-title">Research Complexity Map</h2>
+            <p class="hero-subtitle">
+                Interactive visualization of 16 research paths by barrier type and complexity
+            </p>
+
+            <div class="radar-wrapper" tabindex="0" @onkeydown="HandleKeyDown">
+                <InteractiveRadar Size="500"
+                                  ShowLabels="true"
+                                  SelectedPathId="@_selectedPath?.Id"
+                                  FocusedPathId="@_focusedPath?.Id"
+                                  OnNodeClick="SelectPath"
+                                  OnFocusChange="HandleFocusChange" />
+
+                <ConnectionLines SelectedPath="@_selectedPath"
+                                 AllPaths="@ResearchPathData.Paths"
+                                 Size="500" />
+            </div>
+
+            <div class="keyboard-hints">
+                <span class="hint"><kbd>←→</kbd> Navigate</span>
+                <span class="hint"><kbd>Enter</kbd> Select</span>
+                <span class="hint"><kbd>Esc</kbd> Close</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal popup for hero radar -->
+    @if (_selectedPath != null)
+    {
+        <RadarModal Path="@_selectedPath"
+                    OnClose="ClearSelection"
+                    OnRelatedClick="@(_ => {})" />
+    }
 
     <div class="arcade-grid">
         <a href="/research/complexity" class="arcade-card featured">
@@ -168,4 +207,61 @@
 
 @code {
     private const string GammaSymbol = "\u0393";
+
+    private ResearchPath? _selectedPath;
+    private ResearchPath? _focusedPath;
+
+    private void SelectPath(ResearchPath path)
+    {
+        _selectedPath = _selectedPath?.Id == path.Id ? null : path;
+    }
+
+    private void ClearSelection()
+    {
+        _selectedPath = null;
+    }
+
+    private void HandleFocusChange(ResearchPath? path)
+    {
+        _focusedPath = path;
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        var pathsList = ResearchPathData.Paths.ToList();
+        if (pathsList.Count == 0) return;
+
+        // Find current focus index
+        var currentIndex = _focusedPath != null
+            ? pathsList.FindIndex(p => p.Id == _focusedPath.Id)
+            : -1;
+
+        switch (e.Key)
+        {
+            case "ArrowRight":
+            case "ArrowDown":
+                currentIndex = (currentIndex + 1) % pathsList.Count;
+                _focusedPath = pathsList[currentIndex];
+                break;
+
+            case "ArrowLeft":
+            case "ArrowUp":
+                currentIndex = currentIndex <= 0 ? pathsList.Count - 1 : currentIndex - 1;
+                _focusedPath = pathsList[currentIndex];
+                break;
+
+            case "Enter":
+            case " ": // Space
+                if (_focusedPath != null)
+                {
+                    SelectPath(_focusedPath);
+                }
+                break;
+
+            case "Escape":
+                _focusedPath = null;
+                _selectedPath = null;
+                break;
+        }
+    }
 }
