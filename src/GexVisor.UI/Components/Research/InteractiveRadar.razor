@@ -75,12 +75,13 @@
             var statusColor = ResearchPathData.StatusColors.GetValueOrDefault(path.Status, "#888");
             var isFiltered = FilteredPaths == null || FilteredPaths.Contains(path);
             var isSelected = SelectedPathId == path.Id;
+            var isFocused = FocusedPathId == path.Id;
             var isRelated = _hoveredPath != null && _hoveredPath.Related.Any(r =>
                 path.Title.Contains(r, StringComparison.OrdinalIgnoreCase) ||
                 path.Related.Contains(r));
             var radius = path.Ring == 0 ? 22 : 17;
 
-            <g class="research-node node-ring-@path.Ring @(isSelected ? "selected" : "") @(!isFiltered ? "dimmed" : "") @(isRelated ? "related-glow" : "")"
+            <g class="research-node node-ring-@path.Ring @(isSelected ? "selected" : "") @(isFocused ? "focused" : "") @(!isFiltered ? "dimmed" : "") @(isRelated ? "related-glow" : "")"
                transform="translate(@F(x), @F(y))"
                @onclick="@(() => HandleNodeClick(path))"
                @onclick:stopPropagation="true"
@@ -114,6 +115,9 @@
     /// <summary>ID of the currently selected path (for external state control).</summary>
     [Parameter] public string? SelectedPathId { get; set; }
 
+    /// <summary>ID of the currently focused path for keyboard navigation.</summary>
+    [Parameter] public string? FocusedPathId { get; set; }
+
     /// <summary>Optional filtered list of paths to highlight. Null means show all.</summary>
     [Parameter] public IEnumerable<ResearchPath>? FilteredPaths { get; set; }
 
@@ -125,6 +129,9 @@
 
     /// <summary>Callback when mouse enters/leaves a node (null on leave).</summary>
     [Parameter] public EventCallback<ResearchPath?> OnNodeHover { get; set; }
+
+    /// <summary>Callback when keyboard focus changes to a different node.</summary>
+    [Parameter] public EventCallback<ResearchPath?> OnFocusChange { get; set; }
 
     private ResearchPath? _hoveredPath;
 

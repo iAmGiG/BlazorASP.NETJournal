@@ -149,6 +149,13 @@
     filter: brightness(1.3) drop-shadow(0 0 15px currentColor);
 }
 
+/* Focused node state (keyboard navigation) */
+::deep .research-node.focused .node-circle {
+    stroke-width: 3;
+    stroke: var(--accent-cyan, #00e5ff);
+    filter: brightness(1.2) drop-shadow(0 0 8px var(--accent-cyan, #00e5ff));
+}
+
 /* Related node glow (when another node is hovered) */
 ::deep .research-node.related-glow .node-circle {
     filter: brightness(1.3) drop-shadow(0 0 12px currentColor);

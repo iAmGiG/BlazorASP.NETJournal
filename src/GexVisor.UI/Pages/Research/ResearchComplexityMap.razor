@@ -160,13 +160,22 @@
             else
             {
                 <!-- Radar View - using InteractiveRadar component -->
-                <div class="radar-container">
+                <div class="radar-container" tabindex="0" @onkeydown="HandleRadarKeyDown">
                     <InteractiveRadar
                         Size="650"
                         SelectedPathId="@_selectedPath?.Id"
+                        FocusedPathId="@_focusedPath?.Id"
                         FilteredPaths="@GetFilteredPaths().ToList()"
                         OnNodeClick="@SelectPath"
-                        OnNodeHover="@HandleNodeHover" />
+                        OnNodeHover="@HandleNodeHover"
+                        OnFocusChange="@HandleFocusChange" />
+                </div>
+
+                <!-- Keyboard Hints -->
+                <div class="keyboard-hints">
+                    <span class="hint"><kbd>←→</kbd> Navigate</span>
+                    <span class="hint"><kbd>Enter</kbd> Select</span>
+                    <span class="hint"><kbd>Esc</kbd> Close</span>
                 </div>
             }
         </div>
@@ -283,6 +292,7 @@
     private int? _ringFilter;
     private ResearchPath? _selectedPath;
     private ResearchPath? _hoveredPath;
+    private ResearchPath? _focusedPath;
     private string? _searchTerm;
     private ViewMode _viewMode = ViewMode.Cards;
 
@@ -294,6 +304,50 @@
     private void HandleNodeHover(ResearchPath? path)
     {
         _hoveredPath = path;
+    }
+
+    private void HandleFocusChange(ResearchPath? path)
+    {
+        _focusedPath = path;
+    }
+
+    private void HandleRadarKeyDown(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs e)
+    {
+        var pathsList = GetFilteredPaths().ToList();
+        if (pathsList.Count == 0) return;
+
+        // Find current focus index
+        var currentIndex = _focusedPath != null
+            ? pathsList.FindIndex(p => p.Id == _focusedPath.Id)
+            : -1;
+
+        switch (e.Key)
+        {
+            case "ArrowRight":
+            case "ArrowDown":
+                currentIndex = (currentIndex + 1) % pathsList.Count;
+                _focusedPath = pathsList[currentIndex];
+                break;
+
+            case "ArrowLeft":
+            case "ArrowUp":
+                currentIndex = currentIndex <= 0 ? pathsList.Count - 1 : currentIndex - 1;
+                _focusedPath = pathsList[currentIndex];
+                break;
+
+            case "Enter":
+            case " ": // Space
+                if (_focusedPath != null)
+                {
+                    SelectPath(_focusedPath);
+                }
+                break;
+
+            case "Escape":
+                _focusedPath = null;
+                _selectedPath = null;
+                break;
+        }
     }
 
     private IEnumerable<ResearchPath> GetFilteredPaths()
