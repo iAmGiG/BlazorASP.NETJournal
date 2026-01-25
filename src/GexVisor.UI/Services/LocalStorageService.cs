@@ -244,4 +244,8 @@ public static class StorageKeys
     // Alert system
     public const string AlertPreferences = "gexvisor.alertPreferences";
     public const string AlertHistory = "gexvisor.alertHistory";
+
+    // Personal analytics
+    public const string TradeTrackingData = "gexvisor.tradeTracking";
+    public const string TradingGoals = "gexvisor.goals";
 }

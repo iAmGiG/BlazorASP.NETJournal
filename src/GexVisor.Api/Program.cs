@@ -29,16 +29,20 @@ builder.Services.AddSingleton<IGexCalculationService, GexCalculationService>();
 // Add services
 builder.Services.AddHttpClient(); // Generic HttpClient for market data APIs
 
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+                     ?? [
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5246",
+                        "https://localhost:7161",
+                        "http://localhost:10354"
+                     ];
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:5000",
-                "http://localhost:5001",
-                "http://localhost:5246",
-                "https://localhost:7161",
-                "http://localhost:10354")
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -46,8 +50,25 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddHttpClient("GitHub", client =>
 {
+    client.BaseAddress = new Uri("https://api.github.com/");
     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
     client.DefaultRequestHeaders.UserAgent.ParseAdd("GexVisor/1.0");
+});
+
+builder.Services.AddHttpClient("Alpaca", (sp, client) =>
+{
+    var config = sp.GetRequiredService<IApiConfigService>().Configuration;
+    // Ensure base address ends with slash for proper Uri combination
+    var endpoint = config.AlpacaEndpoint?.Replace("/v2", "").TrimEnd('/') ?? "https://data.alpaca.markets";
+    client.BaseAddress = new Uri($"{endpoint}/");
+    client.DefaultRequestHeaders.Add("APCA-API-KEY-ID", config.AlpacaApiKey);
+    client.DefaultRequestHeaders.Add("APCA-API-SECRET-KEY", config.AlpacaSecret);
+});
+
+builder.Services.AddHttpClient("Finnhub", (sp, client) =>
+{
+    var config = sp.GetRequiredService<IApiConfigService>().Configuration;
+    client.BaseAddress = new Uri("https://finnhub.io/api/v1/");
 });
 
 var app = builder.Build();
@@ -155,7 +176,7 @@ github.MapPost("/graphql", async (HttpContext ctx, IHttpClientFactory httpFactor
     using var reader = new StreamReader(ctx.Request.Body);
     var body = await reader.ReadToEndAsync();
 
-    var request = new HttpRequestMessage(HttpMethod.Post, "https://api.github.com/graphql");
+    var request = new HttpRequestMessage(HttpMethod.Post, "graphql");
     request.Headers.Authorization = AuthenticationHeaderValue.Parse(authHeader);
     request.Content = new StringContent(body, System.Text.Encoding.UTF8, "application/json");
 
@@ -180,7 +201,7 @@ github.MapGet("/user", async (HttpContext ctx, IHttpClientFactory httpFactory) =
 
     var http = httpFactory.CreateClient("GitHub");
 
-    var request = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/user");
+    var request = new HttpRequestMessage(HttpMethod.Get, "user");
     request.Headers.Authorization = AuthenticationHeaderValue.Parse(authHeader);
 
     var response = await http.SendAsync(request);
@@ -206,7 +227,7 @@ github.MapGet("/debug/projects", async (HttpContext ctx, IHttpClientFactory http
 
     var query = @"{""query"": ""{ viewer { login projectsV2(first: 20) { nodes { id title url closed } } } }""}";
 
-    var request = new HttpRequestMessage(HttpMethod.Post, "https://api.github.com/graphql");
+    var request = new HttpRequestMessage(HttpMethod.Post, "graphql");
     request.Headers.Authorization = AuthenticationHeaderValue.Parse(authHeader);
     request.Content = new StringContent(query, System.Text.Encoding.UTF8, "application/json");
 

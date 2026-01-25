@@ -473,5 +473,41 @@ public static class AppConstants
         /// Storage key for GitHub status mappings (StatusMapper service).
         /// </summary>
         public const string StatusMappingsKey = "gexvisor.statusMappings";
+
+        /// <summary>
+        /// Storage key for ToDo tasks.
+        /// </summary>
+        public const string TasksKey = "gexvisor.tasks";
+    }
+
+    /// <summary>
+    /// Configuration for the Research Radar visualization.
+    /// Defined in docs/research-visualization.md.
+    /// </summary>
+    public static class ResearchRadar
+    {
+        /// <summary>
+        /// Radii for the concentric rings in the radar (in pixels).
+        /// Ring 0 is the center core.
+        /// </summary>
+        public static readonly int[] RingRadii = [0, 55, 105, 155, 210, 265, 315];
+
+        /// <summary>
+        /// Animation delay per ring in seconds.
+        /// </summary>
+        public const double RingAnimationDelay = 0.08;
+
+        /// <summary>
+        /// Duration of the center pulse animation in seconds.
+        /// </summary>
+        public const double PulseDuration = 2.5;
+
+        /// <summary>
+        /// Quadrant angle definitions (Start, End) in degrees.
+        /// </summary>
+        public static readonly (int Start, int End) QuadrantData = (0, 90);
+        public static readonly (int Start, int End) QuadrantKnowledge = (90, 180);
+        public static readonly (int Start, int End) QuadrantScope = (180, 270);
+        public static readonly (int Start, int End) QuadrantMethodology = (270, 360);
     }
 }

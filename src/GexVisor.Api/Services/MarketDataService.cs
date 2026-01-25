@@ -127,7 +127,10 @@ public class MarketDataService : IMarketDataService
                     // Cache all fetched quotes
                     await _cache.SetMultipleQuotesAsync(result.Data);
                     quotes.AddRange(result.Data);
-                    missingSymbols.Clear();
+
+                    // Only remove symbols that were actually found
+                    var foundSymbols = result.Data.Select(q => q.Symbol.ToUpperInvariant()).ToHashSet();
+                    missingSymbols.RemoveAll(s => foundSymbols.Contains(s.ToUpperInvariant()));
                 }
             }
             catch (Exception ex)
@@ -215,15 +218,9 @@ public class MarketDataService : IMarketDataService
 
     private async Task<MarketDataResult<Quote>?> GetAlpacaQuoteAsync(string symbol)
     {
-        var config = _configService.Configuration;
-        var client = _httpClientFactory.CreateClient();
-
-        // Alpaca Market Data API v2
-        var endpoint = config.AlpacaEndpoint?.Replace("/v2", "") ?? "https://data.alpaca.markets";
-        client.DefaultRequestHeaders.Add("APCA-API-KEY-ID", config.AlpacaApiKey);
-        client.DefaultRequestHeaders.Add("APCA-API-SECRET-KEY", config.AlpacaSecret);
-
-        var response = await client.GetAsync($"{endpoint}/v2/stocks/{symbol}/quotes/latest");
+        var client = _httpClientFactory.CreateClient("Alpaca");
+        // BaseAddress is configured in Program.cs
+        var response = await client.GetAsync($"v2/stocks/{symbol}/quotes/latest");
 
         if (!response.IsSuccessStatusCode)
         {
@@ -244,7 +241,7 @@ public class MarketDataService : IMarketDataService
         var midPrice = (askPrice + bidPrice) / 2;
 
         // Get previous close from snapshot for change calculation
-        var snapshotResponse = await client.GetAsync($"{endpoint}/v2/stocks/{symbol}/snapshot");
+        var snapshotResponse = await client.GetAsync($"v2/stocks/{symbol}/snapshot");
         decimal prevClose = midPrice;
         decimal open = midPrice;
         decimal high = midPrice;
@@ -289,15 +286,10 @@ public class MarketDataService : IMarketDataService
 
     private async Task<MarketDataResult<List<Quote>>> GetAlpacaMultipleQuotesAsync(List<string> symbols)
     {
-        var config = _configService.Configuration;
-        var client = _httpClientFactory.CreateClient();
-
-        var endpoint = config.AlpacaEndpoint?.Replace("/v2", "") ?? "https://data.alpaca.markets";
-        client.DefaultRequestHeaders.Add("APCA-API-KEY-ID", config.AlpacaApiKey);
-        client.DefaultRequestHeaders.Add("APCA-API-SECRET-KEY", config.AlpacaSecret);
+        var client = _httpClientFactory.CreateClient("Alpaca");
 
         var symbolsParam = string.Join(",", symbols);
-        var response = await client.GetAsync($"{endpoint}/v2/stocks/snapshots?symbols={symbolsParam}");
+        var response = await client.GetAsync($"v2/stocks/snapshots?symbols={symbolsParam}");
 
         if (!response.IsSuccessStatusCode)
         {
@@ -343,12 +335,7 @@ public class MarketDataService : IMarketDataService
 
     private async Task<MarketDataResult<List<OhlcvBar>>?> GetAlpacaBarsAsync(string symbol, BarTimeframe timeframe, int limit)
     {
-        var config = _configService.Configuration;
-        var client = _httpClientFactory.CreateClient();
-
-        var endpoint = config.AlpacaEndpoint?.Replace("/v2", "") ?? "https://data.alpaca.markets";
-        client.DefaultRequestHeaders.Add("APCA-API-KEY-ID", config.AlpacaApiKey);
-        client.DefaultRequestHeaders.Add("APCA-API-SECRET-KEY", config.AlpacaSecret);
+        var client = _httpClientFactory.CreateClient("Alpaca");
 
         var tf = timeframe switch
         {
@@ -364,7 +351,7 @@ public class MarketDataService : IMarketDataService
             _ => "1Day"
         };
 
-        var response = await client.GetAsync($"{endpoint}/v2/stocks/{symbol}/bars?timeframe={tf}&limit={limit}");
+        var response = await client.GetAsync($"v2/stocks/{symbol}/bars?timeframe={tf}&limit={limit}");
 
         if (!response.IsSuccessStatusCode)
         {
@@ -404,10 +391,10 @@ public class MarketDataService : IMarketDataService
     private async Task<MarketDataResult<Quote>?> GetFinnhubQuoteAsync(string symbol)
     {
         var config = _configService.Configuration;
-        var client = _httpClientFactory.CreateClient();
+        var client = _httpClientFactory.CreateClient("Finnhub");
 
         var response = await client.GetAsync(
-            $"https://finnhub.io/api/v1/quote?symbol={symbol}&token={config.FinnhubKey}");
+            $"quote?symbol={symbol}&token={config.FinnhubKey}");
 
         if (!response.IsSuccessStatusCode)
         {
@@ -444,7 +431,7 @@ public class MarketDataService : IMarketDataService
     private async Task<MarketDataResult<List<OhlcvBar>>?> GetFinnhubBarsAsync(string symbol, BarTimeframe timeframe, int limit)
     {
         var config = _configService.Configuration;
-        var client = _httpClientFactory.CreateClient();
+        var client = _httpClientFactory.CreateClient("Finnhub");
 
         var resolution = timeframe switch
         {
@@ -463,7 +450,7 @@ public class MarketDataService : IMarketDataService
         var from = to - GetSecondsForTimeframe(timeframe) * limit;
 
         var response = await client.GetAsync(
-            $"https://finnhub.io/api/v1/stock/candle?symbol={symbol}&resolution={resolution}&from={from}&to={to}&token={config.FinnhubKey}");
+            $"stock/candle?symbol={symbol}&resolution={resolution}&from={from}&to={to}&token={config.FinnhubKey}");
 
         if (!response.IsSuccessStatusCode)
         {

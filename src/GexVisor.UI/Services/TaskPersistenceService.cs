@@ -1,5 +1,5 @@
-using System.Text.Json;
 using GexVisor.Core;
+using GexVisor.UI.Configuration;
 
 namespace GexVisor.UI.Services;
 
@@ -9,71 +9,29 @@ namespace GexVisor.UI.Services;
 /// </summary>
 public class TaskPersistenceService
 {
-    private readonly JsonSerializerOptions _jsonOptions;
-    private const string TasksFileName = "MyTasks.json";
-    private const string TasksDirectoryPath = "./Data/";
+    private readonly ILocalStorageService _storage;
 
-    public TaskPersistenceService()
+    public TaskPersistenceService(ILocalStorageService storage)
     {
-        _jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = true
-        };
+        _storage = storage;
     }
 
     /// <summary>
-    /// Saves a list of ToDoTask objects to JSON file.
+    /// Saves a list of ToDoTask objects to local storage.
     /// </summary>
     /// <param name="tasks">The tasks to save.</param>
-    public void SaveTasks(List<ToDoTask> tasks)
+    public async Task SaveTasksAsync(List<ToDoTask> tasks)
     {
-        try
-        {
-            EnsureDirectoryExists(TasksDirectoryPath);
-            string filePath = Path.Combine(TasksDirectoryPath, TasksFileName);
-            string jsonString = JsonSerializer.Serialize(tasks, _jsonOptions);
-            File.WriteAllText(filePath, jsonString);
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException($"Failed to save tasks to {TasksFileName}", ex);
-        }
+        await _storage.SetAsync(AppConstants.Storage.TasksKey, tasks);
     }
 
     /// <summary>
-    /// Loads a list of ToDoTask objects from JSON file.
+    /// Loads a list of ToDoTask objects from local storage.
     /// </summary>
-    /// <returns>The loaded tasks, or an empty list if file doesn't exist.</returns>
-    public List<ToDoTask> LoadTasks()
+    /// <returns>The loaded tasks, or an empty list if none exist.</returns>
+    public async Task<List<ToDoTask>> LoadTasksAsync()
     {
-        try
-        {
-            string filePath = Path.Combine(TasksDirectoryPath, TasksFileName);
-
-            if (!File.Exists(filePath))
-            {
-                return new List<ToDoTask>();
-            }
-
-            string jsonString = File.ReadAllText(filePath);
-            var tasks = JsonSerializer.Deserialize<List<ToDoTask>>(jsonString, _jsonOptions);
-            return tasks ?? new List<ToDoTask>();
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException($"Failed to load tasks from {TasksFileName}", ex);
-        }
-    }
-
-    /// <summary>
-    /// Ensures the data directory exists, creating it if necessary.
-    /// </summary>
-    private void EnsureDirectoryExists(string directoryPath)
-    {
-        if (!Directory.Exists(directoryPath))
-        {
-            Directory.CreateDirectory(directoryPath);
-        }
+        var tasks = await _storage.GetAsync<List<ToDoTask>>(AppConstants.Storage.TasksKey);
+        return tasks ?? new List<ToDoTask>();
     }
 }
