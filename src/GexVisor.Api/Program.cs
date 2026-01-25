@@ -82,10 +82,8 @@ github.MapPost("/device/token", async (HttpContext ctx, IHttpClientFactory httpF
 {
     var clientId = config["GitHub:ClientId"] ?? DefaultGitHubClientId;
 
-    using var reader = new StreamReader(ctx.Request.Body);
-    var body = await reader.ReadToEndAsync();
-    var form = System.Web.HttpUtility.ParseQueryString(body);
-    var deviceCode = form["device_code"];
+    var form = await ctx.Request.ReadFormAsync();
+    var deviceCode = form["device_code"].FirstOrDefault();
 
     if (string.IsNullOrEmpty(deviceCode))
     {
@@ -115,10 +113,8 @@ github.MapPost("/token/refresh", async (HttpContext ctx, IHttpClientFactory http
 {
     var clientId = config["GitHub:ClientId"] ?? DefaultGitHubClientId;
 
-    using var reader = new StreamReader(ctx.Request.Body);
-    var body = await reader.ReadToEndAsync();
-    var form = System.Web.HttpUtility.ParseQueryString(body);
-    var refreshToken = form["refresh_token"];
+    var form = await ctx.Request.ReadFormAsync();
+    var refreshToken = form["refresh_token"].FirstOrDefault();
 
     if (string.IsNullOrEmpty(refreshToken))
     {
