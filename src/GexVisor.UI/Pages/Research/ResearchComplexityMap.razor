@@ -65,7 +65,7 @@
                     </button>
                     @foreach (var q in ResearchPathData.Quadrants.Where(x => x.Key != ResearchQuadrant.None))
                     {
-                        var count = GetFilteredPaths().Count(p => p.BarrierQuadrant == q.Key || (q.Key == ResearchQuadrant.Scope && p.Quadrant == ResearchQuadrant.Scope));
+                        var count = _paths.Count(p => p.BarrierQuadrant == q.Key || (q.Key == ResearchQuadrant.Scope && p.Quadrant == ResearchQuadrant.Scope));
                         <button class="filter-btn @(_barrierFilter == q.Key ? "active" : "")"
                                 style="--filter-color: @q.Value.Color"
                                 @onclick="@(() => SetBarrierFilter(q.Key))">
@@ -80,7 +80,7 @@
                 <div class="filter-group status-group">
                     @foreach (var status in ResearchPathData.StatusColors)
                     {
-                        var count = GetFilteredPaths().Count(p => p.Status == status.Key);
+                        var count = _paths.Count(p => p.Status == status.Key);
                         <button class="filter-btn @(_statusFilter == status.Key ? "active" : "")"
                                 style="--filter-color: @status.Value"
                                 @onclick="@(() => ToggleStatusFilter(status.Key))">
@@ -97,7 +97,7 @@
                     @for (int i = 0; i <= 5; i++)
                     {
                         var ring = i;
-                        var count = GetFilteredPaths().Count(p => p.Ring == ring);
+                        var count = _paths.Count(p => p.Ring == ring);
                         <button class="filter-btn ring-btn @(_ringFilter == ring ? "active" : "")"
                                 @onclick="@(() => ToggleRingFilter(ring))">
                             Ring @ring <span class="count">@count</span>

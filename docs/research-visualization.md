@@ -209,16 +209,21 @@ Quadrants are defined in degrees (clockwise from top):
 
 ### Node Positioning
 
-Nodes are positioned using polar coordinates:
+Nodes are positioned using polar coordinates within their quadrant:
 
 ```
-x = radius * cos(angle - 90°)
-y = radius * sin(angle - 90°)
+normalizedPosition = clamp(path.Angle / 90, 0, 1)
+normalizedAngle = quadrantStart + normalizedPosition * quadrantRange
+x = radius * cos(normalizedAngle - 90°)
+y = radius * sin(normalizedAngle - 90°)
 ```
 
 Where:
-- `radius` = `RingRadii[path.Ring]` (0, 55, 105, 155, 210, 265, 315)
-- `angle` = `path.Angle` in degrees
+
+- `radius` = midpoint between `RingRadii[path.Ring]` and `RingRadii[path.Ring + 1]`
+- `RingRadii` = [0, 55, 105, 155, 210, 265, 315]
+- `path.Angle` = 0-90 representing position within quadrant (0% to 100%)
+- Quadrant ranges: Data (0-90°), Knowledge (90-180°), Scope (180-270°), Methodology (270-360°)
 
 ### CSS Classes
 
@@ -241,7 +246,7 @@ Where:
 | `Id` | string | Unique identifier (e.g., "montecarlo") |
 | `Ring` | int | Complexity level (0-5) |
 | `Quadrant` | ResearchQuadrant | Barrier type sector |
-| `Angle` | int | Position within quadrant (degrees) |
+| `Angle` | int | Position within quadrant (0-90, representing 0-100%) |
 | `Label` | string | Short display name (e.g., "Monte") |
 | `LabelLong` | string? | Second line label (e.g., "Carlo") |
 | `Status` | ResearchStatus | Implementation state |

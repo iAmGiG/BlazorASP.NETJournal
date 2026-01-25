@@ -1,9 +1,12 @@
+using System.Text.RegularExpressions;
+using GexVisor.UI.Configuration;
+
 namespace GexVisor.UI.Models;
 
 /// <summary>
 /// Static helper methods for radar visualization positioning and calculations.
 /// </summary>
-public static class RadarHelpers
+public static partial class RadarHelpers
 {
     /// <summary>
     /// Calculates the (x, y) SVG coordinate for a research path node on the radar.
@@ -12,18 +15,20 @@ public static class RadarHelpers
     /// <returns>A tuple of (X, Y) coordinates in SVG space.</returns>
     public static (double X, double Y) GetNodePosition(ResearchPath path)
     {
-        var angles = RadarConstants.QuadrantAngles.GetValueOrDefault(
-            path.Quadrant,
-            (Start: 0, End: 90));
+        var angles = GetQuadrantAngles(path.Quadrant);
 
         var angleRange = angles.End - angles.Start;
-        var normalizedAngle = angles.Start + (path.Angle / 180.0) * angleRange;
+
+        // Normalize angle: treat path.Angle as 0-90 representing position within quadrant (0-100%)
+        // Clamp to prevent overflow and avoid edge collisions
+        var normalizedPosition = Math.Clamp(path.Angle / 90.0, 0, 1);
+        var normalizedAngle = angles.Start + normalizedPosition * angleRange;
         var rad = (normalizedAngle - 90) * Math.PI / 180;
 
-        var innerR = RadarConstants.RingRadii[path.Ring];
-        var outerR = path.Ring + 1 < RadarConstants.RingRadii.Length
-            ? RadarConstants.RingRadii[path.Ring + 1]
-            : RadarConstants.RingRadii[path.Ring] + 50;
+        var innerR = AppConstants.ResearchRadar.RingRadii[path.Ring];
+        var outerR = path.Ring + 1 < AppConstants.ResearchRadar.RingRadii.Length
+            ? AppConstants.ResearchRadar.RingRadii[path.Ring + 1]
+            : AppConstants.ResearchRadar.RingRadii[path.Ring] + 50;
 
         var r = (innerR + outerR) / 2.0;
         return (r * Math.Cos(rad), r * Math.Sin(rad));
@@ -34,4 +39,35 @@ public static class RadarHelpers
     /// </summary>
     public static string FormatSvg(double value) =>
         value.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// Gets the start and end angles for a specific research quadrant.
+    /// </summary>
+    public static (int Start, int End) GetQuadrantAngles(ResearchQuadrant quadrant) => quadrant switch
+    {
+        ResearchQuadrant.Data => AppConstants.ResearchRadar.QuadrantData,
+        ResearchQuadrant.Knowledge => AppConstants.ResearchRadar.QuadrantKnowledge,
+        ResearchQuadrant.Scope => AppConstants.ResearchRadar.QuadrantScope,
+        ResearchQuadrant.Methodology => AppConstants.ResearchRadar.QuadrantMethodology,
+        _ => (0, 90)
+    };
+
+    /// <summary>
+    /// Regex for splitting PascalCase enum names into words.
+    /// Matches capital letters that are not at the start of the string.
+    /// </summary>
+    [GeneratedRegex("(?<!^)([A-Z])")]
+    private static partial Regex EnumNameSplitter();
+
+    /// <summary>
+    /// Formats an enum value into a readable string (e.g., "InProgress" -> "In Progress").
+    /// </summary>
+    public static string FormatEnumName<T>(T enumValue) where T : Enum
+    {
+        var name = enumValue.ToString();
+        return EnumNameSplitter().Replace(name, " $1");
+    }
+
+    /// <summary>Shared access to ring radii configuration.</summary>
+    public static int[] RingRadii => AppConstants.ResearchRadar.RingRadii;
 }
