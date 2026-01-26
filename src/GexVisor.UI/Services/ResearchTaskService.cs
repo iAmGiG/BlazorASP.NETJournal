@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using GexVisor.UI.Configuration;
 using GexVisor.UI.Models;
 
 namespace GexVisor.UI.Services;
@@ -11,7 +12,7 @@ namespace GexVisor.UI.Services;
 public class ResearchTaskService : BaseEntryService<ResearchTask>
 {
     public ResearchTaskService(ILocalStorageService storage)
-        : base(storage, StorageKeys.TaskBoard)
+        : base(storage, AppConstants.Storage.ResearchTasks)
     {
     }
 

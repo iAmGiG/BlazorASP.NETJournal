@@ -469,15 +469,59 @@ public static class AppConstants
     /// </summary>
     public static class Storage
     {
-        /// <summary>
-        /// Storage key for GitHub status mappings (StatusMapper service).
-        /// </summary>
-        public const string StatusMappingsKey = "gexvisor.statusMappings";
+        // Core application settings
+        public const string AppSettings = "gexvisor.settings";
+        public const string LastSymbol = "gexvisor.lastSymbol";
+        public const string PlaybackSpeed = "gexvisor.playbackSpeed";
+        public const string AxisScales = "gexvisor.axisScales";
+
+        // Journal features
+        public const string NotebookEntries = "gexvisor.notebook";
+        public const string PaperTrades = "gexvisor.paperTrades";
+        public const string TradeLogs = "gexvisor.tradeLogs";
+        public const string Annotations = "gexvisor.annotations";
+        public const string BacktestResults = "gexvisor.backtests";
+        public const string CustomTags = "gexvisor.customTags";
+
+        // Task management (keeping existing naming)
 
         /// <summary>
         /// Storage key for ToDo tasks.
         /// </summary>
         public const string TasksKey = "gexvisor.tasks";
+
+        /// <summary>
+        /// Storage key for Research tasks (ResearchTaskService) - renamed to avoid conflict with TasksKey.
+        /// </summary>
+        public const string ResearchTasks = "gexvisor.researchTasks";
+
+        // GitHub integration
+
+        /// <summary>
+        /// Storage key for GitHub status mappings (StatusMapper service).
+        /// </summary>
+        public const string StatusMappingsKey = "gexvisor.statusMappings";
+
+        public const string GitHubAuth = "gexvisor.github.auth";
+        public const string GitHubProjects = "gexvisor.github.projects";
+
+        // Live data cache
+        public const string LiveGexPrefix = "gexvisor.liveGex.";
+
+        /// <summary>
+        /// Get storage key for a symbol's cached live GEX data.
+        /// </summary>
+        /// <param name="symbol">The stock symbol.</param>
+        /// <returns>The storage key for the symbol's GEX data.</returns>
+        public static string LiveGex(string symbol) => $"{LiveGexPrefix}{symbol.ToUpperInvariant()}";
+
+        // Alert system
+        public const string AlertPreferences = "gexvisor.alertPreferences";
+        public const string AlertHistory = "gexvisor.alertHistory";
+
+        // Personal analytics
+        public const string TradeTrackingData = "gexvisor.tradeTracking";
+        public const string TradingGoals = "gexvisor.goals";
     }
 
     /// <summary>
@@ -509,5 +553,15 @@ public static class AppConstants
         public static readonly (int Start, int End) QuadrantKnowledge = (90, 180);
         public static readonly (int Start, int End) QuadrantScope = (180, 270);
         public static readonly (int Start, int End) QuadrantMethodology = (270, 360);
+
+        /// <summary>
+        /// Foundation statistics for the validated core (Ring 0).
+        /// </summary>
+        public static class FoundationStats
+        {
+            public const string DetectionRate = "71.5%";
+            public const string Accuracy = "91.2%";
+            public const string TradingDays = "242";
+        }
     }
 }

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using GexVisor.Core;
+using GexVisor.UI.Configuration;
 using GexVisor.UI.Models;
 
 namespace GexVisor.UI.Services;
@@ -28,7 +29,7 @@ public class PersonalAnalyticsService : IPersonalAnalyticsService
     {
         try
         {
-            var stored = await _storage.GetAsync<List<TradeTrackingData>>(StorageKeys.TradeTrackingData);
+            var stored = await _storage.GetAsync<List<TradeTrackingData>>(AppConstants.Storage.TradeTrackingData);
             _trackingData = stored?.ToDictionary(t => t.TradeId) ?? [];
         }
         catch (JsonException)
@@ -45,7 +46,7 @@ public class PersonalAnalyticsService : IPersonalAnalyticsService
     public async Task SaveTrackingDataAsync(TradeTrackingData data)
     {
         _trackingData[data.TradeId] = data with { UpdatedAt = DateTime.UtcNow };
-        await _storage.SetAsync(StorageKeys.TradeTrackingData, _trackingData.Values.ToList());
+        await _storage.SetAsync(AppConstants.Storage.TradeTrackingData, _trackingData.Values.ToList());
         OnAnalyticsChanged?.Invoke();
     }
 

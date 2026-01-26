@@ -1,6 +1,7 @@
 // Copyright (c) GexVisor. All rights reserved.
 
 using FluentAssertions;
+using GexVisor.UI.Configuration;
 using GexVisor.UI.Models;
 using GexVisor.UI.Services;
 using Moq;
@@ -23,7 +24,7 @@ public class AnnotationServiceTests
             CreateAnnotation("gamma_flip_pos", "2024-01-01"),
             CreateAnnotation("opex_pinning", "2024-01-02"),
         };
-        mockStorage.Setup(x => x.GetAsync<List<PatternAnnotation>>(StorageKeys.Annotations))
+        mockStorage.Setup(x => x.GetAsync<List<PatternAnnotation>>(AppConstants.Storage.Annotations))
             .ReturnsAsync(storedAnnotations);
         var service = new AnnotationService(mockStorage.Object);
 
@@ -40,7 +41,7 @@ public class AnnotationServiceTests
     {
         // Arrange
         var mockStorage = new Mock<ILocalStorageService>();
-        mockStorage.Setup(x => x.GetAsync<List<PatternAnnotation>>(StorageKeys.Annotations))
+        mockStorage.Setup(x => x.GetAsync<List<PatternAnnotation>>(AppConstants.Storage.Annotations))
             .ReturnsAsync((List<PatternAnnotation>?)null);
         var service = new AnnotationService(mockStorage.Object);
 
@@ -56,7 +57,7 @@ public class AnnotationServiceTests
     {
         // Arrange
         var mockStorage = new Mock<ILocalStorageService>();
-        mockStorage.Setup(x => x.GetAsync<List<PatternAnnotation>>(StorageKeys.Annotations))
+        mockStorage.Setup(x => x.GetAsync<List<PatternAnnotation>>(AppConstants.Storage.Annotations))
             .ReturnsAsync(new List<PatternAnnotation>());
         var service = new AnnotationService(mockStorage.Object);
         var eventFired = false;
@@ -103,7 +104,7 @@ public class AnnotationServiceTests
 
         // Assert
         mockStorage.Verify(
-            x => x.SetAsync(StorageKeys.Annotations, It.IsAny<List<PatternAnnotation>>()),
+            x => x.SetAsync(AppConstants.Storage.Annotations, It.IsAny<List<PatternAnnotation>>()),
             Times.Once);
     }
 
@@ -144,7 +145,7 @@ public class AnnotationServiceTests
         // Assert
         service.Annotations.Should().HaveCount(1);
         mockStorage.Verify(
-            x => x.SetAsync(StorageKeys.Annotations, It.IsAny<List<PatternAnnotation>>()),
+            x => x.SetAsync(AppConstants.Storage.Annotations, It.IsAny<List<PatternAnnotation>>()),
             Times.Once); // Only the AddAsync save, not UpdateAsync
     }
 
@@ -181,7 +182,7 @@ public class AnnotationServiceTests
 
         // Assert
         mockStorage.Verify(
-            x => x.SetAsync(StorageKeys.Annotations, It.IsAny<List<PatternAnnotation>>()),
+            x => x.SetAsync(AppConstants.Storage.Annotations, It.IsAny<List<PatternAnnotation>>()),
             Times.Exactly(2)); // Once for Add, once for Delete
     }
 

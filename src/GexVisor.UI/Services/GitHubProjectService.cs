@@ -38,7 +38,7 @@ public class GitHubProjectService
     /// </summary>
     public async Task LoadAsync()
     {
-        var stored = await _storage.GetAsync<GitHubProjectSettings>(StorageKeys.GitHubProjects);
+        var stored = await _storage.GetAsync<GitHubProjectSettings>(AppConstants.Storage.GitHubProjects);
         if (stored != null)
         {
             _projects = stored.Projects ?? new();
@@ -302,7 +302,7 @@ public class GitHubProjectService
             EndCursor = _endCursor,
             HasMoreProjects = _hasMoreProjects
         };
-        await _storage.SetAsync(StorageKeys.GitHubProjects, settings);
+        await _storage.SetAsync(AppConstants.Storage.GitHubProjects, settings);
     }
 }
 

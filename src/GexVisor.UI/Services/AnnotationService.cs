@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
+using GexVisor.UI.Configuration;
 using GexVisor.UI.Models;
 
 namespace GexVisor.UI.Services;
@@ -27,7 +28,7 @@ public class AnnotationService
     /// </summary>
     public async Task LoadAsync()
     {
-        var stored = await _storage.GetAsync<List<PatternAnnotation>>(StorageKeys.Annotations);
+        var stored = await _storage.GetAsync<List<PatternAnnotation>>(AppConstants.Storage.Annotations);
         _annotations = stored ?? [];
         OnAnnotationsChanged?.Invoke();
     }
@@ -37,7 +38,7 @@ public class AnnotationService
     /// </summary>
     private async Task SaveAsync()
     {
-        await _storage.SetAsync(StorageKeys.Annotations, _annotations);
+        await _storage.SetAsync(AppConstants.Storage.Annotations, _annotations);
         OnAnnotationsChanged?.Invoke();
     }
 

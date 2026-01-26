@@ -231,13 +231,13 @@ public class AlertService : IAlertService
     public async Task UpdatePreferencesAsync(AlertPreferences preferences)
     {
         _preferences = preferences;
-        await _localStorage.SetAsync(StorageKeys.AlertPreferences, preferences);
+        await _localStorage.SetAsync(AppConstants.Storage.AlertPreferences, preferences);
         OnPreferencesChanged?.Invoke();
     }
 
     public async Task LoadPreferencesAsync()
     {
-        var stored = await _localStorage.GetAsync<AlertPreferences>(StorageKeys.AlertPreferences);
+        var stored = await _localStorage.GetAsync<AlertPreferences>(AppConstants.Storage.AlertPreferences);
         _preferences = stored ?? AlertPreferences.Default;
     }
 

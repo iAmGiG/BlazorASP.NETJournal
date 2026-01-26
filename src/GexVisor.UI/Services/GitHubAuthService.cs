@@ -45,7 +45,7 @@ public class GitHubAuthService
     /// </summary>
     public async Task LoadAsync()
     {
-        var stored = await _storage.GetAsync<GitHubAuthState>(StorageKeys.GitHubAuth);
+        var stored = await _storage.GetAsync<GitHubAuthState>(AppConstants.Storage.GitHubAuth);
         if (stored != null)
         {
             _state = stored;
@@ -194,7 +194,7 @@ public class GitHubAuthService
         await FetchUserInfoAsync();
 
         // Save to localStorage
-        await _storage.SetAsync(StorageKeys.GitHubAuth, _state);
+        await _storage.SetAsync(AppConstants.Storage.GitHubAuth, _state);
 
         OnAuthStateChanged?.Invoke();
     }
@@ -272,7 +272,7 @@ public class GitHubAuthService
     {
         _pollCts?.Cancel();
         _state = new GitHubAuthState();
-        await _storage.RemoveAsync(StorageKeys.GitHubAuth);
+        await _storage.RemoveAsync(AppConstants.Storage.GitHubAuth);
         OnAuthStateChanged?.Invoke();
     }
 

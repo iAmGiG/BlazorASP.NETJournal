@@ -3,6 +3,7 @@
 @using GexVisor.UI.Models
 @using GexVisor.UI.Utilities
 @using GexVisor.UI.Components.Alerts
+@using GexVisor.UI.Configuration
 @inject IJSRuntime JS
 @inject ILocalStorageService Storage
 @implements IDisposable
@@ -127,7 +128,7 @@
     {
         try
         {
-            var settings = await Storage.GetAsync<AppSettings>(StorageKeys.AppSettings);
+            var settings = await Storage.GetAsync<AppSettings>(AppConstants.Storage.AppSettings);
             if (settings != null)
             {
                 StateService.ApplySettings(settings);
@@ -155,7 +156,7 @@
         try
         {
             var settings = StateService.GetSettings();
-            await Storage.SetAsync(StorageKeys.AppSettings, settings);
+            await Storage.SetAsync(AppConstants.Storage.AppSettings, settings);
         }
         catch
         {

@@ -73,7 +73,7 @@ public class TagService
     /// </summary>
     public async Task LoadAsync()
     {
-        var stored = await _storage.GetAsync<List<string>>(StorageKeys.CustomTags);
+        var stored = await _storage.GetAsync<List<string>>(AppConstants.Storage.CustomTags);
         _customTags = stored?.ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
         _allTagsCache = null; // Invalidate cache when custom tags change
     }
@@ -148,6 +148,6 @@ public class TagService
 
     private async Task SaveAsync()
     {
-        await _storage.SetAsync(StorageKeys.CustomTags, _customTags.ToList());
+        await _storage.SetAsync(AppConstants.Storage.CustomTags, _customTags.ToList());
     }
 }

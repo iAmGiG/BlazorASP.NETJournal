@@ -1,4 +1,5 @@
 using System.Text.Json;
+using GexVisor.UI.Configuration;
 using GexVisor.UI.Models;
 
 namespace GexVisor.UI.Services;
@@ -34,7 +35,7 @@ public class GoalService : IGoalService
     {
         try
         {
-            var stored = await _storage.GetAsync<List<TradingGoal>>(StorageKeys.TradingGoals);
+            var stored = await _storage.GetAsync<List<TradingGoal>>(AppConstants.Storage.TradingGoals);
             _goals = stored ?? [];
         }
         catch (JsonException)
@@ -46,7 +47,7 @@ public class GoalService : IGoalService
 
     private async Task SaveAsync()
     {
-        await _storage.SetAsync(StorageKeys.TradingGoals, _goals);
+        await _storage.SetAsync(AppConstants.Storage.TradingGoals, _goals);
         OnGoalsChanged?.Invoke();
     }
 

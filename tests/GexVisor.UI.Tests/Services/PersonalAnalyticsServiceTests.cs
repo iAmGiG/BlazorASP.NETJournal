@@ -2,6 +2,7 @@
 
 using FluentAssertions;
 using GexVisor.Core;
+using GexVisor.UI.Configuration;
 using GexVisor.UI.Models;
 using GexVisor.UI.Services;
 using Moq;
@@ -200,7 +201,7 @@ public class PersonalAnalyticsServiceTests
         // Assert
         _mockStorage.Verify(
             s => s.SetAsync(
-                StorageKeys.TradeTrackingData,
+                AppConstants.Storage.TradeTrackingData,
                 It.Is<List<TradeTrackingData>>(list => list.Any(t => t.TradeId == tradeId))),
             Times.Once);
     }
@@ -218,7 +219,7 @@ public class PersonalAnalyticsServiceTests
             LessonLearned = "Don't chase",
         };
 
-        _mockStorage.Setup(s => s.GetAsync<List<TradeTrackingData>>(StorageKeys.TradeTrackingData))
+        _mockStorage.Setup(s => s.GetAsync<List<TradeTrackingData>>(AppConstants.Storage.TradeTrackingData))
             .ReturnsAsync([trackingData]);
 
         await _service.LoadTrackingDataAsync();
@@ -248,7 +249,7 @@ public class PersonalAnalyticsServiceTests
             new() { TradeId = trade1.Id, Emotion = EmotionalState.Confident, ConfidenceLevel = 8 },
             new() { TradeId = trade2.Id, Emotion = EmotionalState.Anxious, ConfidenceLevel = 3 },
         };
-        _mockStorage.Setup(s => s.GetAsync<List<TradeTrackingData>>(StorageKeys.TradeTrackingData))
+        _mockStorage.Setup(s => s.GetAsync<List<TradeTrackingData>>(AppConstants.Storage.TradeTrackingData))
             .ReturnsAsync(trackingList);
 
         await _service.LoadTrackingDataAsync();
@@ -280,7 +281,7 @@ public class PersonalAnalyticsServiceTests
         {
             new() { TradeId = trade.Id, LessonLearned = "Always use stop loss", CreatedAt = DateTime.UtcNow },
         };
-        _mockStorage.Setup(s => s.GetAsync<List<TradeTrackingData>>(StorageKeys.TradeTrackingData))
+        _mockStorage.Setup(s => s.GetAsync<List<TradeTrackingData>>(AppConstants.Storage.TradeTrackingData))
             .ReturnsAsync(trackingList);
 
         await _service.LoadTrackingDataAsync();

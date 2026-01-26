@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
+using GexVisor.UI.Configuration;
 using GexVisor.UI.Models;
 
 namespace GexVisor.UI.Services;
@@ -11,7 +12,7 @@ namespace GexVisor.UI.Services;
 public class NotebookService : BaseEntryService<NotebookEntry>
 {
     public NotebookService(ILocalStorageService storage)
-        : base(storage, StorageKeys.NotebookEntries)
+        : base(storage, AppConstants.Storage.NotebookEntries)
     {
     }
 

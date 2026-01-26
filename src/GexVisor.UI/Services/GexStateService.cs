@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using System.Timers;
 using GexVisor.Core;
+using GexVisor.UI.Configuration;
 using GexVisor.UI.Models;
 
 namespace GexVisor.UI.Services;
@@ -485,7 +486,7 @@ public class GexStateService : IGexStateService
                     FetchedAt = DateTime.UtcNow,
                     IsCached = false
                 };
-                await _localStorage.SetAsync(StorageKeys.LiveGex(symbol), cacheEntry);
+                await _localStorage.SetAsync(AppConstants.Storage.LiveGex(symbol), cacheEntry);
             }
             else
             {
@@ -576,7 +577,7 @@ public class GexStateService : IGexStateService
     /// </summary>
     public async Task<CachedGexData?> LoadCachedGexDataAsync(string symbol)
     {
-        var cached = await _localStorage.GetAsync<CachedGexData>(StorageKeys.LiveGex(symbol));
+        var cached = await _localStorage.GetAsync<CachedGexData>(AppConstants.Storage.LiveGex(symbol));
         if (cached == null)
         {
             return null;
@@ -593,13 +594,13 @@ public class GexStateService : IGexStateService
     {
         if (symbol != null)
         {
-            await _localStorage.RemoveAsync(StorageKeys.LiveGex(symbol));
+            await _localStorage.RemoveAsync(AppConstants.Storage.LiveGex(symbol));
         }
         else
         {
             // Clear all cached GEX data by finding keys with the prefix
             var keys = await _localStorage.GetKeysAsync();
-            foreach (var key in keys.Where(k => k.StartsWith(StorageKeys.LiveGexPrefix)))
+            foreach (var key in keys.Where(k => k.StartsWith(AppConstants.Storage.LiveGexPrefix)))
             {
                 await _localStorage.RemoveAsync(key);
             }

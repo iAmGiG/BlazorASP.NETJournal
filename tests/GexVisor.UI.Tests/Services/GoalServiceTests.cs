@@ -2,6 +2,7 @@
 
 using FluentAssertions;
 using GexVisor.Core;
+using GexVisor.UI.Configuration;
 using GexVisor.UI.Models;
 using GexVisor.UI.Services;
 using Moq;
@@ -36,7 +37,7 @@ public class GoalServiceTests
             TradingGoal.Create("Goal 1", GoalType.TotalPnL, 1000),
             TradingGoal.Create("Goal 2", GoalType.WinRate, 60),
         };
-        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(StorageKeys.TradingGoals))
+        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(AppConstants.Storage.TradingGoals))
             .ReturnsAsync(goals);
 
         // Act
@@ -50,7 +51,7 @@ public class GoalServiceTests
     public async Task LoadAsync_HandlesNullStorage()
     {
         // Arrange
-        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(StorageKeys.TradingGoals))
+        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(AppConstants.Storage.TradingGoals))
             .ReturnsAsync((List<TradingGoal>?)null);
 
         // Act
@@ -73,7 +74,7 @@ public class GoalServiceTests
         // Assert
         _service.AllGoals.Should().HaveCount(1);
         _service.AllGoals[0].Title.Should().Be("New Goal");
-        _mockStorage.Verify(s => s.SetAsync(StorageKeys.TradingGoals, It.IsAny<List<TradingGoal>>()), Times.Once);
+        _mockStorage.Verify(s => s.SetAsync(AppConstants.Storage.TradingGoals, It.IsAny<List<TradingGoal>>()), Times.Once);
     }
 
     [Fact]
@@ -81,7 +82,7 @@ public class GoalServiceTests
     {
         // Arrange
         var goal = TradingGoal.Create("Goal to delete", GoalType.TotalPnL, 1000);
-        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(StorageKeys.TradingGoals))
+        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(AppConstants.Storage.TradingGoals))
             .ReturnsAsync([goal]);
         await _service.LoadAsync();
 
@@ -97,7 +98,7 @@ public class GoalServiceTests
     {
         // Arrange
         var goal = TradingGoal.Create("Original", GoalType.TotalPnL, 1000);
-        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(StorageKeys.TradingGoals))
+        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(AppConstants.Storage.TradingGoals))
             .ReturnsAsync([goal]);
         await _service.LoadAsync();
 
@@ -122,7 +123,7 @@ public class GoalServiceTests
             new() { Title = "Due Later", Type = GoalType.TotalPnL, TargetValue = 100, Status = GoalStatus.Active, DueDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30)) },
             new() { Title = "Completed", Type = GoalType.TotalPnL, TargetValue = 100, Status = GoalStatus.Completed },
         };
-        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(StorageKeys.TradingGoals))
+        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(AppConstants.Storage.TradingGoals))
             .ReturnsAsync(goals);
         await _service.LoadAsync();
 
@@ -141,7 +142,7 @@ public class GoalServiceTests
     {
         // Arrange
         var goal = TradingGoal.Create("Goal", GoalType.TotalPnL, 1000);
-        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(StorageKeys.TradingGoals))
+        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(AppConstants.Storage.TradingGoals))
             .ReturnsAsync([goal]);
         await _service.LoadAsync();
 
@@ -158,7 +159,7 @@ public class GoalServiceTests
     {
         // Arrange
         var goal = TradingGoal.Create("Goal", GoalType.TotalPnL, 1000);
-        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(StorageKeys.TradingGoals))
+        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(AppConstants.Storage.TradingGoals))
             .ReturnsAsync([goal]);
         await _service.LoadAsync();
 
@@ -180,7 +181,7 @@ public class GoalServiceTests
             TargetValue = 1000,
             Status = GoalStatus.Archived,
         };
-        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(StorageKeys.TradingGoals))
+        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(AppConstants.Storage.TradingGoals))
             .ReturnsAsync([goal]);
         await _service.LoadAsync();
 
@@ -210,7 +211,7 @@ public class GoalServiceTests
             Status = GoalStatus.Active,
             StartDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30)),
         };
-        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(StorageKeys.TradingGoals))
+        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(AppConstants.Storage.TradingGoals))
             .ReturnsAsync([goal]);
         await _service.LoadAsync();
 
@@ -242,7 +243,7 @@ public class GoalServiceTests
             Status = GoalStatus.Active,
             StartDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30)),
         };
-        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(StorageKeys.TradingGoals))
+        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(AppConstants.Storage.TradingGoals))
             .ReturnsAsync([goal]);
         await _service.LoadAsync();
 
@@ -275,7 +276,7 @@ public class GoalServiceTests
             Status = GoalStatus.Active,
             StartDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30)),
         };
-        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(StorageKeys.TradingGoals))
+        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(AppConstants.Storage.TradingGoals))
             .ReturnsAsync([goal]);
         await _service.LoadAsync();
 
@@ -304,7 +305,7 @@ public class GoalServiceTests
             Status = GoalStatus.Active,
             StartDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30)),
         };
-        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(StorageKeys.TradingGoals))
+        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(AppConstants.Storage.TradingGoals))
             .ReturnsAsync([goal]);
         await _service.LoadAsync();
 
@@ -328,7 +329,7 @@ public class GoalServiceTests
             Status = GoalStatus.Active,
             DueDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-5)), // Past due
         };
-        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(StorageKeys.TradingGoals))
+        _mockStorage.Setup(s => s.GetAsync<List<TradingGoal>>(AppConstants.Storage.TradingGoals))
             .ReturnsAsync([overdueGoal]);
         await _service.LoadAsync();
 

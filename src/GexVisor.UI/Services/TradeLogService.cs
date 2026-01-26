@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using GexVisor.Core;
+using GexVisor.UI.Configuration;
 
 namespace GexVisor.UI.Services;
 
@@ -11,7 +12,7 @@ namespace GexVisor.UI.Services;
 public class TradeLogService
 {
     private readonly ILocalStorageService _storage;
-    private readonly string _storageKey = StorageKeys.TradeLogs;
+    private readonly string _storageKey = AppConstants.Storage.TradeLogs;
     private List<OptionsLog> _trades = [];
 
     public event Action? OnTradesChanged;

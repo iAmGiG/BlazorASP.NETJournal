@@ -237,7 +237,7 @@ public class AlertServiceTests : IDisposable
         _service.Preferences.AlertsEnabled.Should().BeFalse();
         _service.Preferences.GexUpperThreshold.Should().Be(10m);
         prefsChangedCalled.Should().BeTrue();
-        _mockStorage.Verify(s => s.SetAsync(StorageKeys.AlertPreferences, newPrefs), Times.Once);
+        _mockStorage.Verify(s => s.SetAsync(AppConstants.Storage.AlertPreferences, newPrefs), Times.Once);
     }
 
     [Fact]
@@ -249,7 +249,7 @@ public class AlertServiceTests : IDisposable
             AlertsEnabled = false,
             GexUpperThreshold = 15m,
         };
-        _mockStorage.Setup(s => s.GetAsync<AlertPreferences>(StorageKeys.AlertPreferences))
+        _mockStorage.Setup(s => s.GetAsync<AlertPreferences>(AppConstants.Storage.AlertPreferences))
             .ReturnsAsync(savedPrefs);
 
         // Act
@@ -264,7 +264,7 @@ public class AlertServiceTests : IDisposable
     public async Task LoadPreferencesAsync_UsesDefaults_WhenNothingSaved()
     {
         // Arrange
-        _mockStorage.Setup(s => s.GetAsync<AlertPreferences>(StorageKeys.AlertPreferences))
+        _mockStorage.Setup(s => s.GetAsync<AlertPreferences>(AppConstants.Storage.AlertPreferences))
             .ReturnsAsync((AlertPreferences?)null);
 
         // Act
