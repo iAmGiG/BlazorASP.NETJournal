@@ -28,7 +28,7 @@ public static partial class RadarHelpers
         var innerR = AppConstants.ResearchRadar.RingRadii[path.Ring];
         var outerR = path.Ring + 1 < AppConstants.ResearchRadar.RingRadii.Length
             ? AppConstants.ResearchRadar.RingRadii[path.Ring + 1]
-            : AppConstants.ResearchRadar.RingRadii[path.Ring] + 50;
+            : AppConstants.ResearchRadar.RingRadii[path.Ring] + AppConstants.ResearchRadar.DefaultOuterRingWidth;
 
         var r = (innerR + outerR) / 2.0;
         return (r * Math.Cos(rad), r * Math.Sin(rad));
