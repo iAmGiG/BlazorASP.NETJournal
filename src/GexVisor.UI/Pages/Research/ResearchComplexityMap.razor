@@ -2,6 +2,7 @@
 @using GexVisor.UI.Models
 @using GexVisor.UI.Components.Research
 @using GexVisor.UI.Services
+@using GexVisor.UI.Configuration
 @using Microsoft.AspNetCore.Components
 @inject IResearchPathService ResearchPathService
 
@@ -46,15 +47,15 @@
     <!-- Foundation Stats -->
     <div class="foundation-banner">
         <div class="foundation-stat">
-            <div class="foundation-value">@RadarConstants.FoundationStats.DetectionRate</div>
+            <div class="foundation-value">@AppConstants.ResearchRadar.FoundationStats.DetectionRate</div>
             <div class="foundation-label">Detection Rate</div>
         </div>
         <div class="foundation-stat">
-            <div class="foundation-value">@RadarConstants.FoundationStats.Accuracy</div>
+            <div class="foundation-value">@AppConstants.ResearchRadar.FoundationStats.Accuracy</div>
             <div class="foundation-label">Accuracy</div>
         </div>
         <div class="foundation-stat">
-            <div class="foundation-value">@RadarConstants.FoundationStats.TradingDays</div>
+            <div class="foundation-value">@AppConstants.ResearchRadar.FoundationStats.TradingDays</div>
             <div class="foundation-label">Trading Days</div>
         </div>
         <div class="foundation-stat">
@@ -94,7 +95,7 @@
                                 style="--filter-color: @status.Value"
                                 @onclick="@(() => ToggleStatusFilter(status.Key))">
                             <span class="status-dot" style="background: @status.Value"></span>
-                            @FormatEnumName(status.Key) <span class="count">@count</span>
+                            @RadarHelpers.FormatEnumName(status.Key) <span class="count">@count</span>
                         </button>
                     }
                 </div>
@@ -145,7 +146,7 @@
                             <div class="card-header">
                                 <div class="card-ring">Ring @path.Ring</div>
                                 <div class="card-taxonomy" style="background: @taxonomyColor.Item1; color: @taxonomyColor.Item2">
-                                    @FormatEnumName(path.Taxonomy).ToUpperInvariant()
+                                    @RadarHelpers.FormatEnumName(path.Taxonomy).ToUpperInvariant()
                                 </div>
                             </div>
                             <div class="card-title">@path.Title</div>
@@ -157,7 +158,7 @@
                                 }
                             </div>
                             <div class="card-meta">
-                                <span class="status-badge" style="background: @statusColor">@FormatEnumName(path.Status)</span>
+                                <span class="status-badge" style="background: @statusColor">@RadarHelpers.FormatEnumName(path.Status)</span>
                                 <span class="quadrant-badge" style="color: @quadrantInfo.Item2">@quadrantInfo.Item1</span>
                             </div>
                             @if (!string.IsNullOrEmpty(path.Paper) && path.Paper != "N/A")
@@ -179,7 +180,6 @@
                         FocusedPathId="@_focusedPath?.Id"
                         FilteredPaths="@GetFilteredPaths().ToList()"
                         OnNodeClick="@SelectPath"
-                        OnNodeHover="@HandleNodeHover"
                         OnFocusChange="@HandleFocusChange" />
                 </div>
 
@@ -206,13 +206,13 @@
                 </div>
 
                 <div class="detail-taxonomy" style="background: @taxonomyColor.Item1; color: @taxonomyColor.Item2">
-                    @FormatEnumName(_selectedPath.Taxonomy).ToUpperInvariant()
+                    @RadarHelpers.FormatEnumName(_selectedPath.Taxonomy).ToUpperInvariant()
                 </div>
 
                 <div class="detail-meta-grid">
                     <div class="detail-meta-item">
                         <div class="meta-label">Status</div>
-                        <div class="meta-value" style="color: @statusColor">@FormatEnumName(_selectedPath.Status)</div>
+                        <div class="meta-value" style="color: @statusColor">@RadarHelpers.FormatEnumName(_selectedPath.Status)</div>
                     </div>
                     <div class="detail-meta-item">
                         <div class="meta-label">Complexity</div>
@@ -306,7 +306,6 @@
     private ResearchStatus? _statusFilter;
     private int? _ringFilter;
     private ResearchPath? _selectedPath;
-    private ResearchPath? _hoveredPath;
     private ResearchPath? _focusedPath;
     private string? _searchTerm;
     private ViewMode _viewMode = ViewMode.Cards;
@@ -324,11 +323,6 @@
 
     private void ToggleViewMode() =>
         _viewMode = _viewMode == ViewMode.Cards ? ViewMode.Radar : ViewMode.Cards;
-
-    private void HandleNodeHover(ResearchPath? path)
-    {
-        _hoveredPath = path;
-    }
 
     private void HandleFocusChange(ResearchPath? path)
     {
@@ -390,7 +384,7 @@
         if (_barrierFilter != null)
             filters.Add($"barrier type {_barrierFilter}");
         if (_statusFilter != null)
-            filters.Add($"status {FormatEnumName(_statusFilter.Value)}");
+            filters.Add($"status {RadarHelpers.FormatEnumName(_statusFilter.Value)}");
         if (_ringFilter != null)
             filters.Add($"Ring {_ringFilter}");
 
@@ -419,7 +413,13 @@
     private void HandleRelatedNavigate(string term)
     {
         // Find the related path by matching title or related tags
+        // Priority 1: Exact match on Title or ID
         var relatedPath = _paths.FirstOrDefault(p =>
+            p.Title.Equals(term, StringComparison.OrdinalIgnoreCase) ||
+            p.Id.Equals(term, StringComparison.OrdinalIgnoreCase));
+
+        // Priority 2: Fuzzy match (fallback)
+        relatedPath ??= _paths.FirstOrDefault(p =>
             p.Title.Contains(term, StringComparison.OrdinalIgnoreCase) ||
             p.Related.Any(r => r.Contains(term, StringComparison.OrdinalIgnoreCase)));
 
@@ -437,12 +437,5 @@
         {
             _selectedPath = previousPath;
         }
-    }
-
-    private static string FormatEnumName<T>(T enumValue) where T : Enum
-    {
-        var name = enumValue.ToString();
-        // Insert spaces before uppercase letters (camelCase to words)
-        return System.Text.RegularExpressions.Regex.Replace(name, "(?<!^)([A-Z])", " $1");
     }
 }
