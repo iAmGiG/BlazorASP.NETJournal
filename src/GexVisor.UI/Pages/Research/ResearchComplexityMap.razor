@@ -67,6 +67,15 @@
     <div class="main-container">
         <!-- Filters -->
         <aside id="filter-panel" class="filters-panel">
+            <div class="filters-header">
+                <span class="filters-label">Filters</span>
+                @if (HasActiveFilters)
+                {
+                    <button class="reset-btn" @onclick="ResetFilters" title="Reset all filters">
+                        <i class="fas fa-undo"></i> Reset
+                    </button>
+                }
+            </div>
             <div class="filter-section">
                 <div class="filter-title">Barrier Type</div>
                 <div class="filter-group">
@@ -134,7 +143,7 @@
 
                 <!-- Path Cards Grid -->
                 <div class="paths-grid">
-                    @foreach (var path in GetFilteredPaths().OrderBy(p => p.Ring).ThenBy(p => p.Title))
+                    @foreach (var path in _filteredPaths)
                     {
                         var statusColor = ResearchPathData.StatusColors.GetValueOrDefault(path.Status, AppConstants.ResearchRadar.DefaultStatusColor);
                         var taxonomyColor = ResearchPathData.TaxonomyColors.GetValueOrDefault(path.Taxonomy, (AppConstants.ResearchRadar.DefaultTaxonomyColor, AppConstants.ResearchRadar.DefaultTaxonomyText));
@@ -178,7 +187,7 @@
                         Paths="@_paths"
                         SelectedPathId="@_selectedPath?.Id"
                         FocusedPathId="@_focusedPath?.Id"
-                        FilteredPaths="@GetFilteredPaths().ToList()"
+                        FilteredPaths="@_filteredPaths"
                         OnNodeClick="@SelectPath"
                         OnFocusChange="@HandleFocusChange" />
                 </div>
@@ -311,6 +320,13 @@
     private ViewMode _viewMode = ViewMode.Cards;
     private string _announcement = "";
     private readonly Stack<ResearchPath> _navigationHistory = new();
+    private List<ResearchPath> _filteredPaths = [];
+
+    private bool HasActiveFilters =>
+        _barrierFilter != null ||
+        _statusFilter != null ||
+        _ringFilter != null ||
+        !string.IsNullOrEmpty(_searchTerm);
 
     private bool CanGoBack => _navigationHistory.Count > 0;
 
@@ -319,6 +335,7 @@
     protected override async Task OnInitializedAsync()
     {
         _paths = await ResearchPathService.LoadPathsAsync();
+        UpdateFilteredPaths();
     }
 
     private void ToggleViewMode() =>
@@ -329,7 +346,7 @@
         _focusedPath = path;
     }
 
-    private IEnumerable<ResearchPath> GetFilteredPaths()
+    private void UpdateFilteredPaths()
     {
         var paths = _paths.AsEnumerable();
 
@@ -355,30 +372,43 @@
                 p.Related.Any(r => r.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase)));
         }
 
-        return paths;
+        _filteredPaths = paths.OrderBy(p => p.Ring).ThenBy(p => p.Title).ToList();
     }
 
     private void SetBarrierFilter(ResearchQuadrant? filter)
     {
         _barrierFilter = filter;
+        UpdateFilteredPaths();
         AnnounceFilterChange();
     }
 
     private void ToggleStatusFilter(ResearchStatus status)
     {
         _statusFilter = _statusFilter == status ? null : status;
+        UpdateFilteredPaths();
         AnnounceFilterChange();
     }
 
     private void ToggleRingFilter(int ring)
     {
         _ringFilter = _ringFilter == ring ? null : ring;
+        UpdateFilteredPaths();
+        AnnounceFilterChange();
+    }
+
+    private void ResetFilters()
+    {
+        _barrierFilter = null;
+        _statusFilter = null;
+        _ringFilter = null;
+        _searchTerm = null;
+        UpdateFilteredPaths();
         AnnounceFilterChange();
     }
 
     private void AnnounceFilterChange()
     {
-        var count = GetFilteredPaths().Count();
+        var count = _filteredPaths.Count;
         var filters = new List<string>();
 
         if (_barrierFilter != null)
@@ -408,6 +438,7 @@
         _searchTerm = term;
         _selectedPath = null;
         _navigationHistory.Clear();
+        UpdateFilteredPaths();
     }
 
     private void HandleRelatedNavigate(string term)

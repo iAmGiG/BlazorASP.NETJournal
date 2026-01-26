@@ -97,10 +97,10 @@
         RadarHelpers.GetNodePosition(path);
 
     private string F(double value) =>
-        value.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+        RadarHelpers.FormatSvg(value);
 
     private MarkupString SvgText(string x, string y, string className, string content) =>
-        new($"<text x=\"{x}\" y=\"{y}\" class=\"{className}\">{System.Net.WebUtility.HtmlEncode(content)}</text>");
+        RadarHelpers.CreateSvgText(x, y, className, content);
 
     private async Task HandleNodeClick(ResearchPath path)
     {

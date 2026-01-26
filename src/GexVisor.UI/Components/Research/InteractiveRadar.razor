@@ -208,7 +208,7 @@
         RadarHelpers.FormatSvg(value);
 
     private MarkupString SvgText(string x, string y, string className, string content, string? fill = null, string? transform = null) =>
-        new($"<text x=\"{x}\" y=\"{y}\" class=\"{className}\"{(fill != null ? $" fill=\"{fill}\"" : "")}{(transform != null ? $" transform=\"{transform}\"" : "")}>{System.Net.WebUtility.HtmlEncode(content)}</text>");
+        RadarHelpers.CreateSvgText(x, y, className, content, fill, transform);
 
     private async Task HandleNodeClick(ResearchPath path)
     {

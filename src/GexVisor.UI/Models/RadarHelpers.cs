@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using GexVisor.UI.Configuration;
+using Microsoft.AspNetCore.Components;
 
 namespace GexVisor.UI.Models;
 
@@ -70,4 +71,15 @@ public static partial class RadarHelpers
 
     /// <summary>Shared access to ring radii configuration.</summary>
     public static int[] RingRadii => AppConstants.ResearchRadar.RingRadii;
+
+    /// <summary>
+    /// Creates a MarkupString for an SVG text element with proper encoding.
+    /// </summary>
+    public static MarkupString CreateSvgText(string x, string y, string className, string content, string? fill = null, string? transform = null)
+    {
+        var fillAttr = fill != null ? $" fill=\"{fill}\"" : "";
+        var transformAttr = transform != null ? $" transform=\"{transform}\"" : "";
+        var encodedContent = System.Net.WebUtility.HtmlEncode(content);
+        return new MarkupString($"<text x=\"{x}\" y=\"{y}\" class=\"{className}\"{fillAttr}{transformAttr}>{encodedContent}</text>");
+    }
 }

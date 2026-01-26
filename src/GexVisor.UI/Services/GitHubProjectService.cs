@@ -359,22 +359,7 @@ public class GitHubProjectService
                 return new();
             }
 
-            return response.Data.Node.Items.Nodes
-                .Where(n => n.Content != null)
-                .Select(n => new GitHubProjectItem
-                {
-                    Id = n.Id,
-                    ContentId = n.Content!.Id,
-                    Title = n.Content.Title,
-                    Body = n.Content.Body,
-                    State = n.Content.State,
-                    Url = n.Content.Url,
-                    Status = n.FieldValues?.Nodes?
-                        .FirstOrDefault(f => f.Field?.Name?.ToLower() == AppConstants.GitHub.StatusFieldName)?.Name,
-                    Labels = n.Content.Labels?.Nodes?
-                        .Select(l => l.Name).ToList() ?? new()
-                })
-                .ToList();
+            return MapProjectItems(response.Data.Node.Items.Nodes);
         }
         catch (Exception ex)
         {
@@ -444,6 +429,26 @@ public class GitHubProjectService
                         }).ToList()
                     })
                     .FirstOrDefault()
+            })
+            .ToList() ?? new();
+    }
+
+    private List<GitHubProjectItem> MapProjectItems(List<ProjectItemNode>? nodes)
+    {
+        return nodes?
+            .Where(n => n.Content != null)
+            .Select(n => new GitHubProjectItem
+            {
+                Id = n.Id,
+                ContentId = n.Content!.Id,
+                Title = n.Content.Title,
+                Body = n.Content.Body,
+                State = n.Content.State,
+                Url = n.Content.Url,
+                Status = n.FieldValues?.Nodes?
+                    .FirstOrDefault(f => f.Field?.Name?.ToLower() == AppConstants.GitHub.StatusFieldName)?.Name,
+                Labels = n.Content.Labels?.Nodes?
+                    .Select(l => l.Name).ToList() ?? new()
             })
             .ToList() ?? new();
     }
