@@ -48,8 +48,10 @@
         @foreach (var path in _paths)
         {
             var (x, y) = GetNodePosition(path);
-            var statusColor = ResearchPathData.StatusColors.GetValueOrDefault(path.Status, "#888");
-            var radius = path.Ring == 0 ? 18 : 14;
+            var statusColor = ResearchPathData.StatusColors.GetValueOrDefault(path.Status, AppConstants.ResearchRadar.DefaultStatusColor);
+            var radius = path.Ring == 0 
+                ? AppConstants.ResearchRadar.NodeSizes.MiniCore 
+                : AppConstants.ResearchRadar.NodeSizes.MiniStandard;
             <g class="research-node @(SelectedPathId == path.Id ? "selected" : "")"
                transform="translate(@F(x), @F(y))"
                @onclick="@(() => HandleNodeClick(path))"
@@ -67,7 +69,7 @@
         <div class="mini-radar-legend">
             @foreach (var status in ResearchPathData.StatusColors.Take(3))
             {
-                <span class="legend-item">
+                <span class="legend-item" title="@status.Key">
                     <span class="legend-dot" style="background: @status.Value"></span>
                     @status.Key
                 </span>

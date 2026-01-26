@@ -1,10 +1,11 @@
 @using GexVisor.UI.Models
+@using GexVisor.UI.Configuration
 
 @if (Path != null)
 {
-    var statusColor = ResearchPathData.StatusColors.GetValueOrDefault(Path.Status, "#888");
-    var taxonomyColors = ResearchPathData.TaxonomyColors.GetValueOrDefault(Path.Taxonomy, ("#888", "#fff"));
-    var quadrantInfo = ResearchPathData.Quadrants.GetValueOrDefault(Path.BarrierQuadrant, ("Unknown", "#888"));
+    var statusColor = ResearchPathData.StatusColors.GetValueOrDefault(Path.Status, AppConstants.ResearchRadar.DefaultStatusColor);
+    var taxonomyColors = ResearchPathData.TaxonomyColors.GetValueOrDefault(Path.Taxonomy, (AppConstants.ResearchRadar.DefaultTaxonomyColor, AppConstants.ResearchRadar.DefaultTaxonomyText));
+    var quadrantInfo = ResearchPathData.Quadrants.GetValueOrDefault(Path.BarrierQuadrant, (AppConstants.ResearchRadar.UnknownQuadrantLabel, AppConstants.ResearchRadar.UnknownQuadrantColor));
 
     <div class="radar-modal-backdrop" @onclick="HandleBackdropClick"></div>
     <div class="radar-modal" style="--status-color: @statusColor"

@@ -35,8 +35,8 @@ public class GitHubAuthService
         // GitHub App config (Client ID is not secret)
         _config = new GitHubAppConfig
         {
-            ClientId = "Iv23li5YORDVpgCnEURy",
-            AppId = "2678638"
+            ClientId = AppConstants.GitHub.ClientId,
+            AppId = AppConstants.GitHub.AppId
         };
     }
 

@@ -136,9 +136,9 @@
                 <div class="paths-grid">
                     @foreach (var path in GetFilteredPaths().OrderBy(p => p.Ring).ThenBy(p => p.Title))
                     {
-                        var statusColor = ResearchPathData.StatusColors.GetValueOrDefault(path.Status, "#888");
-                        var taxonomyColor = ResearchPathData.TaxonomyColors.GetValueOrDefault(path.Taxonomy, ("#888", "#fff"));
-                        var quadrantInfo = ResearchPathData.Quadrants.GetValueOrDefault(path.Quadrant, ("Unknown", "#888"));
+                        var statusColor = ResearchPathData.StatusColors.GetValueOrDefault(path.Status, AppConstants.ResearchRadar.DefaultStatusColor);
+                        var taxonomyColor = ResearchPathData.TaxonomyColors.GetValueOrDefault(path.Taxonomy, (AppConstants.ResearchRadar.DefaultTaxonomyColor, AppConstants.ResearchRadar.DefaultTaxonomyText));
+                        var quadrantInfo = ResearchPathData.Quadrants.GetValueOrDefault(path.Quadrant, (AppConstants.ResearchRadar.UnknownQuadrantLabel, AppConstants.ResearchRadar.UnknownQuadrantColor));
 
                         <div class="path-card @(_selectedPath?.Id == path.Id ? "selected" : "")"
                              style="--status-color: @statusColor"
@@ -196,9 +196,9 @@
         <aside class="details-panel">
             @if (_selectedPath != null)
             {
-                var statusColor = ResearchPathData.StatusColors.GetValueOrDefault(_selectedPath.Status, "#888");
-                var taxonomyColor = ResearchPathData.TaxonomyColors.GetValueOrDefault(_selectedPath.Taxonomy, ("#888", "#fff"));
-                var quadrantInfo = ResearchPathData.Quadrants.GetValueOrDefault(_selectedPath.Quadrant, ("Unknown", "#888"));
+                var statusColor = ResearchPathData.StatusColors.GetValueOrDefault(_selectedPath.Status, AppConstants.ResearchRadar.DefaultStatusColor);
+                var taxonomyColor = ResearchPathData.TaxonomyColors.GetValueOrDefault(_selectedPath.Taxonomy, (AppConstants.ResearchRadar.DefaultTaxonomyColor, AppConstants.ResearchRadar.DefaultTaxonomyText));
+                var quadrantInfo = ResearchPathData.Quadrants.GetValueOrDefault(_selectedPath.Quadrant, (AppConstants.ResearchRadar.UnknownQuadrantLabel, AppConstants.ResearchRadar.UnknownQuadrantColor));
 
                 <div class="detail-header">
                     <div class="detail-title">@_selectedPath.Title</div>

@@ -91,14 +91,16 @@
         @foreach (var path in DisplayPaths)
         {
             var (x, y) = GetNodePosition(path);
-            var statusColor = ResearchPathData.StatusColors.GetValueOrDefault(path.Status, "#888");
+            var statusColor = ResearchPathData.StatusColors.GetValueOrDefault(path.Status, AppConstants.ResearchRadar.DefaultStatusColor);
             var isFiltered = FilteredPaths == null || FilteredPaths.Contains(path);
             var isSelected = SelectedPathId == path.Id;
             var isFocused = FocusedPathId == path.Id;
             var isRelated = _hoveredPath != null && _hoveredPath.Related.Any(r =>
                 path.Title.Contains(r, StringComparison.OrdinalIgnoreCase) ||
                 path.Related.Contains(r));
-            var radius = path.Ring == 0 ? 22 : 17;
+            var radius = path.Ring == 0 
+                ? AppConstants.ResearchRadar.NodeSizes.InteractiveCore 
+                : AppConstants.ResearchRadar.NodeSizes.InteractiveStandard;
 
             <g class="research-node node-ring-@path.Ring @(isSelected ? "selected" : "") @(isFocused ? "focused" : "") @(!isFiltered ? "dimmed" : "") @(isRelated ? "related-glow" : "")"
                transform="translate(@F(x), @F(y))"
@@ -114,7 +116,7 @@
                @ontouchend="@((e) => HandleTouchEnd(e, path))"
                @ontouchmove="@HandleTouchMove">
                 <!-- Invisible hit target for easier clicking/touching -->
-                <circle cx="0" cy="0" r="@(radius + 8)" fill="transparent" class="hit-target" />
+                <circle cx="0" cy="0" r="@(radius + AppConstants.ResearchRadar.NodeSizes.HitTargetPadding)" fill="transparent" class="hit-target" />
                 <circle cx="0" cy="0" r="@radius" fill="@statusColor" class="node-circle" />
                 @if (!string.IsNullOrEmpty(path.LabelLong))
                 {
@@ -178,7 +180,6 @@
     private bool _isDragging;
     private double _lastMouseX;
     private double _lastMouseY;
-    private const double BaseSize = 700;
 
     private IEnumerable<ResearchPath> DisplayPaths => Paths ?? [];
 
@@ -192,8 +193,8 @@
     {
         get 
         {
-            var w = BaseSize / _zoom;
-            var h = BaseSize / _zoom;
+            var w = AppConstants.ResearchRadar.BaseSize / _zoom;
+            var h = AppConstants.ResearchRadar.BaseSize / _zoom;
             var x = _panX - (w / 2);
             var y = _panY - (h / 2);
             return $"{F(x)} {F(y)} {F(w)} {F(h)}";
@@ -229,19 +230,19 @@
     private void HandleMouseMove(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
     {
         // Position tooltip with offset to avoid cursor overlap
-        _tooltipX = e.ClientX + 15;
-        _tooltipY = e.ClientY + 15;
+        _tooltipX = e.ClientX + AppConstants.ResearchRadar.Tooltip.OffsetX;
+        _tooltipY = e.ClientY + AppConstants.ResearchRadar.Tooltip.OffsetY;
 
         // Simple boundary detection to prevent tooltip from going off-screen
         // Assume typical viewport widths - tooltip is max 250px wide
-        if (_tooltipX + 260 > 1920) // Conservative estimate
+        if (_tooltipX + AppConstants.ResearchRadar.Tooltip.WidthEstimate > AppConstants.ResearchRadar.Tooltip.ViewportWidthFallback)
         {
-            _tooltipX = e.ClientX - 270;
+            _tooltipX = e.ClientX - (AppConstants.ResearchRadar.Tooltip.WidthEstimate + 10);
         }
 
-        if (_tooltipY + 100 > 1080) // Conservative estimate
+        if (_tooltipY + AppConstants.ResearchRadar.Tooltip.HeightEstimate > AppConstants.ResearchRadar.Tooltip.ViewportHeightFallback)
         {
-            _tooltipY = e.ClientY - 110;
+            _tooltipY = e.ClientY - AppConstants.ResearchRadar.Tooltip.HeightEstimate;
         }
 
         if (_isDragging)
@@ -250,7 +251,7 @@
             var deltaY = e.ClientY - _lastMouseY;
             
             // Convert pixel delta to SVG units
-            var scale = (BaseSize / _zoom) / Size;
+            var scale = (AppConstants.ResearchRadar.BaseSize / _zoom) / Size;
             
             _panX -= deltaX * scale;
             _panY -= deltaY * scale;
@@ -262,7 +263,7 @@
 
     private void HandleWheel(Microsoft.AspNetCore.Components.Web.WheelEventArgs e)
     {
-        var zoomFactor = 1.1;
+        var zoomFactor = AppConstants.ResearchRadar.Zoom.Factor;
         if (e.DeltaY > 0)
         {
             _zoom /= zoomFactor;
@@ -271,7 +272,7 @@
         {
             _zoom *= zoomFactor;
         }
-        _zoom = Math.Clamp(_zoom, 0.5, 10.0);
+        _zoom = Math.Clamp(_zoom, AppConstants.ResearchRadar.Zoom.Min, AppConstants.ResearchRadar.Zoom.Max);
     }
 
     private void HandleMouseDown(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)

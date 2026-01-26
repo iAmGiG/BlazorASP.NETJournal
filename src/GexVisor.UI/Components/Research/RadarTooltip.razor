@@ -1,4 +1,5 @@
 @using GexVisor.UI.Models
+@using GexVisor.UI.Configuration
 
 @if (Path != null && IsVisible)
 {
@@ -28,8 +29,8 @@
 
     private string GetStatusColor()
     {
-        if (Path == null) return "#888";
-        return ResearchPathData.StatusColors.GetValueOrDefault(Path.Status, "#888");
+        if (Path == null) return AppConstants.ResearchRadar.DefaultStatusColor;
+        return ResearchPathData.StatusColors.GetValueOrDefault(Path.Status, AppConstants.ResearchRadar.DefaultStatusColor);
     }
 
     private string GetDescriptionPreview()

@@ -56,6 +56,16 @@ public static class AppConstants
         /// GitHub issue state indicating a closed item.
         /// </summary>
         public const string ClosedState = "CLOSED";
+
+        /// <summary>
+        /// GitHub App Client ID (safe to expose for device flow).
+        /// </summary>
+        public const string ClientId = "Iv23li5YORDVpgCnEURy";
+
+        /// <summary>
+        /// GitHub App ID.
+        /// </summary>
+        public const string AppId = "2678638";
     }
 
     /// <summary>
@@ -537,6 +547,16 @@ public static class AppConstants
         public static readonly int[] RingRadii = [0, 55, 105, 155, 210, 265, 315];
 
         /// <summary>
+        /// Base size of the radar coordinate system.
+        /// </summary>
+        public const double BaseSize = 700;
+
+        /// <summary>
+        /// Default width for the outer ring fallback calculation.
+        /// </summary>
+        public const int DefaultOuterRingWidth = 50;
+
+        /// <summary>
         /// Animation delay per ring in seconds.
         /// </summary>
         public const double RingAnimationDelay = 0.08;
@@ -555,6 +575,37 @@ public static class AppConstants
         public static readonly (int Start, int End) QuadrantMethodology = (270, 360);
 
         /// <summary>
+        /// Default fallback colors and labels.
+        /// </summary>
+        public const string DefaultStatusColor = "#888";
+        public const string DefaultTaxonomyColor = "#888";
+        public const string DefaultTaxonomyText = "#fff";
+        public const string UnknownQuadrantColor = "#888";
+        public const string UnknownQuadrantLabel = "Unknown";
+
+        /// <summary>
+        /// Node radius configuration (in pixels).
+        /// </summary>
+        public static class NodeSizes
+        {
+            public const int InteractiveCore = 22;
+            public const int InteractiveStandard = 17;
+            public const int MiniCore = 18;
+            public const int MiniStandard = 14;
+            public const int HitTargetPadding = 8;
+        }
+
+        /// <summary>
+        /// Zoom and Pan configuration.
+        /// </summary>
+        public static class Zoom
+        {
+            public const double Min = 0.5;
+            public const double Max = 10.0;
+            public const double Factor = 1.1;
+        }
+
+        /// <summary>
         /// Foundation statistics for the validated core (Ring 0).
         /// </summary>
         public static class FoundationStats
@@ -562,6 +613,19 @@ public static class AppConstants
             public const string DetectionRate = "71.5%";
             public const string Accuracy = "91.2%";
             public const string TradingDays = "242";
+        }
+
+        /// <summary>
+        /// Tooltip positioning constants.
+        /// </summary>
+        public static class Tooltip
+        {
+            public const int OffsetX = 15;
+            public const int OffsetY = 15;
+            public const int WidthEstimate = 260;
+            public const int HeightEstimate = 110;
+            public const int ViewportWidthFallback = 1920;
+            public const int ViewportHeightFallback = 1080;
         }
     }
 }
