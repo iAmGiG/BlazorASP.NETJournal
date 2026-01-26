@@ -6,12 +6,42 @@
     align-items: center;
     justify-content: center;
     outline: none; /* Remove default focus outline */
+    position: relative;
 }
 
 /* Visible focus indicator for keyboard navigation */
 .interactive-radar:focus-visible {
     outline: 2px solid var(--accent-cyan, #00e5ff);
     border-radius: 4px;
+}
+
+.radar-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+    display: flex;
+    gap: 5px;
+}
+
+.radar-btn {
+    background: rgba(20, 20, 40, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.8);
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.radar-btn:hover {
+    background: rgba(41, 98, 255, 0.2);
+    border-color: var(--accent-blue, #2962ff);
+    color: white;
 }
 
 .radar-svg {

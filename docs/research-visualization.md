@@ -75,7 +75,16 @@ Each node is color-coded by implementation status:
   - Status badge and taxonomy tag
   - GitHub issue link (if applicable)
 
-**Close Modal:** Click the `×` button or outside the modal
+**Close Modal:** Click the `×` button, press `Escape`, or click outside the modal
+
+**Navigate Between Related Concepts:**
+
+- Click any tag in the "Related Concepts" section to seamlessly switch to that research path
+- Modal remains open during navigation
+- Focus automatically maintained for keyboard accessibility
+- Perfect for exploring research path connections without interruption
+- **Navigation History**: Click "Previous" button (or press `Backspace`) to return to previously viewed paths
+- History is maintained as long as the modal stays open
 
 ### Filtering
 
@@ -317,17 +326,43 @@ public interface IResearchPathService
 - Caching after first load
 - Consistent data across all radar components
 
+## Recent Enhancements
+
+**Implemented (2026-01-25):**
+
+- **Zoom and Pan**: Scroll to zoom (0.5x-10x), drag to pan, R key to reset
+- **In-Modal Navigation**: Click related concept tags to navigate between research paths without closing the modal
+- **Focus Preservation**: Modal automatically refocuses when content changes, maintaining keyboard accessibility
+- **Navigation History**: Back button with keyboard shortcut (`Backspace`) to return to previously viewed paths
+
 ## Future Enhancements
 
 **Planned (not yet implemented):**
 - Export to PNG/SVG for presentations
 - Historical view (show radar state over time as research progressed)
+- Visual breadcrumb trail showing navigation path in modal header
 
 ## Related Documentation
 
 - [Architecture](architecture.md) - Research Visualization components technical details
 - [Research Roadmap](research-roadmap.md) - PhD research timeline and phases
 - [GitHub Issue #175](https://github.com/iAmGiG/GexVisor/issues/175) - ResearchPath enum migration
+
+## Zoom and Pan
+
+The radar supports interactive zoom and pan for exploring dense node clusters:
+
+**Zoom:**
+- **Scroll wheel**: Zoom in/out centered on current view
+- **Zoom range**: 0.5x (zoomed out) to 10x (zoomed in)
+
+**Pan:**
+- **Click and drag**: Pan the radar view in any direction
+- Works at any zoom level
+
+**Reset:**
+- **R key**: Reset zoom and pan to default view
+- **Reset button**: Click the button in the top-right corner
 
 ## Keyboard Shortcuts
 
@@ -338,6 +373,10 @@ public interface IResearchPathService
 | `↑` / `↓` | Navigate between nodes |
 | `Enter` / `Space` | Select focused node |
 | `Esc` | Close RadarModal / Clear selection |
+| `Backspace` | Navigate back to previous research path (when modal is open) |
+| `R` | Reset zoom and pan to default |
+| `Scroll` | Zoom in/out |
+| `Drag` | Pan the radar view |
 | Click outside | Close RadarModal |
 
 ## Accessibility (WCAG 2.1)
@@ -367,6 +406,7 @@ Users with `prefers-reduced-motion: reduce` enabled will see:
 ### Focus Management
 
 - Modal auto-focuses when opened
+- Modal refocuses when navigating between related concepts (maintains keyboard accessibility)
 - Escape key closes modal from anywhere within it
 - Focus returns to triggering element on close
 

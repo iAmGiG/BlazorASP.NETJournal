@@ -685,12 +685,6 @@
     outline: none;
 }
 
-.radar-container:focus-visible {
-    outline: 2px solid var(--accent-cyan);
-    outline-offset: 8px;
-    border-radius: 8px;
-}
-
 .keyboard-hints {
     display: flex;
     gap: 1rem;

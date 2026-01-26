@@ -83,14 +83,23 @@
         </div>
 
         <footer class="modal-footer">
+            @if (CanGoBack)
+            {
+                <button class="btn btn-secondary"
+                        @onclick="HandleBack"
+                        aria-label="Navigate back to previous research path"
+                        title="Go back (Backspace)">
+                    <i class="fas fa-undo" aria-hidden="true"></i> Previous
+                </button>
+            }
             @if (!string.IsNullOrEmpty(Path.IssueUrl))
             {
                 <a href="@Path.IssueUrl" target="_blank" rel="noopener noreferrer" class="btn btn-github">
-                    <i class="fab fa-github"></i> Issue @Path.IssueNum
+                    <i class="fab fa-github" aria-hidden="true"></i> Issue @Path.IssueNum
                 </a>
             }
-            <button class="btn btn-secondary" @onclick="HandleClose">
-                <i class="fas fa-arrow-left"></i> Back to Map
+            <button class="btn btn-secondary" @onclick="HandleClose" title="Close modal (Escape)">
+                <i class="fas fa-times" aria-hidden="true"></i> Close
             </button>
         </footer>
     </div>
@@ -106,13 +115,19 @@
     /// <summary>Called when a related tag is clicked.</summary>
     [Parameter] public EventCallback<string> OnRelatedClick { get; set; }
 
+    /// <summary>Called when the back button is clicked.</summary>
+    [Parameter] public EventCallback OnBack { get; set; }
+
+    /// <summary>Whether navigation history exists to go back to.</summary>
+    [Parameter] public bool CanGoBack { get; set; }
+
     private ElementReference _modalElement;
     private ResearchPath? _previousPath;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // Auto-focus modal when it opens (Path changes from null to non-null)
-        if (Path != null && _previousPath == null)
+        // Auto-focus modal when it opens or content changes
+        if (Path != null && Path != _previousPath)
         {
             try
             {
@@ -131,6 +146,10 @@
         if (e.Key == "Escape")
         {
             await HandleClose();
+        }
+        else if (e.Key == "Backspace" && CanGoBack)
+        {
+            await HandleBack();
         }
     }
 
@@ -153,6 +172,13 @@
         {
             await OnRelatedClick.InvokeAsync(tag);
         }
-        await HandleClose();
+    }
+
+    private async Task HandleBack()
+    {
+        if (OnBack.HasDelegate)
+        {
+            await OnBack.InvokeAsync();
+        }
     }
 }
