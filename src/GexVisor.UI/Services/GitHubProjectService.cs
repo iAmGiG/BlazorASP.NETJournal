@@ -16,15 +16,20 @@ public class GitHubProjectService
     private readonly ILocalStorageService _storage;
 
     public event Action? OnProjectsChanged;
+    public event Action<string>? OnError;
 
     private List<GitHubProject> _projects = new();
     private GitHubProject? _selectedProject;
     private string? _endCursor;
     private bool _hasMoreProjects;
+    private string? _currentOrg;
+    private List<string> _recentOrgs = new();
 
     public IReadOnlyList<GitHubProject> Projects => _projects;
     public GitHubProject? SelectedProject => _selectedProject;
     public bool HasMoreProjects => _hasMoreProjects;
+    public string? CurrentOrg => _currentOrg;
+    public IReadOnlyList<string> RecentOrgs => _recentOrgs;
 
     public GitHubProjectService(HttpClient http, GitHubAuthService auth, ILocalStorageService storage)
     {
@@ -45,6 +50,8 @@ public class GitHubProjectService
             _selectedProject = _projects.FirstOrDefault(p => p.Id == stored.SelectedProjectId);
             _endCursor = stored.EndCursor;
             _hasMoreProjects = stored.HasMoreProjects;
+            _currentOrg = stored.CurrentOrg;
+            _recentOrgs = stored.RecentOrgs ?? new();
             OnProjectsChanged?.Invoke();
         }
     }
@@ -59,36 +66,39 @@ public class GitHubProjectService
             return new();
         }
 
-        var query = $$"""
-            query($cursor: String) {
-                viewer {
-                    login
-                    projectsV2(first: {{AppConstants.GitHub.MaxProjectsPerQuery}}, after: $cursor) {
-                        pageInfo {
-                            endCursor
-                            hasNextPage
-                        }
-                        nodes {
-                            id
-                            title
-                            shortDescription
-                            url
-                            closed
-                            items(first: 1) {
-                                totalCount
+        try
+        {
+            var query = $$"""
+                query($cursor: String) {
+                    viewer {
+                        login
+                        projectsV2(first: {{AppConstants.GitHub.MaxProjectsPerQuery}}, after: $cursor) {
+                            pageInfo {
+                                endCursor
+                                hasNextPage
                             }
-                            fields(first: {{AppConstants.GitHub.MaxFieldsPerProject}}) {
-                                nodes {
-                                    ... on ProjectV2Field {
-                                        id
-                                        name
-                                    }
-                                    ... on ProjectV2SingleSelectField {
-                                        id
-                                        name
-                                        options {
+                            nodes {
+                                id
+                                title
+                                shortDescription
+                                url
+                                closed
+                                items(first: 1) {
+                                    totalCount
+                                }
+                                fields(first: {{AppConstants.GitHub.MaxFieldsPerProject}}) {
+                                    nodes {
+                                        ... on ProjectV2Field {
                                             id
                                             name
+                                        }
+                                        ... on ProjectV2SingleSelectField {
+                                            id
+                                            name
+                                            options {
+                                                id
+                                                name
+                                            }
                                         }
                                     }
                                 }
@@ -96,60 +106,143 @@ public class GitHubProjectService
                         }
                     }
                 }
+                """;
+
+            var variables = afterCursor != null ? new { cursor = afterCursor } : null;
+            var response = await ExecuteGraphQLAsync<ViewerProjectsResponse>(query, variables);
+
+            if (response?.Errors != null && response.Errors.Count > 0)
+            {
+                var errorMsg = string.Join("; ", response.Errors.Select(e => e.Message));
+                OnError?.Invoke($"GitHub API Error: {errorMsg}");
+                return new();
             }
-            """;
 
-        var variables = afterCursor != null ? new { cursor = afterCursor } : null;
-        var response = await ExecuteGraphQLAsync<ViewerProjectsResponse>(query, variables);
+            if (response?.Data?.Viewer?.ProjectsV2 != null)
+            {
+                var connection = response.Data.Viewer.ProjectsV2;
 
-        if (response?.Data?.Viewer?.ProjectsV2 != null)
-        {
-            var connection = response.Data.Viewer.ProjectsV2;
+                // Update pagination state
+                _endCursor = connection.PageInfo?.EndCursor;
+                _hasMoreProjects = connection.PageInfo?.HasNextPage ?? false;
 
-            // Update pagination state
-            _endCursor = connection.PageInfo?.EndCursor;
-            _hasMoreProjects = connection.PageInfo?.HasNextPage ?? false;
+                var newProjects = MapProjects(connection.Nodes);
 
-            var newProjects = connection.Nodes?
-                .Where(p => p != null && !p.Closed)
-                .Select(p => new GitHubProject
+                // Fresh fetch replaces list, pagination appends
+                if (afterCursor == null)
                 {
-                    Id = p.Id,
-                    Title = p.Title,
-                    Description = p.ShortDescription,
-                    Url = p.Url,
-                    ItemCount = p.Items?.TotalCount ?? 0,
-                    StatusField = p.Fields?.Nodes?
-                        .Where(f => f.Name?.ToLower() == AppConstants.GitHub.StatusFieldName && f.Options != null)
-                        .Select(f => new GitHubStatusField
-                        {
-                            Id = f.Id,
-                            Name = f.Name ?? "Status",
-                            Options = f.Options!.Select(o => new GitHubStatusOption
-                            {
-                                Id = o.Id,
-                                Name = o.Name
-                            }).ToList()
-                        })
-                        .FirstOrDefault()
-                })
-                .ToList() ?? new();
+                    _projects = newProjects;
+                }
+                else
+                {
+                    // Dedupe by ID when appending
+                    var existingIds = _projects.Select(p => p.Id).ToHashSet();
+                    _projects.AddRange(newProjects.Where(p => !existingIds.Contains(p.Id)));
+                }
 
-            // Fresh fetch replaces list, pagination appends
-            if (afterCursor == null)
-            {
-                _projects = newProjects;
+                _currentOrg = null;
+                await SaveAsync();
+                OnProjectsChanged?.Invoke();
+                return newProjects;
             }
-            else
+        }
+        catch (Exception ex)
+        {
+            OnError?.Invoke($"Failed to fetch projects: {ex.Message}");
+        }
+
+        return new();
+    }
+
+    /// <summary>
+    /// Fetch projects for a specific organization.
+    /// </summary>
+    public async Task<List<GitHubProject>> FetchOrganizationProjectsAsync(string orgName, string? afterCursor = null)
+    {
+        if (!_auth.IsAuthenticated)
+        {
+            return new();
+        }
+
+        try
+        {
+            var query = $$"""
+                query($login: String!, $cursor: String) {
+                    organization(login: $login) {
+                        projectsV2(first: {{AppConstants.GitHub.MaxProjectsPerQuery}}, after: $cursor) {
+                            pageInfo {
+                                endCursor
+                                hasNextPage
+                            }
+                            nodes {
+                                id
+                                title
+                                shortDescription
+                                url
+                                closed
+                                items(first: 1) {
+                                    totalCount
+                                }
+                                fields(first: {{AppConstants.GitHub.MaxFieldsPerProject}}) {
+                                    nodes {
+                                        ... on ProjectV2Field {
+                                            id
+                                            name
+                                        }
+                                        ... on ProjectV2SingleSelectField {
+                                            id
+                                            name
+                                            options {
+                                                id
+                                                name
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                """;
+
+            var variables = new { login = orgName, cursor = afterCursor };
+            var response = await ExecuteGraphQLAsync<OrganizationProjectsResponse>(query, variables);
+
+            if (response?.Errors != null && response.Errors.Count > 0)
             {
-                // Dedupe by ID when appending
-                var existingIds = _projects.Select(p => p.Id).ToHashSet();
-                _projects.AddRange(newProjects.Where(p => !existingIds.Contains(p.Id)));
+                var errorMsg = string.Join("; ", response.Errors.Select(e => e.Message));
+                OnError?.Invoke($"GitHub API Error: {errorMsg}");
+                return new();
             }
 
-            await SaveAsync();
-            OnProjectsChanged?.Invoke();
-            return newProjects;
+            if (response?.Data?.Organization?.ProjectsV2 != null)
+            {
+                var connection = response.Data.Organization.ProjectsV2;
+                _endCursor = connection.PageInfo?.EndCursor;
+                _hasMoreProjects = connection.PageInfo?.HasNextPage ?? false;
+
+                var newProjects = MapProjects(connection.Nodes);
+
+                if (afterCursor == null)
+                {
+                    _projects = newProjects;
+                }
+                else
+                {
+                    var existingIds = _projects.Select(p => p.Id).ToHashSet();
+                    _projects.AddRange(newProjects.Where(p => !existingIds.Contains(p.Id)));
+                }
+
+                _currentOrg = orgName;
+                AddToRecentOrgs(orgName);
+                await SaveAsync();
+                OnProjectsChanged?.Invoke();
+                return newProjects;
+            }
+        }
+        catch (Exception ex)
+        {
+            OnError?.Invoke($"Failed to fetch org projects: {ex.Message}");
         }
 
         return new();
@@ -163,6 +256,11 @@ public class GitHubProjectService
         if (!_auth.IsAuthenticated || !_hasMoreProjects || _endCursor == null)
         {
             return new();
+        }
+
+        if (_currentOrg != null)
+        {
+            return await FetchOrganizationProjectsAsync(_currentOrg, _endCursor);
         }
 
         return await FetchProjectsAsync(_endCursor);
@@ -198,42 +296,45 @@ public class GitHubProjectService
             return new();
         }
 
-        var query = $$"""
-            query($projectId: ID!) {
-                node(id: $projectId) {
-                    ... on ProjectV2 {
-                        items(first: {{AppConstants.GitHub.MaxItemsPerProject}}) {
-                            nodes {
-                                id
-                                content {
-                                    ... on Issue {
-                                        id
-                                        title
-                                        body
-                                        state
-                                        url
-                                        labels(first: {{AppConstants.GitHub.MaxLabelsPerIssue}}) {
-                                            nodes {
-                                                name
-                                                color
-                                            }
-                                        }
-                                    }
-                                    ... on DraftIssue {
-                                        id
-                                        title
-                                        body
-                                    }
-                                }
-                                fieldValues(first: {{AppConstants.GitHub.MaxFieldValuesPerItem}}) {
-                                    nodes {
-                                        ... on ProjectV2ItemFieldSingleSelectValue {
-                                            field {
-                                                ... on ProjectV2SingleSelectField {
+        try
+        {
+            var query = $$"""
+                query($projectId: ID!) {
+                    node(id: $projectId) {
+                        ... on ProjectV2 {
+                            items(first: {{AppConstants.GitHub.MaxItemsPerProject}}) {
+                                nodes {
+                                    id
+                                    content {
+                                        ... on Issue {
+                                            id
+                                            title
+                                            body
+                                            state
+                                            url
+                                            labels(first: {{AppConstants.GitHub.MaxLabelsPerIssue}}) {
+                                                nodes {
                                                     name
+                                                    color
                                                 }
                                             }
-                                            name
+                                        }
+                                        ... on DraftIssue {
+                                            id
+                                            title
+                                            body
+                                        }
+                                    }
+                                    fieldValues(first: {{AppConstants.GitHub.MaxFieldValuesPerItem}}) {
+                                        nodes {
+                                            ... on ProjectV2ItemFieldSingleSelectValue {
+                                                field {
+                                                    ... on ProjectV2SingleSelectField {
+                                                        name
+                                                    }
+                                                }
+                                                name
+                                            }
                                         }
                                     }
                                 }
@@ -241,33 +342,45 @@ public class GitHubProjectService
                         }
                     }
                 }
+                """;
+
+            var variables = new { projectId = _selectedProject.Id };
+            var response = await ExecuteGraphQLAsync<ProjectItemsResponse>(query, variables);
+
+            if (response?.Errors != null && response.Errors.Count > 0)
+            {
+                var errorMsg = string.Join("; ", response.Errors.Select(e => e.Message));
+                OnError?.Invoke($"GitHub API Error: {errorMsg}");
+                return new();
             }
-            """;
 
-        var variables = new { projectId = _selectedProject.Id };
-        var response = await ExecuteGraphQLAsync<ProjectItemsResponse>(query, variables);
+            if (response?.Data?.Node?.Items?.Nodes == null)
+            {
+                return new();
+            }
 
-        if (response?.Data?.Node?.Items?.Nodes == null)
+            return response.Data.Node.Items.Nodes
+                .Where(n => n.Content != null)
+                .Select(n => new GitHubProjectItem
+                {
+                    Id = n.Id,
+                    ContentId = n.Content!.Id,
+                    Title = n.Content.Title,
+                    Body = n.Content.Body,
+                    State = n.Content.State,
+                    Url = n.Content.Url,
+                    Status = n.FieldValues?.Nodes?
+                        .FirstOrDefault(f => f.Field?.Name?.ToLower() == AppConstants.GitHub.StatusFieldName)?.Name,
+                    Labels = n.Content.Labels?.Nodes?
+                        .Select(l => l.Name).ToList() ?? new()
+                })
+                .ToList();
+        }
+        catch (Exception ex)
         {
+            OnError?.Invoke($"Failed to fetch items: {ex.Message}");
             return new();
         }
-
-        return response.Data.Node.Items.Nodes
-            .Where(n => n.Content != null)
-            .Select(n => new GitHubProjectItem
-            {
-                Id = n.Id,
-                ContentId = n.Content!.Id,
-                Title = n.Content.Title,
-                Body = n.Content.Body,
-                State = n.Content.State,
-                Url = n.Content.Url,
-                Status = n.FieldValues?.Nodes?
-                    .FirstOrDefault(f => f.Field?.Name?.ToLower() == AppConstants.GitHub.StatusFieldName)?.Name,
-                Labels = n.Content.Labels?.Nodes?
-                    .Select(l => l.Name).ToList() ?? new()
-            })
-            .ToList();
     }
 
     /// <summary>
@@ -300,9 +413,64 @@ public class GitHubProjectService
             Projects = _projects,
             SelectedProjectId = _selectedProject?.Id,
             EndCursor = _endCursor,
-            HasMoreProjects = _hasMoreProjects
+            HasMoreProjects = _hasMoreProjects,
+            CurrentOrg = _currentOrg,
+            RecentOrgs = _recentOrgs
         };
         await _storage.SetAsync(AppConstants.Storage.GitHubProjects, settings);
+    }
+
+    private List<GitHubProject> MapProjects(List<ProjectV2Node>? nodes)
+    {
+        return nodes?
+            .Where(p => p != null && !p.Closed)
+            .Select(p => new GitHubProject
+            {
+                Id = p.Id,
+                Title = p.Title,
+                Description = p.ShortDescription,
+                Url = p.Url,
+                ItemCount = p.Items?.TotalCount ?? 0,
+                StatusField = p.Fields?.Nodes?
+                    .Where(f => f.Name?.ToLower() == AppConstants.GitHub.StatusFieldName && f.Options != null)
+                    .Select(f => new GitHubStatusField
+                    {
+                        Id = f.Id,
+                        Name = f.Name ?? "Status",
+                        Options = f.Options!.Select(o => new GitHubStatusOption
+                        {
+                            Id = o.Id,
+                            Name = o.Name
+                        }).ToList()
+                    })
+                    .FirstOrDefault()
+            })
+            .ToList() ?? new();
+    }
+
+    public async Task ClearRecentOrgsAsync()
+    {
+        _recentOrgs.Clear();
+        await SaveAsync();
+        OnProjectsChanged?.Invoke();
+    }
+
+    private void AddToRecentOrgs(string orgName)
+    {
+        if (string.IsNullOrWhiteSpace(orgName))
+        {
+            return;
+        }
+
+        // Remove existing entry (case-insensitive) to move it to top
+        _recentOrgs.RemoveAll(o => o.Equals(orgName, StringComparison.OrdinalIgnoreCase));
+
+        _recentOrgs.Insert(0, orgName);
+
+        if (_recentOrgs.Count > 5)
+        {
+            _recentOrgs.RemoveAt(_recentOrgs.Count - 1);
+        }
     }
 }
 
@@ -311,6 +479,9 @@ internal class ViewerProjectsResponse
 {
     [JsonPropertyName("data")]
     public ViewerData? Data { get; set; }
+
+    [JsonPropertyName("errors")]
+    public List<GraphQLError>? Errors { get; set; }
 }
 
 internal class ViewerData
@@ -324,6 +495,27 @@ internal class Viewer
     [JsonPropertyName("login")]
     public string? Login { get; set; }
 
+    [JsonPropertyName("projectsV2")]
+    public ProjectsV2Connection? ProjectsV2 { get; set; }
+}
+
+internal class OrganizationProjectsResponse
+{
+    [JsonPropertyName("data")]
+    public OrganizationData? Data { get; set; }
+
+    [JsonPropertyName("errors")]
+    public List<GraphQLError>? Errors { get; set; }
+}
+
+internal class OrganizationData
+{
+    [JsonPropertyName("organization")]
+    public Organization? Organization { get; set; }
+}
+
+internal class Organization
+{
     [JsonPropertyName("projectsV2")]
     public ProjectsV2Connection? ProjectsV2 { get; set; }
 }
@@ -407,6 +599,9 @@ internal class ProjectItemsResponse
 {
     [JsonPropertyName("data")]
     public ProjectItemsData? Data { get; set; }
+
+    [JsonPropertyName("errors")]
+    public List<GraphQLError>? Errors { get; set; }
 }
 
 internal class ProjectItemsData
@@ -494,4 +689,10 @@ internal class FieldRef
 {
     [JsonPropertyName("name")]
     public string? Name { get; set; }
+}
+
+internal class GraphQLError
+{
+    [JsonPropertyName("message")]
+    public string Message { get; set; } = "";
 }

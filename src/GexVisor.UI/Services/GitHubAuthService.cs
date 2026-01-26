@@ -71,7 +71,13 @@ public class GitHubAuthService
             _pollCts?.Cancel();
 
             // Use proxy endpoint (handles CORS)
-            var response = await _http.PostAsync(GitHubAppConfig.DeviceCodeUrl, null);
+            var content = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["client_id"] = _config.ClientId,
+                ["scope"] = "repo project read:org"
+            });
+
+            var response = await _http.PostAsync(GitHubAppConfig.DeviceCodeUrl, content);
             response.EnsureSuccessStatusCode();
 
             var deviceCode = await response.Content.ReadFromJsonAsync<DeviceCodeResponse>();
@@ -162,13 +168,27 @@ public class GitHubAuthService
     {
         var content = new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            ["device_code"] = deviceCode
+            ["client_id"] = _config.ClientId,
+            ["device_code"] = deviceCode,
+            ["grant_type"] = "urn:ietf:params:oauth:grant-type:device_code"
         });
 
         var response = await _http.PostAsync(GitHubAppConfig.TokenUrl, content);
-        var json = await response.Content.ReadAsStringAsync();
 
-        return JsonSerializer.Deserialize<TokenResponse>(json) ?? new TokenResponse { Error = "parse_error" };
+        if (!response.IsSuccessStatusCode)
+        {
+            return new TokenResponse { Error = $"http_error_{response.StatusCode}" };
+        }
+
+        var json = await response.Content.ReadAsStringAsync();
+        try
+        {
+            return JsonSerializer.Deserialize<TokenResponse>(json) ?? new TokenResponse { Error = "null_response" };
+        }
+        catch (JsonException)
+        {
+            return new TokenResponse { Error = "parse_error" };
+        }
     }
 
     /// <summary>

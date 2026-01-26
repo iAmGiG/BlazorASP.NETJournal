@@ -56,4 +56,6 @@ public class GitHubProjectSettings
     public string? SelectedProjectId { get; set; }
     public string? EndCursor { get; set; }
     public bool HasMoreProjects { get; set; }
+    public string? CurrentOrg { get; set; }
+    public List<string> RecentOrgs { get; set; } = new();
 }

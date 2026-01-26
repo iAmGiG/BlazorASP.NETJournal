@@ -20,6 +20,14 @@
             <span>Loading projects...</span>
         </div>
     }
+    else if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>@_error</span>
+            <button class="btn-close" @onclick="ClearError" title="Dismiss"><i class="fas fa-times"></i></button>
+        </div>
+    }
     else if (ProjectService.SelectedProject != null)
     {
         <div class="selected-project">
@@ -85,6 +93,8 @@
                     }
                 </div>
             }
+
+            @OrgSelector(showMyProjectsLink: true)
         </div>
     }
     else
@@ -94,6 +104,8 @@
             <button class="btn-fetch" @onclick="RefreshProjects">
                 <i class="fas fa-sync-alt"></i> Fetch Projects
             </button>
+
+            @OrgSelector(showLabel: true)
         </div>
     }
 </div>
@@ -101,15 +113,51 @@
 @code {
     private bool _isLoading;
     private bool _isLoadingMore;
+    private string? _error;
+    private string _orgName = "";
+
+    private RenderFragment OrgSelector(bool showLabel = false, bool showMyProjectsLink = false) => __builder =>
+    {
+        <div class="org-selector @(showLabel ? "mt-2" : "")">
+            @if (showLabel)
+            {
+                <span>Or load from organization:</span>
+            }
+            <div class="org-input-group">
+                <input @bind="_orgName" placeholder="Organization name" class="form-control" @onkeyup="HandleOrgKeyUp" />
+                <button class="btn-fetch" @onclick="LoadOrgProjects" disabled="@string.IsNullOrWhiteSpace(_orgName)">
+                    @(showMyProjectsLink ? "Load Org" : "Load")
+                </button>
+            </div>
+            @if (showMyProjectsLink)
+            {
+                <button class="btn-link" @onclick="RefreshProjects">Load My Projects</button>
+            }
+            @if (ProjectService.RecentOrgs.Count > 0)
+            {
+                <div class="recent-orgs">
+                    @foreach (var org in ProjectService.RecentOrgs)
+                    {
+                        <button class="recent-org-chip" @onclick="@(() => LoadRecentOrg(org))">@org</button>
+                    }
+                    <button class="btn-clear-history" @onclick="ClearRecentOrgs" title="Clear history">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            }
+        </div>
+    };
 
     protected override async Task OnInitializedAsync()
     {
         AuthService.OnAuthStateChanged += OnAuthChanged;
         ProjectService.OnProjectsChanged += OnProjectsChanged;
+        ProjectService.OnError += OnProjectError;
 
         try
         {
             await ProjectService.LoadAsync();
+            _orgName = ProjectService.CurrentOrg ?? "";
 
             // Auto-fetch if authenticated but no projects
             if (AuthService.IsAuthenticated && ProjectService.Projects.Count == 0)
@@ -147,9 +195,18 @@
         _ = InvokeAsync(StateHasChanged);
     }
 
+    private void OnProjectError(string error)
+    {
+        _error = error;
+        _isLoading = false;
+        _isLoadingMore = false;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
     private async Task RefreshProjects()
     {
         _isLoading = true;
+        _error = null;
         StateHasChanged();
 
         try
@@ -163,6 +220,46 @@
 
         _isLoading = false;
         StateHasChanged();
+    }
+
+    private async Task LoadOrgProjects()
+    {
+        if (string.IsNullOrWhiteSpace(_orgName)) return;
+
+        _isLoading = true;
+        _error = null;
+        StateHasChanged();
+
+        try
+        {
+            await ProjectService.FetchOrganizationProjectsAsync(_orgName);
+        }
+        catch
+        {
+            // Ignore fetch errors
+        }
+
+        _isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task HandleOrgKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await LoadOrgProjects();
+        }
+    }
+
+    private async Task LoadRecentOrg(string org)
+    {
+        _orgName = org;
+        await LoadOrgProjects();
+    }
+
+    private async Task ClearRecentOrgs()
+    {
+        await ProjectService.ClearRecentOrgsAsync();
     }
 
     private async Task SelectProject(string projectId)
@@ -193,9 +290,16 @@
         StateHasChanged();
     }
 
+    private void ClearError()
+    {
+        _error = null;
+        StateHasChanged();
+    }
+
     public void Dispose()
     {
         AuthService.OnAuthStateChanged -= OnAuthChanged;
         ProjectService.OnProjectsChanged -= OnProjectsChanged;
+        ProjectService.OnError -= OnProjectError;
     }
 }
