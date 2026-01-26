@@ -11,7 +11,7 @@ public class GexCalculationServiceTests
 {
     private readonly Mock<IOptionsChainService> _mockOptionsService;
     private readonly Mock<IMarketDataService> _mockMarketDataService;
-    private readonly IGexCalculationService _service;
+    private readonly GexCalculationService _service;
 
     public GexCalculationServiceTests()
     {

@@ -14,6 +14,8 @@ namespace GexVisor.UI.Tests.Services;
 /// </summary>
 public class ComparisonServiceTests
 {
+    private static readonly string[] _twoSymbols = ["SPY", "QQQ"];
+
     [Fact]
     public void ToggleSymbol_AddsSymbolWhenNotSelected()
     {
@@ -218,7 +220,7 @@ public class ComparisonServiceTests
         asset.Should().BeNull();
     }
 
-    private ComparisonService CreateService(Mock<IGexDataService>? mockDataService = null)
+    private static ComparisonService CreateService(Mock<IGexDataService>? mockDataService = null)
     {
         mockDataService ??= new Mock<IGexDataService>();
         return new ComparisonService(mockDataService.Object);
@@ -266,7 +268,7 @@ public class ComparisonServiceTests
         service.LoadedAssets.Should().HaveCount(2);
         service.LoadedAssets.Should().ContainKey("SPY");
         service.LoadedAssets.Should().ContainKey("QQQ");
-        service.SelectedSymbols.Should().BeEquivalentTo(new[] { "SPY", "QQQ" });
+        service.SelectedSymbols.Should().BeEquivalentTo(_twoSymbols);
     }
 
     [Fact]
@@ -365,7 +367,7 @@ public class ComparisonServiceTests
         service.LoadedAssets.Should().HaveCount(2);
         service.LoadedAssets.Should().ContainKey("SPY");
         service.LoadedAssets.Should().ContainKey("QQQ");
-        service.SelectedSymbols.Should().BeEquivalentTo(new[] { "SPY", "QQQ" });
+        service.SelectedSymbols.Should().BeEquivalentTo(_twoSymbols);
     }
 
     [Fact]
@@ -374,7 +376,7 @@ public class ComparisonServiceTests
         // Arrange
         var mock = new Mock<IGexDataService>();
         mock.Setup(x => x.LoadSymbolAsync("SPY")).ReturnsAsync(CreateMockTimeline("SPY"));
-        mock.Setup(x => x.LoadSymbolAsync("QQQ")).ThrowsAsync(new Exception("Network error"));
+        mock.Setup(x => x.LoadSymbolAsync("QQQ")).ThrowsAsync(new HttpRequestException("Network error"));
         var service = CreateService(mock);
 
         // Act

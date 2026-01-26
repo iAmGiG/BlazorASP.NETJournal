@@ -225,7 +225,7 @@ public class OptionsCacheServiceTests : IDisposable
         Assert.Equal(OptionType.Put, retrieved3.Type);
     }
 
-    private OptionsChain CreateTestChain(string symbol, DateTime? expirationDate)
+    private static OptionsChain CreateTestChain(string symbol, DateTime? expirationDate)
     {
         return new OptionsChain
         {
@@ -241,7 +241,7 @@ public class OptionsCacheServiceTests : IDisposable
         };
     }
 
-    private OptionContract CreateTestContract(string symbol, decimal strike, OptionType type, DateTime expiration)
+    private static OptionContract CreateTestContract(string symbol, decimal strike, OptionType type, DateTime expiration)
     {
         return new OptionContract
         {

@@ -14,8 +14,16 @@ namespace GexVisor.UI.Tests.Services;
 /// <summary>
 /// Unit tests for GexStateService offline caching functionality.
 /// </summary>
-public class GexStateServiceCacheTests
+public class GexStateServiceCacheTests : IDisposable
 {
+    private static readonly string[] _testCacheKeys =
+    [
+        "gexvisor.liveGex.SPY",
+        "gexvisor.liveGex.QQQ",
+        "gexvisor.settings",
+        "other.key",
+    ];
+
     private readonly Mock<ILocalStorageService> _mockStorage;
     private readonly Mock<HttpMessageHandler> _mockHandler;
     private readonly HttpClient _httpClient;
@@ -190,13 +198,7 @@ public class GexStateServiceCacheTests
         // Arrange
         _mockStorage
             .Setup(s => s.GetKeysAsync())
-            .ReturnsAsync(new[]
-            {
-                "gexvisor.liveGex.SPY",
-                "gexvisor.liveGex.QQQ",
-                "gexvisor.settings",
-                "other.key",
-            });
+            .ReturnsAsync(_testCacheKeys);
 
         // Act
         await _service.ClearCachedGexDataAsync();
@@ -299,5 +301,11 @@ public class GexStateServiceCacheTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
             .ThrowsAsync(new HttpRequestException("Network error"));
+    }
+
+    public void Dispose()
+    {
+        _httpClient.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

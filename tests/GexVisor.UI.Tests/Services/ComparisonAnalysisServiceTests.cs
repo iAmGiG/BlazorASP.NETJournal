@@ -214,12 +214,12 @@ public class ComparisonAnalysisServiceTests
         result[0].IsDispersionOpportunity.Should().BeTrue();
     }
 
-    private AssetComparisonData CreateTestAsset(string symbol, params (string date, decimal price, decimal gex, string regime)[] dataPoints)
+    private static AssetComparisonData CreateTestAsset(string symbol, params (string date, decimal price, decimal gex, string regime)[] dataPoints)
     {
         return CreateTestAssetWithClass(symbol, "Stock", dataPoints);
     }
 
-    private AssetComparisonData CreateTestAssetWithClass(string symbol, string assetClass, params (string date, decimal price, decimal gex, string regime)[] dataPoints)
+    private static AssetComparisonData CreateTestAssetWithClass(string symbol, string assetClass, params (string date, decimal price, decimal gex, string regime)[] dataPoints)
     {
         var timeline = dataPoints.Select(d => new GexDataPoint
         {
@@ -258,7 +258,7 @@ public class ComparisonAnalysisServiceTests
         };
     }
 
-    private RegimeAnalysisSummary AnalyzeRegimes(List<GexDataPoint> timeline)
+    private static RegimeAnalysisSummary AnalyzeRegimes(List<GexDataPoint> timeline)
     {
         var segments = new List<RegimeSegment>();
         var transitions = new List<RegimeTransition>();

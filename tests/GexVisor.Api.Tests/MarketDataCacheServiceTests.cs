@@ -12,6 +12,8 @@ namespace GexVisor.Api.Tests;
 /// </summary>
 public class MarketDataCacheServiceTests : IDisposable
 {
+    private static readonly string[] _multipleSymbols = ["SPY", "QQQ", "IWM"];
+
     private readonly string _testDbPath;
     private readonly SqliteCacheService _cacheService;
     private readonly MarketDataCacheService _marketCache;
@@ -224,7 +226,7 @@ public class MarketDataCacheServiceTests : IDisposable
         await _marketCache.SetQuoteAsync(new Quote { Symbol = "QQQ", Price = 400, Timestamp = DateTime.UtcNow });
 
         // Act
-        var result = await _marketCache.GetMultipleQuotesAsync(new[] { "SPY", "QQQ", "IWM" });
+        var result = await _marketCache.GetMultipleQuotesAsync(_multipleSymbols);
 
         // Assert
         Assert.Equal(2, result.Count);

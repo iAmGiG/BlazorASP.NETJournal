@@ -9,7 +9,7 @@ namespace GexVisor.Api.Tests;
 /// Unit tests for SqliteCacheService.
 /// Tests cache operations, TTL handling, and thread safety.
 /// </summary>
-public class SqliteCacheServiceTests : IDisposable
+public sealed class SqliteCacheServiceTests : IDisposable
 {
     private readonly string _testDbPath;
     private readonly SqliteCacheService _cache;
@@ -351,7 +351,7 @@ public class SqliteCacheServiceTests : IDisposable
     }
 
     // Test data class for serialization
-    private class TestData
+    private sealed class TestData
     {
         public int Id { get; set; }
 

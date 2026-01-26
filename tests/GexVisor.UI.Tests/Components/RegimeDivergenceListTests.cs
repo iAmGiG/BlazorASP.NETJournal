@@ -210,7 +210,7 @@ public class RegimeDivergenceListTests : TestContext
         magnitudes[1].TextContent.Should().Contain("0.3");
     }
 
-    private List<RegimeDivergenceEvent> CreateTestEvents(int count)
+    private static List<RegimeDivergenceEvent> CreateTestEvents(int count)
     {
         var events = new List<RegimeDivergenceEvent>();
         for (int i = 1; i <= count; i++)
@@ -221,7 +221,7 @@ public class RegimeDivergenceListTests : TestContext
         return events;
     }
 
-    private RegimeDivergenceEvent CreateEvent(string date, decimal gexValue)
+    private static RegimeDivergenceEvent CreateEvent(string date, decimal gexValue)
     {
         return new RegimeDivergenceEvent
         {
@@ -240,7 +240,7 @@ public class RegimeDivergenceListTests : TestContext
         };
     }
 
-    private RegimeDivergenceEvent CreateEventWithMagnitude(string date, int totalAssets, int positiveCount, int negativeCount)
+    private static RegimeDivergenceEvent CreateEventWithMagnitude(string date, int totalAssets, int positiveCount, int negativeCount)
     {
         // totalAssets parameter kept for API clarity/future use
         _ = totalAssets;

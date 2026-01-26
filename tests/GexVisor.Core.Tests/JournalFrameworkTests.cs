@@ -3,7 +3,7 @@
 namespace GexVisor.Core.Tests;
 
 /// <summary>
-/// Unit tests for JournalFramework, specifically OptionsLog P&L calculations.
+/// Unit tests for JournalFramework, specifically OptionsLog P&amp;L calculations.
 /// Tests verify correct behavior after fixing #91 (BTO/STC grouping bug).
 /// </summary>
 public class OptionsLogTests

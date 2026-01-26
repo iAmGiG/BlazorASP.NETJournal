@@ -8,7 +8,7 @@ using Moq;
 namespace GexVisor.UI.Tests.Services;
 
 /// <summary>
-/// Unit tests for PaperTradeService analytics and P&L calculations.
+/// Unit tests for PaperTradeService analytics and P&amp;L calculations.
 /// Tests open/closed filtering, win rate, pattern stats, and regime analysis.
 /// </summary>
 public class PaperTradeServiceTests

@@ -13,7 +13,7 @@ namespace GexVisor.UI.Tests.Services;
 /// Unit tests for AlertService.
 /// Tests alert triggering, cooldowns, preferences, and condition detection.
 /// </summary>
-public class AlertServiceTests
+public class AlertServiceTests : IDisposable
 {
     private readonly Mock<IGexStateService> _mockGexState;
     private readonly Mock<ILocalStorageService> _mockStorage;
@@ -24,6 +24,12 @@ public class AlertServiceTests
         _mockGexState = new Mock<IGexStateService>();
         _mockStorage = new Mock<ILocalStorageService>();
         _service = new AlertService(_mockGexState.Object, _mockStorage.Object);
+    }
+
+    public void Dispose()
+    {
+        _service.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     [Fact]
@@ -177,7 +183,7 @@ public class AlertServiceTests
         _service.CheckConditions();
 
         _service.ActiveAlerts.Should().HaveCount(1);
-        var alertId = _service.ActiveAlerts.First().Id;
+        var alertId = _service.ActiveAlerts[0].Id;
 
         // Act
         _service.DismissAlert(alertId);
@@ -185,7 +191,7 @@ public class AlertServiceTests
         // Assert
         _service.ActiveAlerts.Should().BeEmpty();
         _service.AlertHistory.Should().HaveCount(1);
-        _service.AlertHistory.First().IsDismissed.Should().BeTrue();
+        _service.AlertHistory[0].IsDismissed.Should().BeTrue();
     }
 
     [Fact]

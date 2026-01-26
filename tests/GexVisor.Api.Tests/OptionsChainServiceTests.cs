@@ -15,7 +15,7 @@ public class OptionsChainServiceTests : IDisposable
     private readonly Mock<IApiConfigService> _mockConfig;
     private readonly Mock<IHttpClientFactory> _mockHttpFactory;
     private readonly OptionsChainCacheService _cache;
-    private readonly IOptionsChainService _service;
+    private readonly OptionsChainService _service;
     private readonly string _testDbPath;
 
     public OptionsChainServiceTests()

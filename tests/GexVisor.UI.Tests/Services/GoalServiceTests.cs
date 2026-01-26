@@ -72,7 +72,7 @@ public class GoalServiceTests
 
         // Assert
         _service.AllGoals.Should().HaveCount(1);
-        _service.AllGoals.First().Title.Should().Be("New Goal");
+        _service.AllGoals[0].Title.Should().Be("New Goal");
         _mockStorage.Verify(s => s.SetAsync(StorageKeys.TradingGoals, It.IsAny<List<TradingGoal>>()), Times.Once);
     }
 
@@ -107,8 +107,8 @@ public class GoalServiceTests
         await _service.UpdateAsync(updated);
 
         // Assert
-        _service.AllGoals.First().Title.Should().Be("Updated Title");
-        _service.AllGoals.First().UpdatedAt.Should().NotBeNull();
+        _service.AllGoals[0].Title.Should().Be("Updated Title");
+        _service.AllGoals[0].UpdatedAt.Should().NotBeNull();
     }
 
     [Fact]
@@ -149,8 +149,8 @@ public class GoalServiceTests
         await _service.CompleteGoalAsync(goal.Id);
 
         // Assert
-        _service.AllGoals.First().Status.Should().Be(GoalStatus.Completed);
-        _service.AllGoals.First().CompletedAt.Should().NotBeNull();
+        _service.AllGoals[0].Status.Should().Be(GoalStatus.Completed);
+        _service.AllGoals[0].CompletedAt.Should().NotBeNull();
     }
 
     [Fact]
@@ -166,7 +166,7 @@ public class GoalServiceTests
         await _service.ArchiveGoalAsync(goal.Id);
 
         // Assert
-        _service.AllGoals.First().Status.Should().Be(GoalStatus.Archived);
+        _service.AllGoals[0].Status.Should().Be(GoalStatus.Archived);
     }
 
     [Fact]
@@ -188,7 +188,7 @@ public class GoalServiceTests
         await _service.ReactivateGoalAsync(goal.Id);
 
         // Assert
-        _service.AllGoals.First().Status.Should().Be(GoalStatus.Active);
+        _service.AllGoals[0].Status.Should().Be(GoalStatus.Active);
     }
 
     [Fact]
@@ -218,8 +218,8 @@ public class GoalServiceTests
         await _service.RecalculateProgressAsync();
 
         // Assert
-        _service.AllGoals.First().CurrentValue.Should().Be(3000);
-        _service.AllGoals.First().ProgressPercent.Should().Be(60);
+        _service.AllGoals[0].CurrentValue.Should().Be(3000);
+        _service.AllGoals[0].ProgressPercent.Should().Be(60);
     }
 
     [Fact]
@@ -250,8 +250,8 @@ public class GoalServiceTests
         await _service.RecalculateProgressAsync();
 
         // Assert
-        _service.AllGoals.First().CurrentValue.Should().Be(3);
-        _service.AllGoals.First().ProgressPercent.Should().Be(30);
+        _service.AllGoals[0].CurrentValue.Should().Be(3);
+        _service.AllGoals[0].ProgressPercent.Should().Be(30);
     }
 
     [Fact]
@@ -283,7 +283,7 @@ public class GoalServiceTests
         await _service.RecalculateProgressAsync();
 
         // Assert
-        _service.AllGoals.First().CurrentValue.Should().Be(75); // 3/4 = 75%
+        _service.AllGoals[0].CurrentValue.Should().Be(75); // 3/4 = 75%
     }
 
     [Fact]
@@ -312,8 +312,8 @@ public class GoalServiceTests
         await _service.RecalculateProgressAsync();
 
         // Assert
-        _service.AllGoals.First().Status.Should().Be(GoalStatus.Completed);
-        _service.AllGoals.First().CompletedAt.Should().NotBeNull();
+        _service.AllGoals[0].Status.Should().Be(GoalStatus.Completed);
+        _service.AllGoals[0].CompletedAt.Should().NotBeNull();
     }
 
     [Fact]
@@ -336,7 +336,7 @@ public class GoalServiceTests
         await _service.CheckOverdueGoalsAsync();
 
         // Assert
-        _service.AllGoals.First().Status.Should().Be(GoalStatus.Failed);
+        _service.AllGoals[0].Status.Should().Be(GoalStatus.Failed);
     }
 
     [Fact]

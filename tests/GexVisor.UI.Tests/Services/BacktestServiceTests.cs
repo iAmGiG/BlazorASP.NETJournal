@@ -13,6 +13,8 @@ namespace GexVisor.UI.Tests.Services;
 /// </summary>
 public class BacktestServiceTests
 {
+    private static readonly string[] _strategyOneAndThree = ["Strategy1", "Strategy3"];
+
     [Fact]
     public async Task GetByStrategy_FiltersCorrectly()
     {
@@ -131,7 +133,7 @@ public class BacktestServiceTests
 
         // Assert
         selected.Should().HaveCount(2);
-        selected.Select(s => s.StrategyName).Should().BeEquivalentTo(new[] { "Strategy1", "Strategy3" });
+        selected.Select(s => s.StrategyName).Should().BeEquivalentTo(_strategyOneAndThree);
     }
 
     [Fact]

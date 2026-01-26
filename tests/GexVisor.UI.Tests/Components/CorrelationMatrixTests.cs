@@ -13,6 +13,10 @@ namespace GexVisor.UI.Tests.Components;
 /// </summary>
 public class CorrelationMatrixTests : TestContext
 {
+    private static readonly string[] _expectedSymbolsAlphabetical = ["IWM", "QQQ", "SPY"];
+    private static readonly string[] _expectedSymbolsInitial = ["QQQ", "SPY"];
+    private static readonly string[] _expectedSymbolsUpdated = ["DIA", "IWM", "SPY"];
+
     [Fact]
     public void Component_WithNoCorrelations_DisplaysEmptyState()
     {
@@ -56,7 +60,7 @@ public class CorrelationMatrixTests : TestContext
 
         // First cell is corner, next 3 are column headers, next 3 are row headers
         var columnHeaders = headerCells.Skip(1).Take(3).Select(e => e.TextContent).ToList();
-        columnHeaders.Should().BeEquivalentTo(new[] { "IWM", "QQQ", "SPY" });
+        columnHeaders.Should().BeEquivalentTo(_expectedSymbolsAlphabetical);
     }
 
     [Fact]
@@ -166,7 +170,7 @@ public class CorrelationMatrixTests : TestContext
         // Verify initial symbols (QQQ, SPY)
         var initialHeaders = cut.FindAll(".matrix-cell.header").Skip(1).Take(2)
             .Select(e => e.TextContent).ToList();
-        initialHeaders.Should().BeEquivalentTo(new[] { "QQQ", "SPY" });
+        initialHeaders.Should().BeEquivalentTo(_expectedSymbolsInitial);
 
         // Act - change Correlations parameter to NEW list reference
         var newCorrelations = new List<CorrelationMetrics>
@@ -181,7 +185,7 @@ public class CorrelationMatrixTests : TestContext
         // Assert - should have new symbols (DIA, IWM, SPY)
         var updatedHeaders = cut.FindAll(".matrix-cell.header").Skip(1).Take(3)
             .Select(e => e.TextContent).ToList();
-        updatedHeaders.Should().BeEquivalentTo(new[] { "DIA", "IWM", "SPY" });
+        updatedHeaders.Should().BeEquivalentTo(_expectedSymbolsUpdated);
     }
 
     [Fact]
@@ -207,7 +211,7 @@ public class CorrelationMatrixTests : TestContext
         cut.Find(".empty-state").Should().NotBeNull();
     }
 
-    private CorrelationMetrics CreateCorrelation(string symbol1, string symbol2, decimal priceCorr)
+    private static CorrelationMetrics CreateCorrelation(string symbol1, string symbol2, decimal priceCorr)
     {
         return new CorrelationMetrics
         {
