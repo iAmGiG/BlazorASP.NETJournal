@@ -7,6 +7,15 @@
 
 <PageTitle>Research Complexity Map - GexVisor</PageTitle>
 
+<!-- Skip links for keyboard navigation (WCAG 2.4.1) -->
+<a href="#filter-panel" class="skip-link">Skip to filters</a>
+<a href="#content-area" class="skip-link">Skip to content</a>
+
+<!-- Screen reader announcements (WCAG 4.1.3) -->
+<div class="sr-only" aria-live="polite" aria-atomic="true">
+    @_announcement
+</div>
+
 <div class="complexity-page">
     <header class="complexity-header">
         <div class="header-left">
@@ -56,7 +65,7 @@
 
     <div class="main-container">
         <!-- Filters -->
-        <aside class="filters-panel">
+        <aside id="filter-panel" class="filters-panel">
             <div class="filter-section">
                 <div class="filter-title">Barrier Type</div>
                 <div class="filter-group">
@@ -108,7 +117,7 @@
         </aside>
 
         <!-- Main Content -->
-        <div class="content-area">
+        <div id="content-area" class="content-area">
             @if (_viewMode == ViewMode.Cards)
             {
                 <!-- Ring Legend -->
@@ -299,6 +308,7 @@
     private ResearchPath? _focusedPath;
     private string? _searchTerm;
     private ViewMode _viewMode = ViewMode.Cards;
+    private string _announcement = "";
 
     private enum ViewMode { Cards, Radar }
 
@@ -391,16 +401,35 @@
     private void SetBarrierFilter(ResearchQuadrant? filter)
     {
         _barrierFilter = filter;
+        AnnounceFilterChange();
     }
 
     private void ToggleStatusFilter(ResearchStatus status)
     {
         _statusFilter = _statusFilter == status ? null : status;
+        AnnounceFilterChange();
     }
 
     private void ToggleRingFilter(int ring)
     {
         _ringFilter = _ringFilter == ring ? null : ring;
+        AnnounceFilterChange();
+    }
+
+    private void AnnounceFilterChange()
+    {
+        var count = GetFilteredPaths().Count();
+        var filters = new List<string>();
+
+        if (_barrierFilter != null)
+            filters.Add($"barrier type {_barrierFilter}");
+        if (_statusFilter != null)
+            filters.Add($"status {FormatEnumName(_statusFilter.Value)}");
+        if (_ringFilter != null)
+            filters.Add($"Ring {_ringFilter}");
+
+        var filterText = filters.Count > 0 ? string.Join(", ", filters) : "all";
+        _announcement = $"Showing {count} research paths. Filter: {filterText}.";
     }
 
     private void SelectPath(ResearchPath path)

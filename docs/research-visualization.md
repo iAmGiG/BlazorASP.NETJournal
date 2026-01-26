@@ -333,8 +333,42 @@ public interface IResearchPathService
 
 | Key | Action |
 |-----|--------|
-| `Esc` | Close RadarModal |
+| `Tab` | Focus radar container |
+| `←` / `→` | Navigate between nodes |
+| `↑` / `↓` | Navigate between nodes |
+| `Enter` / `Space` | Select focused node |
+| `Esc` | Close RadarModal / Clear selection |
 | Click outside | Close RadarModal |
+
+## Accessibility (WCAG 2.1)
+
+The radar visualization implements several accessibility features:
+
+### Screen Reader Support
+
+- **ARIA Live Region**: Filter changes are announced (e.g., "Showing 5 research paths. Filter: status Partial.")
+- **Node Descriptions**: Each node has `role="button"`, `aria-label`, and detailed `aria-describedby` text
+- **Modal Semantics**: `role="dialog"`, `aria-modal="true"`, `aria-labelledby` for proper modal announcement
+
+### Keyboard Navigation
+
+- **Skip Links**: Press Tab on page load to reveal "Skip to filters" and "Skip to content" links
+- **Focus Indicators**: Cyan outline on focused elements (`:focus-visible`)
+- **Arrow Key Navigation**: Navigate nodes without mouse
+
+### Reduced Motion
+
+Users with `prefers-reduced-motion: reduce` enabled will see:
+
+- No entrance animations on nodes
+- No pulse animation on center
+- Instant transitions instead of smooth animations
+
+### Focus Management
+
+- Modal auto-focuses when opened
+- Escape key closes modal from anywhere within it
+- Focus returns to triggering element on close
 
 ## Troubleshooting
 

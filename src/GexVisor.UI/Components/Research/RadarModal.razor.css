@@ -346,3 +346,23 @@
         justify-content: center;
     }
 }
+
+/* Reduced motion support for vestibular disorders */
+@media (prefers-reduced-motion: reduce) {
+    .radar-modal-backdrop {
+        animation: none;
+        opacity: 1;
+    }
+
+    .radar-modal {
+        animation: none;
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+
+    .btn,
+    .modal-close,
+    .related-tag {
+        transition: none;
+    }
+}

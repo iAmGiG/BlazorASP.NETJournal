@@ -2,7 +2,11 @@
 @using GexVisor.UI.Configuration
 @implements IDisposable
 
-<div class="interactive-radar" style="width: @(Size)px; height: @(Size)px;" @onmousemove="HandleMouseMove">
+<div class="interactive-radar" style="width: @(Size)px; height: @(Size)px;" 
+     @onmousemove="HandleMouseMove"
+     tabindex="0"
+     @onkeydown="HandleKeyDown"
+     aria-label="Interactive Research Radar. Use arrow keys to navigate, Enter to select.">
     <svg viewBox="-350 -350 700 700" class="radar-svg" preserveAspectRatio="xMidYMid meet">
         <!-- Connection lines (rendered before nodes) -->
         <ConnectionLines SelectedPath="@SelectedPath"
@@ -85,6 +89,10 @@
 
             <g class="research-node node-ring-@path.Ring @(isSelected ? "selected" : "") @(isFocused ? "focused" : "") @(!isFiltered ? "dimmed" : "") @(isRelated ? "related-glow" : "")"
                transform="translate(@F(x), @F(y))"
+               role="button"
+               tabindex="-1"
+               aria-label="@path.Title"
+               aria-describedby="desc-@path.Id"
                @onclick="@(() => HandleNodeClick(path))"
                @onclick:stopPropagation="true"
                @onmouseenter="@(() => HandleNodeHover(path))"
@@ -105,6 +113,7 @@
                     @SvgText("0", "3", "node-label", path.Label)
                 }
                 <title>@path.Title - @path.Status</title>
+                <desc id="desc-@path.Id">@RadarHelpers.FormatEnumName(path.Status) research path at complexity Ring @path.Ring. @RadarHelpers.FormatEnumName(path.Taxonomy) approach. Press Enter to view details.</desc>
             </g>
         }
     </svg>
@@ -251,6 +260,38 @@
     private void HandleTouchMove(Microsoft.AspNetCore.Components.Web.TouchEventArgs e)
     {
         _longPressCts?.Cancel();
+    }
+
+    private async Task HandleKeyDown(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs e)
+    {
+        var pathsList = DisplayPaths.ToList();
+        if (pathsList.Count == 0) return;
+
+        // Find current index based on focused or selected path
+        var currentId = FocusedPathId ?? SelectedPathId;
+        var currentIndex = currentId != null 
+            ? pathsList.FindIndex(p => p.Id == currentId) 
+            : -1;
+
+        if (currentIndex == -1) currentIndex = 0;
+
+        switch (e.Key)
+        {
+            case "ArrowRight":
+            case "ArrowDown":
+                var nextIndex = (currentIndex + 1) % pathsList.Count;
+                if (OnFocusChange.HasDelegate) await OnFocusChange.InvokeAsync(pathsList[nextIndex]);
+                break;
+            case "ArrowLeft":
+            case "ArrowUp":
+                var prevIndex = (currentIndex - 1 + pathsList.Count) % pathsList.Count;
+                if (OnFocusChange.HasDelegate) await OnFocusChange.InvokeAsync(pathsList[prevIndex]);
+                break;
+            case "Enter":
+            case " ":
+                await HandleNodeClick(pathsList[currentIndex]);
+                break;
+        }
     }
 
     public void Dispose()

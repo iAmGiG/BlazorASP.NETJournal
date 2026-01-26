@@ -7,9 +7,14 @@
     var quadrantInfo = ResearchPathData.Quadrants.GetValueOrDefault(Path.BarrierQuadrant, ("Unknown", "#888"));
 
     <div class="radar-modal-backdrop" @onclick="HandleBackdropClick"></div>
-    <div class="radar-modal" style="--status-color: @statusColor" @onclick:stopPropagation="true">
+    <div class="radar-modal" style="--status-color: @statusColor"
+         @onclick:stopPropagation="true"
+         @onkeydown="HandleKeyDown"
+         @ref="_modalElement"
+         tabindex="-1"
+         role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <header class="modal-header">
-            <h2 class="modal-title">@Path.Title</h2>
+            <h2 class="modal-title" id="modal-title">@Path.Title</h2>
             <button class="modal-close" @onclick="HandleClose" title="Close">
                 <i class="fas fa-times"></i>
             </button>
@@ -100,6 +105,34 @@
 
     /// <summary>Called when a related tag is clicked.</summary>
     [Parameter] public EventCallback<string> OnRelatedClick { get; set; }
+
+    private ElementReference _modalElement;
+    private ResearchPath? _previousPath;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Auto-focus modal when it opens (Path changes from null to non-null)
+        if (Path != null && _previousPath == null)
+        {
+            try
+            {
+                await _modalElement.FocusAsync();
+            }
+            catch (Exception)
+            {
+                // Element may not be available yet, ignore
+            }
+        }
+        _previousPath = Path;
+    }
+
+    private async Task HandleKeyDown(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            await HandleClose();
+        }
+    }
 
     private async Task HandleClose()
     {

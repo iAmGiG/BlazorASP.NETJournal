@@ -5,6 +5,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    outline: none; /* Remove default focus outline */
+}
+
+/* Visible focus indicator for keyboard navigation */
+.interactive-radar:focus-visible {
+    outline: 2px solid var(--accent-cyan, #00e5ff);
+    border-radius: 4px;
 }
 
 .radar-svg {
@@ -199,5 +206,25 @@
 
     ::deep .node-label-long {
         font-size: 5px;
+    }
+}
+
+/* Reduced motion support for vestibular disorders */
+@media (prefers-reduced-motion: reduce) {
+    ::deep .center-pulse {
+        animation: none;
+    }
+
+    ::deep .research-node {
+        animation: none;
+        opacity: 1;
+    }
+
+    ::deep .node-circle {
+        transition: none;
+    }
+
+    ::deep .quadrant-bg {
+        transition: none;
     }
 }

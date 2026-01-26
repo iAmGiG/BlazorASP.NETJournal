@@ -4,7 +4,7 @@
 @inject IResearchPathService ResearchPathService
 
 <div class="mini-radar" style="width: @(Size)px; height: @(Size)px;">
-    <svg viewBox="-350 -350 700 700" class="mini-radar-svg" preserveAspectRatio="xMidYMid meet">
+    <svg viewBox="-350 -350 700 700" class="mini-radar-svg" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Research Complexity Radar Summary">
         <!-- Quadrant backgrounds -->
         @foreach (var q in ResearchPathData.Quadrants.Where(x => x.Key != ResearchQuadrant.None))
         {
