@@ -242,9 +242,12 @@ Where:
 | `.center-pulse` | 2.5s infinite breathing animation |
 | `.research-node.selected` | Blue outline + shadow |
 | `.research-node.related-glow` | Blue glow for connected paths |
-| `.research-node.dimmed` | Opacity 0.3 for filtered-out nodes |
+| `.research-node.dimmed` | Opacity 0.15 for filtered/unfocused nodes |
 | `.quadrant-bg` | Semi-transparent quadrant fill |
 | `.ring-circle` | Concentric ring boundaries |
+| `.grid-line` | Subtle background grid pattern (5% opacity) |
+| `.grid-bg` | Background rect with grid pattern fill |
+| `.radar-btn.active` | Cyan highlight for active toggle buttons |
 
 ## Data Model
 
@@ -328,6 +331,12 @@ public interface IResearchPathService
 
 ## Recent Enhancements
 
+**Implemented (2026-01-27):**
+
+- **Focus Mode**: Toggle to dim unrelated nodes, highlighting only selected path and its connections
+- **Fit to Screen**: Auto-zoom to fit all visible/filtered nodes with optimal padding
+- **Grid Background**: Subtle grid pattern provides spatial reference during pan/zoom
+
 **Implemented (2026-01-25):**
 
 - **Zoom and Pan**: Scroll to zoom (0.5x-10x), drag to pan, R key to reset
@@ -364,6 +373,33 @@ The radar supports interactive zoom and pan for exploring dense node clusters:
 - **R key**: Reset zoom and pan to default view
 - **Reset button**: Click the button in the top-right corner
 
+**Fit to Screen:**
+
+- **F key**: Auto-zoom and center to fit all visible/filtered nodes
+- **Fit button**: Click the Fit button in the top-right corner
+- Uses filtered paths when filters are active, otherwise all paths
+- Adds padding around bounds for comfortable viewing
+
+## Focus Mode
+
+Focus Mode dims unrelated nodes to help concentrate on a selected research path
+and its connections.
+
+**Toggle:**
+
+- Click the **Focus** button in the top-right corner
+- Button highlights cyan when active
+
+**Behavior:**
+
+- When a node is selected, only related nodes remain fully visible
+- Unrelated nodes dim to 15% opacity
+- Relationship is determined by the `Related` field in research path data
+- Combine with filters for even more targeted exploration
+
+**Use Case:** Select "Monte Carlo" node, enable Focus Mode, and only see
+connected paths like "Statistical Significance" and "FDR Correction".
+
 ## Keyboard Shortcuts
 
 | Key | Action |
@@ -375,6 +411,7 @@ The radar supports interactive zoom and pan for exploring dense node clusters:
 | `Esc` | Close RadarModal / Clear selection |
 | `Backspace` | Navigate back to previous research path (when modal is open) |
 | `R` | Reset zoom and pan to default |
+| `F` | Fit all visible nodes to screen |
 | `Scroll` | Zoom in/out |
 | `Drag` | Pan the radar view |
 | Click outside | Close RadarModal |
@@ -435,4 +472,4 @@ Users with `prefers-reduced-motion: reduce` enabled will see:
 
 ---
 
-_Last Updated: 2026-01-25_
+_Last Updated: 2026-01-27_
