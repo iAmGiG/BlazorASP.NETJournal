@@ -66,6 +66,11 @@ public static class AppConstants
         /// GitHub App ID.
         /// </summary>
         public const string AppId = "2678638";
+
+        /// <summary>
+        /// Maximum number of recent organizations to store in history.
+        /// </summary>
+        public const int MaxRecentOrgs = 5;
     }
 
     /// <summary>
@@ -627,5 +632,15 @@ public static class AppConstants
             public const int ViewportWidthFallback = 1920;
             public const int ViewportHeightFallback = 1080;
         }
+
+        /// <summary>
+        /// Padding to apply when fitting radar content to screen (in pixels).
+        /// </summary>
+        public const double FitToScreenPadding = 60.0;
+
+        /// <summary>
+        /// Minimum dimension (width/height) for fit-to-screen calculation to prevent excessive zoom on single nodes.
+        /// </summary>
+        public const double MinFitDimension = 100.0;
     }
 }

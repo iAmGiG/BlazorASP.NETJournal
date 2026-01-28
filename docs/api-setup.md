@@ -199,6 +199,73 @@ curl http://localhost:5000/api/config/status
 }
 ```
 
+### Historical Data Backfill
+
+| Endpoint | Description | Example |
+|----------|-------------|---------|
+| `POST /api/backfill/start` | Start a historical GEX backfill job | `/api/backfill/start` |
+| `GET /api/backfill/status` | Get all active and recent backfill jobs | `/api/backfill/status` |
+| `GET /api/backfill/status/{jobId}` | Get status of a specific backfill job | `/api/backfill/status/backfill-20260127-101500-a1b2c3d4` |
+| `POST /api/backfill/stop/{jobId}` | Stop a running backfill job | `/api/backfill/stop/backfill-20260127-101500-a1b2c3d4` |
+| `POST /api/backfill/resume/{jobId}` | Resume a stopped or failed job | `/api/backfill/resume/backfill-20260127-101500-a1b2c3d4` |
+
+**Request Format (POST /api/backfill/start):**
+
+```json
+{
+  "symbols": ["SPY", "QQQ", "IWM"],
+  "startDate": "2025-01-01",
+  "endDate": "2026-01-27"
+}
+```
+
+**Response Format:**
+
+```json
+{
+  "jobId": "backfill-20260127-101500-a1b2c3d4",
+  "state": "Running",
+  "symbols": ["SPY", "QQQ", "IWM"],
+  "startDate": "2025-01-01",
+  "endDate": "2026-01-27",
+  "totalDays": 252,
+  "completedDays": 45,
+  "failedDays": 0,
+  "progressPercent": 17.86,
+  "startedAt": "2026-01-27T10:15:00Z",
+  "completedAt": null,
+  "lastActivityAt": "2026-01-27T10:30:45Z",
+  "apiCallsMade": 450,
+  "apiCallsRemaining": 320,
+  "currentSymbol": "SPY",
+  "currentDate": "2025-02-01",
+  "lastError": null,
+  "gexRecordsStored": 756
+}
+```
+
+**Job States:**
+
+- `Pending` - Job is queued but not yet started
+- `Running` - Job is actively processing
+- `RateLimited` - Job is paused due to rate limiting
+- `Stopped` - Job was manually stopped by user
+- `Completed` - Job finished successfully
+- `Failed` - Job failed with errors
+
+**Features:**
+
+- **Rate Limiting**: 70 calls/min for Alpha Vantage API compliance
+- **Progress Tracking**: Real-time updates on completed/failed days
+- **Resume Capability**: Jobs can be resumed after stopping or failures
+- **Weekend Skipping**: Automatically skips non-trading days
+- **Concurrent Jobs**: Multiple backfill jobs can run simultaneously
+- **Cache Storage**: Historical GEX data cached with 10-year TTL
+
+**Cache Keys:** `gex:historical:{symbol}:{yyyy-MM-dd}`
+
+**Job ID Format:** `backfill-{yyyyMMdd-HHmmss}-{guid8}`
+
 ### Cache Management
 
 | Endpoint | Description |

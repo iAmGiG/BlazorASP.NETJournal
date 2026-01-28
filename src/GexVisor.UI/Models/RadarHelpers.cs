@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 using GexVisor.UI.Configuration;
 using Microsoft.AspNetCore.Components;
@@ -60,13 +61,18 @@ public static partial class RadarHelpers
     [GeneratedRegex("(?<!^)([A-Z])")]
     private static partial Regex EnumNameSplitter();
 
+    // Cache for formatted enum names to avoid repeated regex operations during rendering
+    private static readonly ConcurrentDictionary<Enum, string> _enumNameCache = new();
+
     /// <summary>
     /// Formats an enum value into a readable string (e.g., "InProgress" -> "In Progress").
     /// </summary>
     public static string FormatEnumName<T>(T enumValue) where T : Enum
     {
-        var name = enumValue.ToString();
-        return EnumNameSplitter().Replace(name, " $1");
+        return _enumNameCache.GetOrAdd(enumValue, e =>
+        {
+            return EnumNameSplitter().Replace(e.ToString(), " $1");
+        });
     }
 
     /// <summary>Shared access to ring radii configuration.</summary>

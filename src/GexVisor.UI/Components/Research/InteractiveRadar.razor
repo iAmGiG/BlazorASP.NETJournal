@@ -444,10 +444,10 @@
         }
 
         // Add padding (node radius + margin)
-        var padding = 60.0;
+        var padding = AppConstants.ResearchRadar.FitToScreenPadding;
         
-        var width = Math.Max(maxX - minX + padding, 100);
-        var height = Math.Max(maxY - minY + padding, 100);
+        var width = Math.Max(maxX - minX + padding, AppConstants.ResearchRadar.MinFitDimension);
+        var height = Math.Max(maxY - minY + padding, AppConstants.ResearchRadar.MinFitDimension);
 
         _panX = (minX + maxX) / 2.0;
         _panY = (minY + maxY) / 2.0;

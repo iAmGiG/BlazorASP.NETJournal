@@ -106,7 +106,7 @@ All inherit from `BaseEntryService<T>` using the Template Method pattern.
 - Content updates without recompilation
 - Consistent data across InteractiveRadar, MiniRadar, ResearchArcade, ResearchComplexityMap
 
-### Live Data Services (7)
+### Live Data Services (8)
 
 | Service | Lifetime | Interface | Responsibility |
 |---------|----------|-----------|----------------|
@@ -114,6 +114,7 @@ All inherit from `BaseEntryService<T>` using the Template Method pattern.
 | `MarketDataService` | Singleton | ✅ `IMarketDataService` | Quote/bar fetching with provider fallback |
 | `OptionsChainService` | Singleton | ✅ `IOptionsChainService` | Options chain fetching from Alpha Vantage |
 | `GexCalculationService` | Singleton | ✅ `IGexCalculationService` | GEX calculation engine |
+| `HistoricalBackfillService` | Singleton | ✅ `IHistoricalBackfillService` | Historical GEX backfill with rate limiting and job control |
 | `SqliteCacheService` | Singleton | ✅ `ICacheService` | SQLite-based persistent cache |
 | `MarketDataCacheService` | Singleton | - | Quote/bar caching with TTL |
 | `OptionsChainCacheService` | Singleton | - | Options chain caching with TTL |
@@ -133,6 +134,20 @@ GEX = gamma × OI × 100 × S²
 ```
 
 Where S = spot price. Net GEX = Call GEX - Put GEX.
+
+**HistoricalBackfillService Features:**
+
+- Rate limiting for API compliance (70 calls/min for Alpha Vantage)
+- Job tracking with unique jobId generation
+- Progress reporting (days completed/failed, %)
+- Resume capability for interrupted jobs
+- Concurrent job support with ConcurrentDictionary
+- Automatic cache storage with 10-year TTL
+- Weekend skipping for trading days only
+
+**Cache Keys:** `gex:historical:{symbol}:{yyyy-MM-dd}`
+
+**Job ID Format:** `backfill-{yyyyMMdd-HHmmss}-{guid8}`
 
 ---
 

@@ -472,7 +472,7 @@ public class GitHubProjectService
 
         _recentOrgs.Insert(0, orgName);
 
-        if (_recentOrgs.Count > 5)
+        if (_recentOrgs.Count > AppConstants.GitHub.MaxRecentOrgs)
         {
             _recentOrgs.RemoveAt(_recentOrgs.Count - 1);
         }
