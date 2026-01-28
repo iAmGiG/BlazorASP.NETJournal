@@ -104,11 +104,4 @@ public class GitHubAppConfig
 {
     public string ClientId { get; set; } = "";
     public string AppId { get; set; } = "";
-
-    // Proxy URLs (relative to app origin)
-    public const string DeviceCodeUrl = "/api/github/device/code";
-    public const string TokenUrl = "/api/github/device/token";
-    public const string RefreshTokenUrl = "/api/github/token/refresh";
-    public const string UserUrl = "/api/github/user";
-    public const string GraphQLUrl = "/api/github/graphql";
 }

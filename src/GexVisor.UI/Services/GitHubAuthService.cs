@@ -77,7 +77,7 @@ public class GitHubAuthService
                 ["scope"] = "repo project read:org"
             });
 
-            var response = await _http.PostAsync(GitHubAppConfig.DeviceCodeUrl, content);
+            var response = await _http.PostAsync(AppConstants.GitHub.Proxy.DeviceCodeUrl, content);
             response.EnsureSuccessStatusCode();
 
             var deviceCode = await response.Content.ReadFromJsonAsync<DeviceCodeResponse>();
@@ -173,7 +173,7 @@ public class GitHubAuthService
             ["grant_type"] = "urn:ietf:params:oauth:grant-type:device_code"
         });
 
-        var response = await _http.PostAsync(GitHubAppConfig.TokenUrl, content);
+        var response = await _http.PostAsync(AppConstants.GitHub.Proxy.TokenUrl, content);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -231,7 +231,7 @@ public class GitHubAuthService
 
         try
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, GitHubAppConfig.UserUrl);
+            var request = new HttpRequestMessage(HttpMethod.Get, AppConstants.GitHub.Proxy.UserUrl);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _state.AccessToken);
 
             var response = await _http.SendAsync(request);
@@ -268,7 +268,7 @@ public class GitHubAuthService
                 ["refresh_token"] = _state.RefreshToken
             });
 
-            var response = await _http.PostAsync(GitHubAppConfig.RefreshTokenUrl, content);
+            var response = await _http.PostAsync(AppConstants.GitHub.Proxy.RefreshTokenUrl, content);
             var tokenResponse = await response.Content.ReadFromJsonAsync<TokenResponse>();
 
             if (tokenResponse?.IsSuccess == true)

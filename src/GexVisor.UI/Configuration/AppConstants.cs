@@ -71,6 +71,18 @@ public static class AppConstants
         /// Maximum number of recent organizations to store in history.
         /// </summary>
         public const int MaxRecentOrgs = 5;
+
+        /// <summary>
+        /// Proxy URLs for GitHub API requests (relative to app origin).
+        /// </summary>
+        public static class Proxy
+        {
+            public const string DeviceCodeUrl = "/api/github/device/code";
+            public const string TokenUrl = "/api/github/device/token";
+            public const string RefreshTokenUrl = "/api/github/token/refresh";
+            public const string UserUrl = "/api/github/user";
+            public const string GraphQLUrl = "/api/github/graphql";
+        }
     }
 
     /// <summary>
@@ -93,6 +105,14 @@ public static class AppConstants
         /// Maximum number of tag suggestions to display in autocomplete.
         /// </summary>
         public const int MaxTagSuggestions = 10;
+
+        /// <summary>
+        /// Application route constants.
+        /// </summary>
+        public static class Routes
+        {
+            public const string ResearchArcade = "/arcade";
+        }
     }
 
     /// <summary>

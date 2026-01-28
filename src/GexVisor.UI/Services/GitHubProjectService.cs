@@ -375,7 +375,7 @@ public class GitHubProjectService
     /// </summary>
     private async Task<T?> ExecuteGraphQLAsync<T>(string query, object? variables = null) where T : class
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, GitHubAppConfig.GraphQLUrl);
+        var request = new HttpRequestMessage(HttpMethod.Post, AppConstants.GitHub.Proxy.GraphQLUrl);
         request.Headers.Authorization = _auth.GetAuthHeader();
 
         var body = new { query, variables };

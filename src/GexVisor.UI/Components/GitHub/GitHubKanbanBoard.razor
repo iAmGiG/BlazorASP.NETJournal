@@ -46,9 +46,12 @@
                     }
                     Refresh
                 </button>
-                <a href="@ProjectService.SelectedProject.Url" target="_blank" class="btn-github-link">
-                    <i class="fab fa-github"></i> Open in GitHub
-                </a>
+                @if (!string.IsNullOrEmpty(ProjectService.SelectedProject.Url))
+                {
+                    <a href="@ProjectService.SelectedProject.Url" target="_blank" class="btn-github-link">
+                        <i class="fab fa-github"></i> Open in GitHub
+                    </a>
+                }
             </div>
         </div>
 
