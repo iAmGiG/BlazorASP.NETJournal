@@ -48,6 +48,8 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Note: BaseAddress only applies to API calls (graphql, user).
+// OAuth endpoints (/login/*) use absolute URLs which override BaseAddress.
 builder.Services.AddHttpClient("GitHub", client =>
 {
     client.BaseAddress = new Uri("https://api.github.com/");
