@@ -14,11 +14,14 @@
      @onkeydown:stopPropagation="true"
      aria-label="Interactive Research Radar. Use arrow keys to navigate, Enter to select. Scroll to zoom, drag to pan.">
     
-    <div class="radar-controls">
-        <button class="radar-btn" @onclick="ResetZoom" title="Reset Zoom (R)" @onclick:stopPropagation="true">
-            <i class="fas fa-compress-arrows-alt"></i>
-        </button>
-    </div>
+    @if (!IsViewReset)
+    {
+        <div class="radar-controls">
+            <button class="radar-btn" @onclick="ResetZoom" title="Reset View (R)" @onclick:stopPropagation="true">
+                <i class="fas fa-compress-arrows-alt"></i> Reset
+            </button>
+        </div>
+    }
 
     <svg viewBox="@ViewBox" class="radar-svg" preserveAspectRatio="xMidYMid meet">
         <!-- Connection lines (rendered before nodes) -->
@@ -102,8 +105,7 @@
                 ? AppConstants.ResearchRadar.NodeSizes.InteractiveCore 
                 : AppConstants.ResearchRadar.NodeSizes.InteractiveStandard;
 
-            <g class="research-node node-ring-@path.Ring @(isSelected ? "selected" : "") @(isFocused ? "focused" : "") @(!isFiltered ? "dimmed" : "") @(isRelated ? "related-glow" : "")"
-               transform="translate(@F(x), @F(y))"
+            <g transform="translate(@F(x), @F(y))"
                role="button"
                tabindex="-1"
                aria-label="@path.Title"
@@ -115,20 +117,22 @@
                @ontouchstart="@((e) => HandleTouchStart(e, path))"
                @ontouchend="@((e) => HandleTouchEnd(e, path))"
                @ontouchmove="@HandleTouchMove">
-                <!-- Invisible hit target for easier clicking/touching -->
-                <circle cx="0" cy="0" r="@(radius + AppConstants.ResearchRadar.NodeSizes.HitTargetPadding)" fill="transparent" class="hit-target" />
-                <circle cx="0" cy="0" r="@radius" fill="@statusColor" class="node-circle" />
-                @if (!string.IsNullOrEmpty(path.LabelLong))
-                {
-                    @SvgText("0", "-2", "node-label", path.Label)
-                    @SvgText("0", "6", "node-label-long", path.LabelLong)
-                }
-                else
-                {
-                    @SvgText("0", "3", "node-label", path.Label)
-                }
-                <title>@path.Title - @path.Status</title>
-                <desc id="desc-@path.Id">@RadarHelpers.FormatEnumName(path.Status) research path at complexity Ring @path.Ring. @RadarHelpers.FormatEnumName(path.Taxonomy) approach. Press Enter to view details.</desc>
+                <g class="research-node node-ring-@path.Ring @(isSelected ? "selected" : "") @(isFocused ? "focused" : "") @(!isFiltered ? "dimmed" : "") @(isRelated ? "related-glow" : "")">
+                    <!-- Invisible hit target for easier clicking/touching -->
+                    <circle cx="0" cy="0" r="@(radius + AppConstants.ResearchRadar.NodeSizes.HitTargetPadding)" fill="transparent" class="hit-target" />
+                    <circle cx="0" cy="0" r="@radius" fill="@statusColor" class="node-circle" />
+                    @if (!string.IsNullOrEmpty(path.LabelLong))
+                    {
+                        @SvgText("0", "-2", "node-label", path.Label)
+                        @SvgText("0", "6", "node-label-long", path.LabelLong)
+                    }
+                    else
+                    {
+                        @SvgText("0", "3", "node-label", path.Label)
+                    }
+                    <title>@path.Title - @path.Status</title>
+                    <desc id="desc-@path.Id">@RadarHelpers.FormatEnumName(path.Status) research path at complexity Ring @path.Ring. @RadarHelpers.FormatEnumName(path.Taxonomy) approach. Press Enter to view details.</desc>
+                </g>
             </g>
         }
     </svg>
@@ -180,6 +184,8 @@
     private bool _isDragging;
     private double _lastMouseX;
     private double _lastMouseY;
+
+    private bool IsViewReset => Math.Abs(_zoom - 1.0) < 0.001 && Math.Abs(_panX) < 0.1 && Math.Abs(_panY) < 0.1;
 
     private IEnumerable<ResearchPath> DisplayPaths => Paths ?? [];
 
