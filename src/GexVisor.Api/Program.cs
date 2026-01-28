@@ -26,6 +26,9 @@ builder.Services.AddSingleton<IOptionsChainService, OptionsChainService>();
 // GEX Calculation Service
 builder.Services.AddSingleton<IGexCalculationService, GexCalculationService>();
 
+// Historical Backfill Service
+builder.Services.AddSingleton<IHistoricalBackfillService, HistoricalBackfillService>();
+
 // Add services
 builder.Services.AddHttpClient(); // Generic HttpClient for market data APIs
 
@@ -423,6 +426,71 @@ gex.MapGet("/{symbol}/at/{spotPrice:decimal}", async (
         : Results.NotFound(new { error = result.Error });
 });
 
+// Historical Backfill API endpoints
+var backfill = app.MapGroup("/api/backfill");
+
+backfill.MapPost("/start", async (
+    IHistoricalBackfillService backfillService,
+    BackfillRequest request) =>
+{
+    if (request.Symbols == null || request.Symbols.Count == 0)
+    {
+        return Results.BadRequest(new { error = "At least one symbol is required" });
+    }
+
+    if (!DateOnly.TryParse(request.StartDate, out var startDate))
+    {
+        return Results.BadRequest(new { error = "Invalid start date format. Use yyyy-MM-dd" });
+    }
+
+    DateOnly? endDate = null;
+    if (!string.IsNullOrEmpty(request.EndDate))
+    {
+        if (!DateOnly.TryParse(request.EndDate, out var ed))
+        {
+            return Results.BadRequest(new { error = "Invalid end date format. Use yyyy-MM-dd" });
+        }
+
+        endDate = ed;
+    }
+
+    var result = await backfillService.StartBackfillAsync(request.Symbols, startDate, endDate);
+
+    return result.Started
+        ? Results.Ok(new { jobId = result.JobId, message = "Backfill job started" })
+        : Results.BadRequest(new { error = result.Error });
+});
+
+backfill.MapGet("/status", (IHistoricalBackfillService backfillService) =>
+{
+    var statuses = backfillService.GetAllStatuses();
+    return Results.Ok(statuses);
+});
+
+backfill.MapGet("/status/{jobId}", (string jobId, IHistoricalBackfillService backfillService) =>
+{
+    var status = backfillService.GetStatus(jobId);
+    return status != null
+        ? Results.Ok(status)
+        : Results.NotFound(new { error = $"Job {jobId} not found" });
+});
+
+backfill.MapPost("/stop/{jobId}", (string jobId, IHistoricalBackfillService backfillService) =>
+{
+    var stopped = backfillService.StopBackfill(jobId);
+    return stopped
+        ? Results.Ok(new { message = $"Job {jobId} stopped" })
+        : Results.NotFound(new { error = $"Job {jobId} not found or already complete" });
+});
+
+backfill.MapPost("/resume/{jobId}", async (string jobId, IHistoricalBackfillService backfillService) =>
+{
+    var resumed = await backfillService.ResumeBackfillAsync(jobId);
+    return resumed
+        ? Results.Ok(new { message = $"Job {jobId} resumed" })
+        : Results.NotFound(new { error = $"Job {jobId} not found or not resumable" });
+});
+
 // Cache Management API endpoints
 var cache = app.MapGroup("/api/cache");
 
@@ -453,3 +521,13 @@ app.Run();
 
 // Expose Program class for WebApplicationFactory in integration tests
 public partial class Program { }
+
+/// <summary>
+/// Request model for starting a backfill job.
+/// </summary>
+public record BackfillRequest
+{
+    public List<string>? Symbols { get; init; }
+    public string? StartDate { get; init; }
+    public string? EndDate { get; init; }
+}

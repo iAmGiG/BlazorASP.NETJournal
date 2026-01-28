@@ -14,16 +14,30 @@
      @onkeydown:stopPropagation="true"
      aria-label="Interactive Research Radar. Use arrow keys to navigate, Enter to select. Scroll to zoom, drag to pan.">
     
-    @if (!IsViewReset)
-    {
-        <div class="radar-controls">
+    <div class="radar-controls">
+        <button class="radar-btn @(_isFocusMode ? "active" : "")" @onclick="ToggleFocusMode" title="Toggle Focus Mode" @onclick:stopPropagation="true">
+            <i class="fas fa-crosshairs"></i> Focus
+        </button>
+        <button class="radar-btn" @onclick="FitToScreen" title="Fit to Screen (F)" @onclick:stopPropagation="true">
+            <i class="fas fa-expand"></i> Fit
+        </button>
+        @if (!IsViewReset)
+        {
             <button class="radar-btn" @onclick="ResetZoom" title="Reset View (R)" @onclick:stopPropagation="true">
                 <i class="fas fa-compress-arrows-alt"></i> Reset
             </button>
-        </div>
-    }
+        }
+    </div>
 
     <svg viewBox="@ViewBox" class="radar-svg" preserveAspectRatio="xMidYMid meet">
+        <defs>
+            <pattern id="radar-grid" width="50" height="50" patternUnits="userSpaceOnUse">
+                <path d="M 50 0 L 0 0 0 50" fill="none" class="grid-line"/>
+            </pattern>
+        </defs>
+        
+        <rect x="-2000" y="-2000" width="4000" height="4000" fill="url(#radar-grid)" class="grid-bg" />
+
         <!-- Connection lines (rendered before nodes) -->
         <ConnectionLines SelectedPath="@SelectedPath"
                          AllPaths="@DisplayPaths"
@@ -91,6 +105,7 @@
         </g>
 
         <!-- Research nodes -->
+        @{ var selectedPath = SelectedPath; }
         @foreach (var path in DisplayPaths)
         {
             var (x, y) = GetNodePosition(path);
@@ -101,6 +116,11 @@
             var isRelated = _hoveredPath != null && _hoveredPath.Related.Any(r =>
                 path.Title.Contains(r, StringComparison.OrdinalIgnoreCase) ||
                 path.Related.Contains(r));
+            var isFocusRelated = _isFocusMode && selectedPath != null && selectedPath.Related.Any(r =>
+                path.Title.Contains(r, StringComparison.OrdinalIgnoreCase) ||
+                path.Related.Contains(r));
+            var isDimmed = !isFiltered || (_isFocusMode && SelectedPathId != null && !isSelected && !isFocusRelated);
+
             var radius = path.Ring == 0 
                 ? AppConstants.ResearchRadar.NodeSizes.InteractiveCore 
                 : AppConstants.ResearchRadar.NodeSizes.InteractiveStandard;
@@ -117,7 +137,7 @@
                @ontouchstart="@((e) => HandleTouchStart(e, path))"
                @ontouchend="@((e) => HandleTouchEnd(e, path))"
                @ontouchmove="@HandleTouchMove">
-                <g class="research-node node-ring-@path.Ring @(isSelected ? "selected" : "") @(isFocused ? "focused" : "") @(!isFiltered ? "dimmed" : "") @(isRelated ? "related-glow" : "")">
+                <g class="research-node node-ring-@path.Ring @(isSelected ? "selected" : "") @(isFocused ? "focused" : "") @(isDimmed ? "dimmed" : "") @(isRelated ? "related-glow" : "")">
                     <!-- Invisible hit target for easier clicking/touching -->
                     <circle cx="0" cy="0" r="@(radius + AppConstants.ResearchRadar.NodeSizes.HitTargetPadding)" fill="transparent" class="hit-target" />
                     <circle cx="0" cy="0" r="@radius" fill="@statusColor" class="node-circle" />
@@ -182,6 +202,7 @@
     private double _panX = 0;
     private double _panY = 0;
     private bool _isDragging;
+    private bool _isFocusMode;
     private double _lastMouseX;
     private double _lastMouseY;
 
@@ -379,6 +400,10 @@
             case "R":
                 ResetZoom();
                 break;
+            case "f":
+            case "F":
+                FitToScreen();
+                break;
         }
     }
 
@@ -387,6 +412,51 @@
         _zoom = 1.0;
         _panX = 0;
         _panY = 0;
+    }
+
+    private void ToggleFocusMode()
+    {
+        _isFocusMode = !_isFocusMode;
+    }
+
+    private void FitToScreen()
+    {
+        // Use filtered paths if available, otherwise all paths
+        var pathsSource = FilteredPaths != null && FilteredPaths.Any() 
+            ? FilteredPaths 
+            : DisplayPaths;
+            
+        // Materialize to list to avoid multiple enumerations
+        var paths = pathsSource.ToList();
+        
+        if (paths.Count == 0) return;
+
+        double minX = double.MaxValue, maxX = double.MinValue;
+        double minY = double.MaxValue, maxY = double.MinValue;
+
+        foreach (var path in paths)
+        {
+            var (x, y) = GetNodePosition(path);
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+        }
+
+        // Add padding (node radius + margin)
+        var padding = 60.0;
+        
+        var width = Math.Max(maxX - minX + padding, 100);
+        var height = Math.Max(maxY - minY + padding, 100);
+
+        _panX = (minX + maxX) / 2.0;
+        _panY = (minY + maxY) / 2.0;
+
+        var zoomX = AppConstants.ResearchRadar.BaseSize / width;
+        var zoomY = AppConstants.ResearchRadar.BaseSize / height;
+        
+        _zoom = Math.Min(zoomX, zoomY);
+        _zoom = Math.Clamp(_zoom, AppConstants.ResearchRadar.Zoom.Min, AppConstants.ResearchRadar.Zoom.Max);
     }
 
     public void Dispose()
