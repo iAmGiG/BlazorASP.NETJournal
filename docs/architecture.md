@@ -24,6 +24,7 @@ GexVisor has 29 services organized into 8 functional domains:
 | `LocalStorageService` | Scoped | ✅ `ILocalStorageService` | Browser localStorage via JS interop |
 
 **IGexDataService Interface Methods:**
+
 - `GetAssetClasses()` - List unique asset classes from index
 - `GetSymbolsForClass(string assetClass)` - Get symbols for specific asset class
 - `GetSymbolInfo(string symbol)` - Get metadata for specific symbol
@@ -129,7 +130,7 @@ All inherit from `BaseEntryService<T>` using the Template Method pattern.
 
 **GEX Calculation Formula:**
 
-```
+```math
 GEX = gamma × OI × 100 × S²
 ```
 
@@ -316,13 +317,14 @@ Interpolated strike price where net GEX crosses zero. Acts as pivot point for de
 
 **Magic Numbers Refactoring**: Complex components like GexChart.razor now use code-behind pattern:
 
-```
+```ps
 GexChart.razor         (Markup only)
 GexChart.razor.cs      (Logic + Constants)
 GexChart.razor.css     (Styles)
 ```
 
 **Benefits**:
+
 - Testable calculation logic
 - Named constants instead of magic numbers
 - Better IntelliSense/navigation
@@ -346,6 +348,7 @@ Magic numbers and configuration values are centralized in `Configuration/AppCons
 | `Keyboard` | UI shortcuts | Sections[], SidebarShortcuts[] |
 
 **Keyboard Shortcuts Pattern**:
+
 ```csharp
 // Two collections for different display contexts
 public static class Keyboard
@@ -393,7 +396,7 @@ The Chart Viewer provides candlestick price charts with trade overlay support fo
 
 ### Data Flow
 
-```
+```txt
 1. TradeDetailModal opens for trade
 2. TradeChart extracts Trade.Ticker and date range
 3. PriceDataService.GetCandlesAsync(symbol, timeframe, limit)
@@ -544,7 +547,7 @@ All persistence uses browser localStorage via `LocalStorageService`.
 
 ### Load Symbol Timeline
 
-```
+```text
 1. User selects "SPY" in GexSidebar
 2. GexSidebar calls GexDataService.LoadSymbolAsync("spy")
 3. GexDataService issues HTTP GET to /data/spy.json
@@ -562,7 +565,7 @@ All persistence uses browser localStorage via `LocalStorageService`.
 
 ### Cross-Asset Comparison
 
-```
+```text
 1. User selects SPY, QQQ, NVDA checkboxes
 2. User clicks "Compare" button
 3. ComparisonDashboard calls ComparisonService.LoadSymbolsAsync([...])
@@ -582,7 +585,7 @@ All persistence uses browser localStorage via `LocalStorageService`.
 
 ### Journal Entry Creation
 
-```
+```text
 1. User fills form in ResearchNotebook
 2. User clicks "Save"
 3. Page calls NotebookService.AddAsync(entry)
@@ -597,7 +600,7 @@ All persistence uses browser localStorage via `LocalStorageService`.
 
 ### Trade Journal Import Flow
 
-```
+```tex
 1. User uploads CSV/JSON file in TradeLogging.razor
 2. File content read as string
 3. TradeLogging calls DecisionMetadataParser.ParseJsonLog() or ParseCsvLog()

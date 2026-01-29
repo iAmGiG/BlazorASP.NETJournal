@@ -93,6 +93,7 @@ Date,Symbol,Open,High,Low,Close,Volume
 ### Image Export
 
 Use the ApexCharts toolbar to export:
+
 - **PNG**: Bitmap image for presentations
 - **SVG**: Vector format for high-quality printing
 
@@ -107,6 +108,7 @@ https://localhost:5001/chart-test?symbol=SPY&tf=1d
 Share this URL to show others the same chart configuration.
 
 **URL Parameters**:
+
 | Parameter | Example | Description |
 |-----------|---------|-------------|
 | `symbol` | SPY | Stock ticker |
@@ -119,6 +121,7 @@ Share this URL to show others the same chart configuration.
 When "Live API" is selected, data is fetched from the configured market data provider.
 
 **Supported Providers** (configured in backend):
+
 - Alpha Vantage
 - Alpaca Markets
 - Finnhub
@@ -128,6 +131,7 @@ When "Live API" is selected, data is fetched from the configured market data pro
 ### Sample Data
 
 Generates realistic OHLCV data using random walk simulation:
+
 - Uses symbol-specific base prices (SPY: $475, QQQ: $400, etc.)
 - Simulates 2% daily volatility
 - Skips weekends

@@ -9,6 +9,7 @@ This document analyzes the current trading simulation features (PaperTrading and
 ## Current State
 
 ### PaperTrading (`/trading`)
+
 - **Purpose**: Forward-looking simulated trades
 - **Use Case**: Practice trading strategies in real-time without risking capital
 - **File**: `Pages/PaperTrading.razor` (520 lines)
@@ -16,6 +17,7 @@ This document analyzes the current trading simulation features (PaperTrading and
 - **Model**: `PaperTrade.cs`
 
 ### BacktestResults (`/backtests`)
+
 - **Purpose**: Historical strategy analysis
 - **Use Case**: Log and compare results from backtesting different strategies
 - **File**: `Pages/BacktestResults.razor` (588 lines)
@@ -23,6 +25,7 @@ This document analyzes the current trading simulation features (PaperTrading and
 - **Model**: `BacktestResult.cs`
 
 ### TradeLogging (`/tradelogging`) - ✅ Implemented
+
 - **Status**: ✅ **Implemented** (Trade Journal feature)
 - **Purpose**: Real autotrader trade journal
 - **Use Case**: Visualize actual trades and system decisions
@@ -61,7 +64,9 @@ This document analyzes the current trading simulation features (PaperTrading and
 | Export Formats | 2 (JSON, CSV) | 2 (JSON, CSV) |
 
 ### Shared Code
+
 Both pages share:
+
 - **BaseEntryService** pattern (CRUD + localStorage)
 - **TagService** integration
 - Export functionality (JSON/CSV via IJSRuntime)
@@ -70,7 +75,9 @@ Both pages share:
 - Stats bar layout
 
 ### Code Duplication
+
 Estimated **30-40% overlap** in:
+
 - Export methods (nearly identical)
 - Tag management UI
 - Empty state rendering
@@ -80,8 +87,10 @@ Estimated **30-40% overlap** in:
 ## Use Case Analysis
 
 ### PaperTrading
+
 **Primary Users**: Traders practicing strategies
 **Workflow**:
+
 1. Spot potential setup in GEX Visualizer
 2. Press 'T' hotkey → opens trade entry modal
 3. Enter trade details (direction, entry price, notes)
@@ -92,8 +101,10 @@ Estimated **30-40% overlap** in:
 **Key Value**: Real-time practice with immediate feedback
 
 ### BacktestResults
+
 **Primary Users**: Strategy developers, researchers
 **Workflow**:
+
 1. Run backtest in external tool (or code)
 2. Log results (strategy name, metrics, date range)
 3. Compare multiple strategy variations
@@ -103,8 +114,10 @@ Estimated **30-40% overlap** in:
 **Key Value**: Strategy comparison and historical analysis
 
 ### TradeLogging (Planned)
+
 **Primary Users**: Autotrader operators, system developers
 **Workflow**:
+
 1. Autotrader executes trades automatically
 2. Import trade logs
 3. Review **why** system made each decision
@@ -116,12 +129,15 @@ Estimated **30-40% overlap** in:
 ## Architectural Options
 
 ### Option A: Keep All Three Separate ✅ RECOMMENDED
+
 **Structure**:
+
 - `/trading` - PaperTrading (simulated forward)
 - `/tradelogging` - TradeLogging (real autotrader)
 - `/backtests` - BacktestResults (historical analysis)
 
 **Pros**:
+
 - ✅ Clear separation of concerns
 - ✅ Each optimized for its use case
 - ✅ No confusion between real/simulated
@@ -129,11 +145,13 @@ Estimated **30-40% overlap** in:
 - ✅ Simpler mental model for users
 
 **Cons**:
+
 - ❌ Some code duplication (export, tagging)
 - ❌ Three pages to maintain
 - ❌ Slightly larger bundle size
 
 **Refactoring Opportunity**:
+
 - Extract shared components:
   - `ExportDropdown.razor`
   - `TagSelector.razor`
@@ -142,16 +160,20 @@ Estimated **30-40% overlap** in:
 - Reduce duplication from ~400 lines to ~100 lines
 
 ### Option B: Merge Paper + TradeLogging
+
 **Structure**:
+
 - `/trading` - Unified journal with filter: Real | Simulated
 - `/backtests` - Stays separate
 
 **Pros**:
+
 - ✅ Single interface for trade management
 - ✅ Less code duplication
 - ✅ Unified analytics across real/sim
 
 **Cons**:
+
 - ❌ **Confusion risk**: Real vs simulated trades
 - ❌ Different data sources (manual vs import)
 - ❌ Different workflows (open/close vs import-only)
@@ -159,15 +181,19 @@ Estimated **30-40% overlap** in:
 - ❌ Complex filtering/UI to distinguish types
 
 ### Option C: Single Unified Interface
+
 **Structure**:
+
 - `/journal` - All trades with type selector: Real | Paper | Backtest
 
 **Pros**:
+
 - ✅ One codebase
 - ✅ Powerful cross-type analytics
 - ✅ Minimal duplication
 
 **Cons**:
+
 - ❌ **Very complex UI** - different fields per type
 - ❌ **Poor user experience** - backtests are fundamentally different
 - ❌ BacktestResult model incompatible with trade model
@@ -175,16 +201,20 @@ Estimated **30-40% overlap** in:
 - ❌ High maintenance complexity
 
 ### Option D: Deprecate PaperTrading
+
 **Structure**:
+
 - `/tradelogging` - Becomes primary journal
 - `/backtests` - Stays separate
 - PaperTrading → removed or marked deprecated
 
 **Pros**:
+
 - ✅ Fewer features to maintain
 - ✅ Focus on real trades
 
 **Cons**:
+
 - ❌ **Loss of practice tool** for traders
 - ❌ **Loss of GEX Visualizer integration** (hotkey workflow)
 - ❌ PaperTrading is feature-complete and working well
@@ -204,6 +234,7 @@ Estimated **30-40% overlap** in:
 ## Recommendation: Option A (Keep Separate)
 
 ### Rationale
+
 1. **Clear Mental Model**: Each tool has a distinct purpose
    - PaperTrading = Practice
    - TradeLogging = Real system tracking
@@ -221,42 +252,51 @@ Estimated **30-40% overlap** in:
 ### Implementation Plan
 
 #### Phase 1: Build TradeLogging Independently
+
 - Implement as separate feature (#107, #112-118)
 - Focus on autotrader integration and decision visualization
 - Borrow patterns from PaperTrading but don't try to unify
 
 #### Phase 2: Extract Shared Components (Optional)
+
 If duplication becomes problematic:
+
 - Create `Components/Shared/ExportDropdown.razor`
 - Create `Components/Shared/TagSelector.razor`
 - Create `Components/Shared/StatsBar.razor`
 - Refactor all three pages to use shared components
 
 #### Phase 3: Cross-Linking (Future Enhancement)
+
 - Add "Try in PaperTrading" link from TradeLogging
 - Add "View System Decision" link from closed PaperTrades (if pattern matches autotrader)
 
 ## Technical Debt Mitigation
 
 ### Shared Component Extraction
+
 Priority shared components to create:
 
 1. **ExportDropdown** (~50 lines duplicated)
+
 ```csharp
 <ExportDropdown OnExportJson="ExportJson" OnExportCsv="ExportCsv" />
 ```
 
-2. **TagSelector** (~80 lines duplicated)
+1. **TagSelector** (~80 lines duplicated)
+
 ```csharp
 <TagSelector SelectedTags="@trade.Tags" OnTagsChanged="HandleTagsChanged" />
 ```
 
-3. **StatsCard** (~20 lines duplicated)
+1. **StatsCard** (~20 lines duplicated)
+
 ```csharp
 <StatsCard Label="Total" Value="@total" IsPositive="true" />
 ```
 
-4. **EmptyState** (~30 lines duplicated)
+1. **EmptyState** (~30 lines duplicated)
+
 ```csharp
 <EmptyState Icon="📈" Message="No trades yet" Hint="Click + to add" />
 ```
@@ -266,6 +306,7 @@ Priority shared components to create:
 ## Conclusion
 
 **Keep all three tools separate** with clearly defined purposes:
+
 - **PaperTrading**: Forward-looking simulated trades for practice
 - **TradeLogging**: Real autotrader history with system decision context
 - **BacktestResults**: Historical strategy analysis and comparison

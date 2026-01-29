@@ -26,11 +26,13 @@ Live mode shows actual dealer hedging pressure derived from current open interes
 Before enabling live data, ensure:
 
 1. **API Backend Running**: Start the GexVisor.Api backend (see [API Setup Guide](api-setup.md) for details)
+
    ```bash
    dotnet run --project src/GexVisor.Api
    ```
 
 2. **API Key Configured**: Alpha Vantage API key in `appsettings.json` or environment variable (see [API Setup Guide](api-setup.md#configuration))
+
    ```json
    {
      "ApiKeys": {
@@ -50,6 +52,7 @@ Before enabling live data, ensure:
 5. **Wait for Data**: Initial fetch takes 2-5 seconds
 
 The sidebar displays connection status:
+
 - `LIVE` - Connected and polling
 - `SIM` - Using simulation data
 - `Fetching...` - API call in progress
@@ -116,6 +119,7 @@ GEX = gamma  open_interest  100  spot_price
 ```
 
 Where:
+
 - `gamma` = Rate of delta change per $1 move (from options chain)
 - `open_interest` = Number of contracts outstanding
 - `100` = Standard options contract multiplier
@@ -152,6 +156,7 @@ Export live strike gamma data for further analysis:
    - **JSON**: Full `GexCalculationResult` object
 
 Exported data includes:
+
 - Strike price
 - Call gamma, Put gamma, Net gamma
 - Open interest by side
@@ -187,17 +192,20 @@ Exported data includes:
 The Live Data feature includes load testing infrastructure to validate performance under concurrent load.
 
 **Run load tests:**
+
 ```bash
 dotnet test --filter "Category=LoadTest"
 ```
 
 **Test scenarios:**
+
 - Concurrent GEX requests (10/50/100 users)
 - Rapid refresh (rate limit validation)
 - Multi-symbol caching independence
 - API failure recovery
 
 **Performance targets:**
+
 - p99 latency < 2 seconds under 100 concurrent users
 - Cache hit rate > 80% after warm-up
 - Success rate ≥ 95%

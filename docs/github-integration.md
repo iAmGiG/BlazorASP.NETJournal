@@ -40,12 +40,14 @@ The Research Task Board (`/tasks`) provides seamless integration with GitHub Pro
 ### Services
 
 #### GitHubAuthService
+
 - **Purpose**: Handles OAuth device flow authentication
 - **Location**: `src/GexVisor.UI/Services/GitHubAuthService.cs`
 - **Storage**: Stores access tokens in localStorage
 - **Security**: Tokens are scoped to the minimum required permissions
 
 #### GitHubProjectService
+
 - **Purpose**: GraphQL client for GitHub Projects v2 API
 - **Location**: `src/GexVisor.UI/Services/GitHubProjectService.cs`
 - **Features**:
@@ -55,6 +57,7 @@ The Research Task Board (`/tasks`) provides seamless integration with GitHub Pro
   - Pagination support (max 100 items per request)
 
 #### BoardStateService
+
 - **Purpose**: Manages project board state with caching
 - **Location**: `src/GexVisor.UI/Services/BoardStateService.cs`
 - **Features**:
@@ -63,6 +66,7 @@ The Research Task Board (`/tasks`) provides seamless integration with GitHub Pro
   - Statistics (item counts, last refresh time)
 
 #### StatusMapper
+
 - **Purpose**: Normalizes GitHub status names to standard columns
 - **Location**: `src/GexVisor.UI/Services/StatusMapper.cs`
 - **Features**:
@@ -74,16 +78,19 @@ The Research Task Board (`/tasks`) provides seamless integration with GitHub Pro
 ### Components
 
 #### GitHubAuthPanel
+
 - **Purpose**: OAuth login UI
 - **Location**: `src/GexVisor.UI/Components/GitHub/GitHubAuthPanel.razor`
 - **Features**: Device flow code display, authorization link
 
 #### GitHubProjectSelector
+
 - **Purpose**: Project dropdown with search
 - **Location**: `src/GexVisor.UI/Components/GitHub/GitHubProjectSelector.razor`
 - **Features**: Lists user's projects, displays selected project info
 
 #### GitHubKanbanBoard
+
 - **Purpose**: Dynamic board based on project's status field
 - **Location**: `src/GexVisor.UI/Components/GitHub/GitHubKanbanBoard.razor`
 - **Features**:
@@ -93,6 +100,7 @@ The Research Task Board (`/tasks`) provides seamless integration with GitHub Pro
   - Responsive CSS Grid layout
 
 #### UnifiedKanbanBoard
+
 - **Purpose**: Normalized 3-column view (Backlog/In Progress/Done)
 - **Location**: `src/GexVisor.UI/Components/GitHub/UnifiedKanbanBoard.razor`
 - **Features**:
@@ -195,6 +203,7 @@ query GetProjectItems($projectId: ID!, $after: String) {
 ```
 
 **Key Features:**
+
 - Initial load fetches first 100 items
 - `pageInfo.endCursor` stored in `BoardStateService`
 - "Load More Projects" button calls `FetchMoreProjectsAsync(cursor)`
@@ -203,11 +212,13 @@ query GetProjectItems($projectId: ID!, $after: String) {
 
 **UI Component:**
 `src/GexVisor.UI/Components/GitHubProjectSelector.razor` (lines 85-95)
+
 - Shows "Load More" button when `pageInfo.hasNextPage == true`
 - Loading state prevents duplicate requests
 - Automatically scrolls to newly loaded items
 
 **Service Methods:**
+
 - `BoardStateService.FetchProjectItemsAsync()` - Initial load
 - `BoardStateService.FetchMoreProjectsAsync(cursor)` - Paginated fetch
 
@@ -254,12 +265,14 @@ No proxy server is required for the client-side integration.
 ## Security Considerations
 
 ### Token Storage
+
 - **Tokens stored in localStorage** (browser storage)
 - **Scoped permissions**: Only `project` and `repo` access
 - **No server-side storage**: Fully client-side architecture
 - **User controls**: Clear tokens via "Disconnect" button
 
 ### Best Practices
+
 1. **Never commit tokens** to version control
 2. **Revoke tokens** when no longer needed (GitHub Settings → Developer Settings → Tokens)
 3. **Use device flow** for secure authentication on untrusted devices
@@ -268,21 +281,25 @@ No proxy server is required for the client-side integration.
 ## Troubleshooting
 
 ### "Authentication Failed"
+
 - Ensure you copied the full device code
 - Check that you authorized within the 15-minute window
 - Verify your GitHub account has access to Projects v2
 
 ### "No Projects Found"
+
 - Create a GitHub Project v2 in your account or organization
 - Ensure the project has at least one status field
 - Refresh the page and re-authenticate
 
 ### "Items Not Loading"
+
 - Check browser console for GraphQL errors
 - Verify the project has items (issues/PRs)
 - Try refreshing the board with the refresh button
 
 ### Status Mapping Issues
+
 - Use the mapping panel in Unified View to override incorrect mappings
 - Ensure your GitHub status names match the inference patterns
 - Add custom mappings for organization-specific status names
@@ -312,6 +329,7 @@ private static readonly Dictionary<string, string[]> DefaultInferenceRules = new
 ### Extending Functionality
 
 To add write-back support (currently read-only):
+
 1. Add mutation queries to GitHubProjectService
 2. Implement status update methods
 3. Handle optimistic UI updates

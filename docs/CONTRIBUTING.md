@@ -65,7 +65,7 @@ Run tests: `dotnet test`
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/) format:
 
-```
+```bash
 <type>: <description>
 
 [optional body]
@@ -82,7 +82,7 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/) format:
 
 **Examples:**
 
-```
+```text
 feat: Add real-time GEX alerts with configurable thresholds
 
 docs: Update architecture.md with AlertService documentation
@@ -152,7 +152,7 @@ fix: Correct zero-gamma calculation for negative GEX regimes
 
 ## Project Structure
 
-```
+```bash
 GexVisor/
 ├── src/
 │   ├── GexVisor.UI/           # Blazor WebAssembly application

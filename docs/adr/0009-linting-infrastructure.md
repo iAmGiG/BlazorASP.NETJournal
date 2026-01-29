@@ -14,6 +14,7 @@ GexVisor needed a consistent code quality enforcement strategy across local deve
 - Multiple contributors with different IDE configurations
 
 Requirements:
+
 - Enforce consistent code style across the team
 - Prevent bad commits from entering the repository
 - Catch issues early (in IDE, not in CI)
@@ -76,21 +77,25 @@ Implement a three-layer linting approach:
 ## Alternatives Considered
 
 ### 1. EditorConfig Only
+
 - Pros: Simple, lightweight
 - Cons: No CI enforcement
 - Rejected: Cannot validate in CI
 
 ### 2. Pre-commit Framework (Python)
+
 - Pros: Mature ecosystem
 - Cons: Python dependency
 - Rejected: Prefer .NET-native
 
 ### 3. Build-time Only
+
 - Pros: No commit friction
 - Cons: Late discovery
 - Rejected: Want early catches
 
 ### 4. Strict Mode (All Errors)
+
 - Pros: Zero tolerance
 - Cons: Too strict
 - Rejected: Prefer gradual adoption

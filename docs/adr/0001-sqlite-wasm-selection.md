@@ -13,6 +13,7 @@ Accepted
 GexVisor needs client-side database capabilities to query bundled GEX research data in the browser. The application is built with Blazor WebAssembly, which runs entirely in the browser without server-side processing.
 
 **Requirements:**
+
 - Query pre-built SQLite database files bundled with the app
 - Read-only access (no write operations needed)
 - Fast build times (avoid native WASM compilation)
@@ -27,7 +28,7 @@ Use **sql.js** with JavaScript interop for client-side SQLite queries.
 
 **Architecture:**
 
-```
+```bash
 Blazor Component
        │
        ▼
@@ -43,6 +44,7 @@ sql.js (SQLite compiled to WASM)
 ## Consequences
 
 **Benefits:**
+
 - Most mature and battle-tested browser SQLite solution
 - No native WASM compilation needed (faster builds, smaller bundles)
 - Well-documented with active community
@@ -50,11 +52,13 @@ sql.js (SQLite compiled to WASM)
 - Works reliably for read-only and in-memory databases
 
 **Drawbacks:**
+
 - Requires JavaScript interop layer (not pure .NET)
 - No direct Entity Framework Core support
 - Database is in-memory by default (requires IndexedDB for persistence if needed later)
 
 **Implementation notes:**
+
 - Database files bundled in `wwwroot/data/`
 - SqliteService handles initialization and query execution
 - Results returned as JSON arrays for Blazor consumption
@@ -72,6 +76,7 @@ NuGet package wrapping SQLite with EF Core support.
 Newer approach using sqlite-wasm in a Web Worker with OPFS persistence.
 
 **Rejected because:**
+
 - More complex architecture than needed
 - OPFS browser support varies
 - Overkill for read-only use case
@@ -81,6 +86,7 @@ Newer approach using sqlite-wasm in a Web Worker with OPFS persistence.
 Official Microsoft library compiled to WASM using native AOT.
 
 **Rejected because:**
+
 - Significantly slower build times
 - Larger WASM bundle size
 - Complex setup with native dependencies

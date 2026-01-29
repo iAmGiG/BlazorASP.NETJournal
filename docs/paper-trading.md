@@ -72,6 +72,7 @@ Import existing trades from JSON files using the **Import** button.
 ### Direction Inference (Autogen-Trader)
 
 For autogen-trader format, direction is inferred from P&L and price movement:
+
 - Positive P&L + price increase = Long
 - Positive P&L + price decrease = Short
 - Negative P&L + price increase = Short

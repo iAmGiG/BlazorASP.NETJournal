@@ -48,6 +48,7 @@ New to GexVisor? Start here:
 | `/chart-test` | Chart library test sandbox | Development Only |
 
 **Note:** Research visualizations are accessible via both:
+
 - `/arcade` - Arcade-style visualization launcher
 - `/research/*` - Direct routes to individual visualizations
 

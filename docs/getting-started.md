@@ -42,7 +42,7 @@ The application will start at `https://localhost:5001` (or the port shown in the
 
 ## Project Structure
 
-```
+```bash
 GexVisor/
 ├── src/
 │   ├── GexVisor.UI/           # Blazor WebAssembly application
@@ -163,6 +163,7 @@ GEX data is stored in `wwwroot/data/` using the following structure:
 ```
 
 **C# Models:**
+
 - `GexIndex` - Index file with asset classes and symbol metadata
 - `SymbolInfo` - Symbol metadata with nested `DateRange`
 - `DateRange` - Start/end dates (DateOnly type)

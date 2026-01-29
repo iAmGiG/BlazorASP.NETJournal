@@ -697,6 +697,7 @@ sequenceDiagram
 ```
 
 **Key components:**
+
 - **DecisionMetadataParser**: Handles both JSON and CSV formats
 - **TradeLogService**: Manages CRUD operations and persistence
 - **TradeDecision**: Metadata model with pattern tracking and confidence scores
@@ -721,6 +722,7 @@ graph TD
 ```
 
 **Decision metadata includes:**
+
 - Active patterns (MECH, PROB, NARR taxonomy)
 - Primary trigger signal
 - Confidence score (0-1)
@@ -735,6 +737,7 @@ graph TD
 ## Rendering Notes
 
 These diagrams render automatically in:
+
 - **GitHub** - Native Mermaid support in markdown
 - **VS Code** - With "Markdown Preview Mermaid Support" extension
 - **Notion** - Paste as code block with `mermaid` language

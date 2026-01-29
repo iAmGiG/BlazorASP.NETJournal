@@ -23,6 +23,7 @@ Adopt **partial class code-behind pattern** for complex components:
 3. **Styles**: `Component.razor.css` (scoped CSS)
 
 **Criteria for using code-behind**:
+
 - Component has 100+ lines of logic
 - Contains magic numbers or complex calculations
 - Requires unit testing of logic
@@ -33,6 +34,7 @@ Adopt **partial class code-behind pattern** for complex components:
 ## Consequences
 
 **Positive**:
+
 - Magic numbers extracted to named constants
 - Testable calculation logic (can unit test without rendering)
 - Better separation of concerns
@@ -40,6 +42,7 @@ Adopt **partial class code-behind pattern** for complex components:
 - Follows ASP.NET Core MVC pattern
 
 **Negative**:
+
 - File count increases (3 files per component vs 2)
 - Requires discipline to maintain pattern
 - Slight learning curve for team members
@@ -47,6 +50,7 @@ Adopt **partial class code-behind pattern** for complex components:
 ## Implementation
 
 **Template**:
+
 ```csharp
 // Component.razor.cs
 namespace GexVisor.UI.Components;

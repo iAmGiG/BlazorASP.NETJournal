@@ -24,7 +24,7 @@ Use xUnit as test framework, Moq for mocking, bUnit for Blazor component testing
 
 ## Test Organization
 
-```
+```bash
 tests/
 ├── GexVisor.Core.Tests/
 │   ├── JournalFrameworkTests.cs       # Model tests (OptionsLog, TradeLog)

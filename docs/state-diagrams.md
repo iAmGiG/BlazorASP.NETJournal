@@ -37,6 +37,7 @@ The core domain model representing dealer gamma exposure regimes.
 ```
 
 **Transition triggers:**
+
 - GEX value crosses zero threshold
 - Determined by net dealer option positioning
 - Typically persists for days/weeks (not intraday)
@@ -114,6 +115,7 @@ Authentication state machine for GitHub Projects integration.
 ```
 
 **Storage keys:**
+
 - `gexvisor.github.token` - Access token
 - `gexvisor.github.selectedProject` - Current project
 
@@ -189,6 +191,7 @@ State flow from raw data files to visualization.
 ```
 
 **Data flow per symbol:**
+
 1. `wwwroot/data/{symbol}.json` loaded (e.g., `spy.json`, `aapl.json`)
 2. Parsed to `GexTimeline` model
 3. Regime analysis computed
@@ -246,6 +249,7 @@ State machine for task items (local and GitHub-synced).
 ```
 
 **Sync behavior:**
+
 - Read-only from GitHub (no write-back)
 - 5-minute cache expiry
 - Manual refresh available
@@ -293,6 +297,7 @@ State machine for paper trading journal entries.
 ```
 
 **Calculated fields:**
+
 - `UnrealizedPnL` - While OPEN
 - `RealizedPnL` - When CLOSED
 - `RiskRewardRatio` - Target vs Stop
@@ -431,6 +436,7 @@ State machine for trade journal entries with decision metadata.
 ```
 
 **Metadata fields:**
+
 - Active patterns (MECH/PROB/NARR taxonomy)
 - Confidence score (0-1)
 - Regime context (Positive γ / Negative γ)
@@ -500,6 +506,7 @@ Data flow for importing external trading logs.
 ```
 
 **Supported formats:**
+
 - JSON: AutotraderLogEntry array
 - CSV: Configurable columns with fallbacks
   - EntryPrice/Entry
@@ -508,6 +515,7 @@ Data flow for importing external trading logs.
   - Strike/StrikePrice
 
 **Parser features:**
+
 - Case-insensitive column matching
 - Quoted field support in CSV
 - Validates numeric fields before import

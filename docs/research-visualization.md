@@ -58,6 +58,7 @@ Each node is color-coded by implementation status:
 **Action:** Move mouse over a node
 
 **Effect:**
+
 - Node glows with `brightness(1.25)` and drop shadow
 - Related nodes highlight with blue glow
 - Tooltip appears showing short label (e.g., "Monte Carlo")
@@ -67,6 +68,7 @@ Each node is color-coded by implementation status:
 **Action:** Click a research node
 
 **Effect:**
+
 - Opens **RadarModal** with detailed information:
   - Full title and description
   - Barrier explanation (why this is blocked)
@@ -109,11 +111,13 @@ Each node is color-coded by implementation status:
 ### Animation
 
 **On page load:**
+
 - Nodes animate in with cascading effect (0.08s delay per ring)
 - Ring 0 (core) appears first, then Ring 1, etc.
 - Center section pulses with infinite breathing animation (2.5s cycle)
 
 **Hover effects:**
+
 - Smooth glow transitions
 - Related nodes light up automatically
 - Cursor changes to pointer on interactive elements
@@ -140,6 +144,7 @@ Each node is color-coded by implementation status:
 **Related:** Statistical Significance, FDR Correction, Regime Testing
 
 **Interpretation:**
+
 - Complexity: Ring 2 = requires statistical expertise
 - Barrier: Compute-intensive (green quadrant)
 - Status: Started but incomplete (yellow)
@@ -155,6 +160,7 @@ Each node is color-coded by implementation status:
 > Requires multi-agent orchestration framework with state machines - infrastructure overhead for single-agent validation
 
 **Interpretation:**
+
 - Would require building agent coordination system
 - Outside scope of current single-agent approach
 - Postponed to future work (after PhD)
@@ -166,6 +172,7 @@ Each node is color-coded by implementation status:
 **Goal:** See what's been implemented vs. what's planned
 
 **Steps:**
+
 1. Filter by `Implemented` status only
 2. Observe Ring 0 (core) + partial Ring 1/2 nodes
 3. Recognize validated foundation vs. exploratory work
@@ -175,6 +182,7 @@ Each node is color-coded by implementation status:
 **Goal:** Understand what data sources are needed
 
 **Steps:**
+
 1. Filter by `Data Access` quadrant (red sector)
 2. Review barrier descriptions for each node
 3. Example findings:
@@ -187,6 +195,7 @@ Each node is color-coded by implementation status:
 **Goal:** Prioritize next research directions
 
 **Steps:**
+
 1. Filter by `Partial` status (yellow)
 2. Review Ring 1-2 paths (lower complexity)
 3. Check unblock requirements
@@ -199,6 +208,7 @@ Each node is color-coded by implementation status:
 **Goal:** Understand why certain approaches were rejected
 
 **Steps:**
+
 1. Filter by `Abandoned` status (purple)
 2. Read barrier + description for rationale
 3. Example: Multi-Period Optimization (Ring 5) - theoretically intractable
@@ -276,12 +286,15 @@ Where:
 ### Enums
 
 **ResearchStatus:**
+
 - Implemented, Partial, Deferred, Abandoned, Blocked, Infeasible, Superseded
 
 **ResearchTaxonomy:**
+
 - Mechanical, Probabilistic, Narrative
 
 **ResearchQuadrant:**
+
 - Data, Knowledge, Scope, Methodology, Compute, None
 
 ## Foundation Statistics
@@ -301,6 +314,7 @@ Research path data is loaded from JSON via `IResearchPathService`:
 **Data Source:** `wwwroot/data/research-paths.json`
 
 **Service Interface:**
+
 ```csharp
 public interface IResearchPathService
 {
@@ -311,6 +325,7 @@ public interface IResearchPathService
 ```
 
 **Usage in Components:**
+
 ```razor
 @inject IResearchPathService ResearchPathService
 
@@ -325,6 +340,7 @@ public interface IResearchPathService
 ```
 
 **Benefits:**
+
 - Content updates without recompilation
 - Caching after first load
 - Consistent data across all radar components
@@ -347,6 +363,7 @@ public interface IResearchPathService
 ## Future Enhancements
 
 **Planned (not yet implemented):**
+
 - Export to PNG/SVG for presentations
 - Historical view (show radar state over time as research progressed)
 - Visual breadcrumb trail showing navigation path in modal header
@@ -362,14 +379,17 @@ public interface IResearchPathService
 The radar supports interactive zoom and pan for exploring dense node clusters:
 
 **Zoom:**
+
 - **Scroll wheel**: Zoom in/out centered on current view
 - **Zoom range**: 0.5x (zoomed out) to 10x (zoomed in)
 
 **Pan:**
+
 - **Click and drag**: Pan the radar view in any direction
 - Works at any zoom level
 
 **Reset:**
+
 - **R key**: Reset zoom and pan to default view
 - **Reset button**: Click the button in the top-right corner
 
@@ -452,6 +472,7 @@ Users with `prefers-reduced-motion: reduce` enabled will see:
 **Issue:** Nodes not appearing
 
 **Solution:**
+
 - Check filter settings (might be hiding all nodes)
 - Click "Reset All" filters
 - Verify browser supports SVG rendering
@@ -459,6 +480,7 @@ Users with `prefers-reduced-motion: reduce` enabled will see:
 **Issue:** Animation stuttering
 
 **Solution:**
+
 - Reduce browser window size (smaller SVG viewBox)
 - Disable browser extensions that interfere with CSS animations
 - Close other tabs to free GPU resources
@@ -466,6 +488,7 @@ Users with `prefers-reduced-motion: reduce` enabled will see:
 **Issue:** Modal not opening on click
 
 **Solution:**
+
 - Ensure JavaScript is enabled
 - Check browser console for errors
 - Try clicking the node center (larger hit area)

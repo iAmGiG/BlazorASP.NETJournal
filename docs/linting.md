@@ -86,10 +86,12 @@ git commit --no-verify -m "Emergency fix"
 ### CI/CD
 
 GitHub Actions automatically run on:
+
 - Push to `development` or `main` branches
 - Pull requests targeting `development` or `main`
 
 **Checks performed:**
+
 - C# code formatting (`dotnet format --verify-no-changes`)
 - Build with analyzers as errors (`/p:TreatWarningsAsErrors=true`)
 - All unit tests (`dotnet test`)
@@ -99,16 +101,19 @@ GitHub Actions automatically run on:
 ## Analyzers Installed
 
 ### Microsoft.CodeAnalyzers.NetAnalyzers (v10.0.100)
+
 - Built-in .NET code analysis
 - Performance, security, design rules
 - Updated from v8.0.0 to resolve SDK 10.0.102 compatibility warnings
 
 ### StyleCop.Analyzers (v1.2.0-beta.556)
+
 - Code style enforcement
 - Documentation rules
 - Naming conventions
 
 ### Roslynator.Analyzers (v4.12.0)
+
 - Additional code analysis
 - Code simplification suggestions
 - Best practice recommendations
@@ -118,6 +123,7 @@ GitHub Actions automatically run on:
 Key rules enforced:
 
 ### C# Code Style
+
 - **File-scoped namespaces**: `namespace Foo;` (not `namespace Foo { }`)
 - **Private fields**: Must start with `_` (e.g., `_myField`)
 - **Interfaces**: Must start with `I` (e.g., `IMyInterface`)
@@ -125,6 +131,7 @@ Key rules enforced:
 - **var usage**: Only when type is apparent
 
 ### Naming Conventions
+
 - **Interfaces**: `IPascalCase`
 - **Private fields**: `_camelCase`
 - **Constants**: `PascalCase`
@@ -132,6 +139,7 @@ Key rules enforced:
 - **Methods/Properties**: `PascalCase`
 
 ### Null Safety
+
 - Nullable reference types enabled globally
 - CS8600, CS8602, CS8603, CS8604 warnings enforced
 
@@ -147,6 +155,7 @@ dotnet tool restore
 ### "Pre-commit hook failed"
 
 1. Check what failed (formatting or build):
+
    ```bash
    dotnet format --verify-no-changes
    dotnet build /p:TreatWarningsAsErrors=true

@@ -69,12 +69,14 @@ profitable outcomes).
 ### Experimental Design
 
 #### Experiment 1: Sequential Pattern Mining
+
 - **Input**: 5-day sliding windows, days labeled "Day 1-5"
 - **Task**: Detect if resistance is hardening or eroding
 - **Baseline**: PrefixSpan algorithm comparison
 - **Hypothesis**: LLM outperforms by understanding context of erosion
 
 #### Experiment 2: Unsupervised Regime Detection
+
 - **Input**: 100 unlabeled, obfuscated GEX profiles
 - **Task**: Cluster into 3 categories based on dealer behavior
 - **Expected Clusters**:
@@ -84,12 +86,14 @@ profitable outcomes).
 - **Metric**: Homogeneity Score of Realized Volatility
 
 #### Experiment 3: Neuro-Symbolic Motif Discovery
+
 - **Step 1**: Matrix Profile (STUMPY) identifies top 10 motifs
 - **Step 2**: Extract sequences, pass to LLM
 - **Step 3**: LLM explains "WHY" using WHO→WHOM→WHAT
 - **Value**: Math finds patterns, LLM explains economics
 
 #### Experiment 4: Cross-Asset Generalization
+
 - **Data**: Expand to TSLA, NVDA (high-beta stocks)
 - **Test**: Zero-shot transfer of SPX prompts
 - **Hypothesis**: "Pinning" detection degrades, "Squeeze" detection improves
@@ -141,6 +145,7 @@ NEXT DAY │ Structural Persistence
 - **GAMMA-SVIX Divergence**: Historical correlation -0.89; divergence = regime shift
 
 ---
+
 ## Phase 3: Cross-Asset Generalization
 
 ### The Divergence Problem
@@ -181,13 +186,13 @@ Dispersion Trade Structure:
 ### The "Weaponized Gamma" Phenomenon
 
 GameStop (2021) demonstrated intentional exploitation of dealer mechanics:
+
 1. Massive OTM call buying
 2. Forces dealer stock purchases
 3. Price rises → Options more sensitive
 4. Feedback loop accelerates
 
 ---
-
 
 ## Phase 4: Agent-Based Simulation
 
@@ -221,6 +226,7 @@ GameStop (2021) demonstrated intentional exploitation of dealer mechanics:
 ### Counterfactual Testing
 
 Key experiment: Run simulation WITH and WITHOUT "Market Maker Inventory Constraint"
+
 - If regimes only emerge with constraints → Causal validation
 - Tests Hayekian "spontaneous order" hypothesis
 
@@ -231,6 +237,7 @@ Key experiment: Run simulation WITH and WITHOUT "Market Maker Inventory Constrai
 ### The Network Problem
 
 Dealers don't hedge in isolation—they manage portfolios across assets:
+
 - Hedge JPM with XLF
 - Hedge SPX with ES futures
 - Stress in one node → Forced liquidation in others
@@ -260,6 +267,7 @@ Using PCMCI algorithms + LLM to identify directed acyclic graphs:
 ### Core Mechanics
 
 **Gamma (Γ)**: Rate of change of Delta with respect to price
+
 - Represents convexity/"acceleration" of dealer exposure
 - Hedging is contractual obligation, not speculative choice
 
@@ -305,6 +313,7 @@ Using PCMCI algorithms + LLM to identify directed acyclic graphs:
 ### From Alpha to Surveillance
 
 The research enables **Market Surveillance** rather than just trading:
+
 - Detect fragility before crashes
 - "Risk Sentinel" identifying structural instability
 - Independent of current price level
@@ -312,6 +321,7 @@ The research enables **Market Surveillance** rather than just trading:
 ### Solving the Black Box Problem
 
 By anchoring reasoning to option math (verifiable ground truth), we:
+
 - Validate LLM reasoning in high-stakes domains
 - Create template for other critical applications
 - Build confidence in abstract risk reasoning
@@ -390,6 +400,7 @@ LLMs reason about structure, not just memorize.
 ## References
 
 This roadmap synthesizes findings from:
+
 - arXiv:2512.17923v2 — Phase 1 paper
 - gex-llm-patterns repository documentation
 - Academic literature on gamma fragility (Barbon & Buraschi)
@@ -397,5 +408,5 @@ This roadmap synthesizes findings from:
 
 ---
 
-*Last Updated: 2026-01-25*
-*Project: GexVisor / GEX-LLM Patterns*
+_Last Updated: 2026-01-25_
+_Project: GexVisor / GEX-LLM Patterns_
