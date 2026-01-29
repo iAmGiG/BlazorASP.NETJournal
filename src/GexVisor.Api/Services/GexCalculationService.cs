@@ -16,6 +16,9 @@ public class GexCalculationService : IGexCalculationService
     private const decimal ContractMultiplier = 100m;  // Standard options contract size
     private const decimal RegimeNeutralThreshold = 0.1m;  // +/-10% range for neutral classification
 
+    // Gamma wall detection constants
+    private const int MaxWallsReturned = 5;  // Top 5 support/resistance levels
+
     public GexCalculationService(
         IOptionsChainService optionsService,
         IMarketDataService marketDataService,
@@ -223,5 +226,184 @@ public class GexCalculationService : IGexCalculationService
         {
             return GexRegime.Neutral;
         }
+    }
+
+    public async Task<OptionsChainResult<GammaWallAnalysis>> AnalyzeGammaWallsAsync(string symbol)
+    {
+        var quoteResult = await _marketDataService.GetQuoteAsync(symbol.ToUpperInvariant());
+        if (!quoteResult.Success || quoteResult.Data == null)
+        {
+            return OptionsChainResult<GammaWallAnalysis>.Fail(
+                $"Failed to fetch spot price for {symbol}: {quoteResult.Error}");
+        }
+
+        return await AnalyzeGammaWallsAsync(symbol, quoteResult.Data.Price);
+    }
+
+    public async Task<OptionsChainResult<GammaWallAnalysis>> AnalyzeGammaWallsAsync(string symbol, decimal spotPrice)
+    {
+        // First calculate base GEX
+        var gexResult = await CalculateGexAsync(symbol, spotPrice);
+        if (!gexResult.Success || gexResult.Data == null)
+        {
+            return OptionsChainResult<GammaWallAnalysis>.Fail(gexResult.Error ?? "GEX calculation failed");
+        }
+
+        var analysis = AnalyzeWalls(gexResult.Data, spotPrice);
+
+        _logger.LogInformation(
+            "Analyzed gamma walls for {Symbol}: Support={SupportCount}, Resistance={ResistanceCount}, FlipPoints={FlipCount}, Asymmetry={Asymmetry:F2}",
+            symbol, analysis.SupportLevels.Count, analysis.ResistanceLevels.Count,
+            analysis.FlipPoints.Count, analysis.GexAsymmetry);
+
+        return OptionsChainResult<GammaWallAnalysis>.Ok(analysis, gexResult.Source ?? MarketDataProvider.AlphaVantage);
+    }
+
+    /// <summary>
+    /// Analyze gamma walls from GEX calculation result.
+    /// </summary>
+    private GammaWallAnalysis AnalyzeWalls(GexCalculationResult gexData, decimal spotPrice)
+    {
+        var strikes = gexData.StrikeGammas;
+        var totalAbsGex = strikes.Sum(s => Math.Abs(s.NetGex));
+
+        // Convert strikes to gamma walls with calculations
+        var walls = strikes.Select(s => new GammaWall
+        {
+            StrikePrice = s.StrikePrice,
+            NetGex = s.NetGex,
+            GexConcentrationPercent = totalAbsGex > 0 ? Math.Abs(s.NetGex) / totalAbsGex * 100 : 0,
+            WallType = ClassifyWallType(s.NetGex, s.StrikePrice, spotPrice),
+            DistanceFromSpot = s.StrikePrice - spotPrice,
+            DistancePercent = spotPrice > 0 ? (s.StrikePrice - spotPrice) / spotPrice * 100 : 0,
+            MagnetismScore = CalculateMagnetism(s, spotPrice, totalAbsGex),
+        }).ToList();
+
+        // Categorize walls - support is positive gamma BELOW spot
+        var supportLevels = walls
+            .Where(w => w.WallType == GammaWallType.Support)
+            .OrderByDescending(w => Math.Abs(w.NetGex))
+            .Take(MaxWallsReturned)
+            .ToList();
+
+        // Resistance is negative gamma ABOVE spot
+        var resistanceLevels = walls
+            .Where(w => w.WallType == GammaWallType.Resistance)
+            .OrderByDescending(w => Math.Abs(w.NetGex))
+            .Take(MaxWallsReturned)
+            .ToList();
+
+        // Find flip points
+        var flipPoints = FindFlipPoints(strikes, spotPrice);
+
+        // Calculate asymmetry
+        var gexAbove = strikes.Where(s => s.StrikePrice > spotPrice).Sum(s => s.NetGex);
+        var gexBelow = strikes.Where(s => s.StrikePrice <= spotPrice).Sum(s => s.NetGex);
+        var totalGex = Math.Abs(gexAbove) + Math.Abs(gexBelow);
+        var asymmetry = totalGex > 0 ? (gexAbove - gexBelow) / totalGex : 0;
+
+        return new GammaWallAnalysis
+        {
+            SupportLevels = supportLevels,
+            ResistanceLevels = resistanceLevels,
+            FlipPoints = flipPoints,
+            MaxPositiveGammaStrike = walls.Where(w => w.NetGex > 0).MaxBy(w => w.NetGex),
+            MaxNegativeGammaStrike = walls.Where(w => w.NetGex < 0).MinBy(w => w.NetGex),
+            GexAboveSpot = gexAbove,
+            GexBelowSpot = gexBelow,
+            GexAsymmetry = asymmetry,
+            Timestamp = DateTime.UtcNow,
+        };
+    }
+
+    /// <summary>
+    /// Classify wall type based on net GEX and position relative to spot.
+    /// </summary>
+    private static GammaWallType ClassifyWallType(decimal netGex, decimal strikePrice, decimal spotPrice)
+    {
+        // Support: positive gamma below spot (dealers buy dips)
+        if (netGex > 0 && strikePrice < spotPrice)
+        {
+            return GammaWallType.Support;
+        }
+
+        // Resistance: negative gamma above spot (dealers sell rallies)
+        if (netGex < 0 && strikePrice > spotPrice)
+        {
+            return GammaWallType.Resistance;
+        }
+
+        // Flip point for balanced gamma or opposite direction
+        return GammaWallType.FlipPoint;
+    }
+
+    /// <summary>
+    /// Find flip points where net GEX crosses zero.
+    /// </summary>
+    private List<GammaWall> FindFlipPoints(List<StrikeGamma> strikes, decimal spotPrice)
+    {
+        var flipPoints = new List<GammaWall>();
+
+        if (strikes.Count < 2)
+        {
+            return flipPoints;
+        }
+
+        var sortedStrikes = strikes.OrderBy(s => s.StrikePrice).ToList();
+
+        for (int i = 0; i < sortedStrikes.Count - 1; i++)
+        {
+            var current = sortedStrikes[i];
+            var next = sortedStrikes[i + 1];
+
+            // Check for sign change (zero crossing)
+            if ((current.NetGex >= 0 && next.NetGex < 0) ||
+                (current.NetGex < 0 && next.NetGex >= 0))
+            {
+                // Interpolate flip point
+                var range = next.StrikePrice - current.StrikePrice;
+                var gexRange = next.NetGex - current.NetGex;
+
+                if (gexRange != 0)
+                {
+                    var fraction = -current.NetGex / gexRange;
+                    var flipStrike = current.StrikePrice + (range * fraction);
+
+                    flipPoints.Add(new GammaWall
+                    {
+                        StrikePrice = flipStrike,
+                        NetGex = 0,
+                        GexConcentrationPercent = 0,
+                        WallType = GammaWallType.FlipPoint,
+                        DistanceFromSpot = flipStrike - spotPrice,
+                        DistancePercent = spotPrice > 0 ? (flipStrike - spotPrice) / spotPrice * 100 : 0,
+                        MagnetismScore = 0,
+                    });
+                }
+            }
+        }
+
+        return flipPoints;
+    }
+
+    /// <summary>
+    /// Calculate magnetism score (0-1) based on concentration and proximity.
+    /// </summary>
+    private static decimal CalculateMagnetism(
+        StrikeGamma strike,
+        decimal spotPrice,
+        decimal totalAbsGex)
+    {
+        if (totalAbsGex == 0 || spotPrice == 0)
+        {
+            return 0;
+        }
+
+        var concentration = Math.Abs(strike.NetGex) / totalAbsGex;
+        var distance = Math.Abs(strike.StrikePrice - spotPrice);
+        var proximity = 1 - Math.Min(distance / spotPrice, 1);
+
+        // Magnetism is higher when concentration is high and distance is small
+        return Math.Min(concentration * proximity * 2, 1);
     }
 }

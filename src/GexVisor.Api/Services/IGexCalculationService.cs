@@ -21,4 +21,19 @@ public interface IGexCalculationService
     /// <param name="symbol">Underlying symbol (e.g., "SPY")</param>
     /// <returns>GEX calculation result with strike gammas and regime</returns>
     Task<OptionsChainResult<GexCalculationResult>> CalculateGexAsync(string symbol);
+
+    /// <summary>
+    /// Analyze gamma walls and flip points for a symbol (fetches current spot price automatically).
+    /// </summary>
+    /// <param name="symbol">Underlying symbol (e.g., "SPY")</param>
+    /// <returns>Gamma wall analysis with support/resistance levels</returns>
+    Task<OptionsChainResult<GammaWallAnalysis>> AnalyzeGammaWallsAsync(string symbol);
+
+    /// <summary>
+    /// Analyze gamma walls and flip points at a specific spot price.
+    /// </summary>
+    /// <param name="symbol">Underlying symbol (e.g., "SPY")</param>
+    /// <param name="spotPrice">Spot price for wall analysis</param>
+    /// <returns>Gamma wall analysis with support/resistance levels</returns>
+    Task<OptionsChainResult<GammaWallAnalysis>> AnalyzeGammaWallsAsync(string symbol, decimal spotPrice);
 }

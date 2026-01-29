@@ -222,3 +222,79 @@ public record GexCalculationResult
         ? (StrikeGammas.Max(s => s.StrikePrice) - StrikeGammas.Min(s => s.StrikePrice)) / (StrikeGammas.Count - 1)
         : 0m;
 }
+
+/// <summary>
+/// Classification of gamma wall behavior based on dealer hedging dynamics.
+/// </summary>
+public enum GammaWallType
+{
+    /// <summary>Strong positive gamma - dealers buy dips, acts as support.</summary>
+    Support,
+
+    /// <summary>Strong negative gamma - dealers sell rallies, acts as resistance.</summary>
+    Resistance,
+
+    /// <summary>Balanced gamma exposure - potential regime flip point.</summary>
+    FlipPoint,
+}
+
+/// <summary>
+/// Significant gamma concentration at a strike price.
+/// Gamma walls act as support/resistance levels due to dealer hedging behavior.
+/// </summary>
+public record GammaWall
+{
+    /// <summary>Strike price where gamma is concentrated.</summary>
+    public required decimal StrikePrice { get; init; }
+
+    /// <summary>Net GEX at this strike (Call GEX - Put GEX).</summary>
+    public required decimal NetGex { get; init; }
+
+    /// <summary>Percentage of total chain GEX at this strike.</summary>
+    public required decimal GexConcentrationPercent { get; init; }
+
+    /// <summary>Type of wall based on net gamma direction.</summary>
+    public required GammaWallType WallType { get; init; }
+
+    /// <summary>Distance from current spot price in dollars.</summary>
+    public decimal DistanceFromSpot { get; init; }
+
+    /// <summary>Distance from spot as percentage.</summary>
+    public decimal DistancePercent { get; init; }
+
+    /// <summary>Estimated price magnetism strength (0-1). Higher = stronger pull.</summary>
+    public decimal MagnetismScore { get; init; }
+}
+
+/// <summary>
+/// Enhanced GEX analysis with gamma wall detection for support/resistance levels.
+/// </summary>
+public record GammaWallAnalysis
+{
+    /// <summary>Primary support levels (strongest positive gamma below spot).</summary>
+    public required IReadOnlyList<GammaWall> SupportLevels { get; init; }
+
+    /// <summary>Primary resistance levels (strongest negative gamma above spot).</summary>
+    public required IReadOnlyList<GammaWall> ResistanceLevels { get; init; }
+
+    /// <summary>Flip points where net GEX crosses zero.</summary>
+    public required IReadOnlyList<GammaWall> FlipPoints { get; init; }
+
+    /// <summary>Maximum positive gamma strike (strongest support).</summary>
+    public GammaWall? MaxPositiveGammaStrike { get; init; }
+
+    /// <summary>Maximum negative gamma strike (strongest resistance).</summary>
+    public GammaWall? MaxNegativeGammaStrike { get; init; }
+
+    /// <summary>Net gamma exposure above spot (upside exposure).</summary>
+    public decimal GexAboveSpot { get; init; }
+
+    /// <summary>Net gamma exposure below spot (downside exposure).</summary>
+    public decimal GexBelowSpot { get; init; }
+
+    /// <summary>Asymmetry ratio: (Above - Below) / (|Above| + |Below|). Range: -1 to +1.</summary>
+    public decimal GexAsymmetry { get; init; }
+
+    /// <summary>Timestamp of analysis.</summary>
+    public DateTime Timestamp { get; init; }
+}

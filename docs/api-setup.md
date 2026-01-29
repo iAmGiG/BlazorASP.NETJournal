@@ -199,6 +199,71 @@ curl http://localhost:5000/api/config/status
 }
 ```
 
+### Gamma Wall Analysis
+
+| Endpoint | Description | Example |
+|----------|-------------|---------|
+| `GET /api/gex/{symbol}/walls` | Analyze gamma walls at current spot price | `/api/gex/SPY/walls` |
+| `GET /api/gex/{symbol}/walls/at/{price}` | Analyze gamma walls at specific price | `/api/gex/SPY/walls/at/580.50` |
+
+**Response Format:**
+
+```json
+{
+  "supportLevels": [
+    {
+      "strikePrice": 575.0,
+      "netGex": 1234567890,
+      "gexConcentrationPercent": 12.5,
+      "wallType": "Support",
+      "distanceFromSpot": -5.5,
+      "distancePercent": -0.95,
+      "magnetismScore": 0.85
+    }
+  ],
+  "resistanceLevels": [
+    {
+      "strikePrice": 590.0,
+      "netGex": -987654321,
+      "gexConcentrationPercent": 10.2,
+      "wallType": "Resistance",
+      "distanceFromSpot": 9.5,
+      "distancePercent": 1.64,
+      "magnetismScore": 0.72
+    }
+  ],
+  "flipPoints": [
+    {
+      "strikePrice": 582.35,
+      "netGex": 0,
+      "wallType": "FlipPoint",
+      "distanceFromSpot": 1.85,
+      "distancePercent": 0.32
+    }
+  ],
+  "maxPositiveGammaStrike": { "strikePrice": 575.0, "netGex": 1234567890 },
+  "maxNegativeGammaStrike": { "strikePrice": 590.0, "netGex": -987654321 },
+  "gexAboveSpot": -500000000,
+  "gexBelowSpot": 800000000,
+  "gexAsymmetry": -0.23,
+  "timestamp": "2026-01-28T10:30:00Z"
+}
+```
+
+**Wall Types:**
+
+- `Support`: Positive gamma below spot (dealers buy dips)
+- `Resistance`: Negative gamma above spot (dealers sell rallies)
+- `FlipPoint`: Zero-crossing level where net GEX changes sign
+
+**Response Fields:**
+
+- `supportLevels`: Top 5 positive gamma strikes below spot price
+- `resistanceLevels`: Top 5 negative gamma strikes above spot price
+- `flipPoints`: Interpolated levels where net GEX crosses zero
+- `gexAsymmetry`: Directional bias from -1 (bearish) to +1 (bullish)
+- `magnetismScore`: Price attraction strength (0-1), higher = stronger pull
+
 ### Historical Data Backfill
 
 | Endpoint | Description | Example |

@@ -426,6 +426,34 @@ gex.MapGet("/{symbol}/at/{spotPrice:decimal}", async (
         : Results.NotFound(new { error = result.Error });
 });
 
+// Analyze gamma walls (support/resistance levels)
+gex.MapGet("/{symbol}/walls", async (
+    string symbol,
+    IGexCalculationService gexService) =>
+{
+    var result = await gexService.AnalyzeGammaWallsAsync(symbol.ToUpperInvariant());
+    return result.Success
+        ? Results.Ok(result.Data)
+        : Results.NotFound(new { error = result.Error });
+});
+
+// Analyze gamma walls at explicit spot price
+gex.MapGet("/{symbol}/walls/at/{spotPrice:decimal}", async (
+    string symbol,
+    decimal spotPrice,
+    IGexCalculationService gexService) =>
+{
+    if (spotPrice <= 0)
+    {
+        return Results.BadRequest(new { error = "Spot price must be positive" });
+    }
+
+    var result = await gexService.AnalyzeGammaWallsAsync(symbol.ToUpperInvariant(), spotPrice);
+    return result.Success
+        ? Results.Ok(result.Data)
+        : Results.NotFound(new { error = result.Error });
+});
+
 // Historical Backfill API endpoints
 var backfill = app.MapGroup("/api/backfill");
 
