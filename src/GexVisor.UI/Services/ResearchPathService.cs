@@ -41,22 +41,52 @@ public class ResearchPathService : IResearchPathService
 
         try
         {
+            Console.WriteLine("📡 ResearchPathService: Attempting to load data/research-paths.json");
+            Console.WriteLine($"   HttpClient BaseAddress: {_httpClient.BaseAddress}");
+
             var response = await _httpClient.GetAsync("data/research-paths.json");
+
+            Console.WriteLine($"   HTTP Response: {response.StatusCode}");
+
             if (!response.IsSuccessStatusCode)
             {
-                Console.WriteLine("Could not load research paths: HTTP error");
+                Console.WriteLine($"❌ ResearchPathService: HTTP {response.StatusCode} for data/research-paths.json");
+                Console.WriteLine($"   Full URL attempted: {response.RequestMessage?.RequestUri}");
                 return [];
             }
 
             var json = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"✓ ResearchPathService: Received {json.Length} bytes");
+            Console.WriteLine($"   First 100 chars: {json.Substring(0, Math.Min(100, json.Length))}");
+
             var wrapper = JsonSerializer.Deserialize<ResearchPathsWrapper>(json, _jsonOptions);
 
-            _paths = wrapper?.Paths ?? [];
+            if (wrapper == null)
+            {
+                Console.WriteLine("❌ ResearchPathService: Deserialization returned null wrapper");
+                return [];
+            }
+
+            if (wrapper.Paths == null || wrapper.Paths.Length == 0)
+            {
+                Console.WriteLine("⚠️ ResearchPathService: Paths array is null or empty");
+                Console.WriteLine($"   Wrapper type: {wrapper.GetType().FullName}");
+            }
+            else
+            {
+                Console.WriteLine($"✓ ResearchPathService: Successfully loaded {wrapper.Paths.Length} research paths");
+                Console.WriteLine($"   First path ID: {wrapper.Paths[0].Id}");
+            }
+
+            _paths = wrapper.Paths ?? [];
             return _paths;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Could not load research paths: {ex.Message}");
+            Console.WriteLine($"❌ ResearchPathService EXCEPTION: {ex.GetType().Name}");
+            Console.WriteLine($"   Message: {ex.Message}");
+            Console.WriteLine($"   Stack trace:");
+            Console.WriteLine(ex.StackTrace);
             return [];
         }
     }

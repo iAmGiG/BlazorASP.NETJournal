@@ -7,7 +7,7 @@
     justify-content: center;
     outline: none; /* Remove default focus outline */
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 }
 
 /* Visible focus indicator for keyboard navigation */
@@ -232,7 +232,7 @@
 
 /* Dimmed nodes (filtered out) */
 ::deep .research-node.dimmed {
-    opacity: 0.15 !important;
+    opacity: 0.15;
     pointer-events: none;
 }
 

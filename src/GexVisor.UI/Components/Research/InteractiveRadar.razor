@@ -36,7 +36,7 @@
             </pattern>
         </defs>
         
-        <rect x="-2000" y="-2000" width="4000" height="4000" fill="url(#radar-grid)" class="grid-bg" />
+        <rect x="-400" y="-400" width="800" height="800" fill="url(#radar-grid)" class="grid-bg" />
 
         <!-- Connection lines (rendered before nodes) -->
         <ConnectionLines SelectedPath="@SelectedPath"
@@ -125,7 +125,8 @@
                 ? AppConstants.ResearchRadar.NodeSizes.InteractiveCore 
                 : AppConstants.ResearchRadar.NodeSizes.InteractiveStandard;
 
-            <g transform="translate(@F(x), @F(y))"
+            <g class="research-node node-ring-@path.Ring @(isSelected ? "selected" : "") @(isFocused ? "focused" : "") @(isDimmed ? "dimmed" : "") @(isRelated ? "related-glow" : "")"
+               transform="translate(@F(x), @F(y))"
                role="button"
                tabindex="-1"
                aria-label="@path.Title"
@@ -137,22 +138,20 @@
                @ontouchstart="@((e) => HandleTouchStart(e, path))"
                @ontouchend="@((e) => HandleTouchEnd(e, path))"
                @ontouchmove="@HandleTouchMove">
-                <g class="research-node node-ring-@path.Ring @(isSelected ? "selected" : "") @(isFocused ? "focused" : "") @(isDimmed ? "dimmed" : "") @(isRelated ? "related-glow" : "")">
-                    <!-- Invisible hit target for easier clicking/touching -->
-                    <circle cx="0" cy="0" r="@(radius + AppConstants.ResearchRadar.NodeSizes.HitTargetPadding)" fill="transparent" class="hit-target" />
-                    <circle cx="0" cy="0" r="@radius" fill="@statusColor" class="node-circle" />
-                    @if (!string.IsNullOrEmpty(path.LabelLong))
-                    {
-                        @SvgText("0", "-2", "node-label", path.Label)
-                        @SvgText("0", "6", "node-label-long", path.LabelLong)
-                    }
-                    else
-                    {
-                        @SvgText("0", "3", "node-label", path.Label)
-                    }
-                    <title>@path.Title - @path.Status</title>
-                    <desc id="desc-@path.Id">@RadarHelpers.FormatEnumName(path.Status) research path at complexity Ring @path.Ring. @RadarHelpers.FormatEnumName(path.Taxonomy) approach. Press Enter to view details.</desc>
-                </g>
+                <!-- Invisible hit target for easier clicking/touching -->
+                <circle cx="0" cy="0" r="@(radius + AppConstants.ResearchRadar.NodeSizes.HitTargetPadding)" fill="transparent" class="hit-target" />
+                <circle cx="0" cy="0" r="@radius" fill="@statusColor" class="node-circle" />
+                @if (!string.IsNullOrEmpty(path.LabelLong))
+                {
+                    @SvgText("0", "-2", "node-label", path.Label)
+                    @SvgText("0", "6", "node-label-long", path.LabelLong)
+                }
+                else
+                {
+                    @SvgText("0", "3", "node-label", path.Label)
+                }
+                <title>@path.Title - @path.Status</title>
+                <desc id="desc-@path.Id">@RadarHelpers.FormatEnumName(path.Status) research path at complexity Ring @path.Ring. @RadarHelpers.FormatEnumName(path.Taxonomy) approach. Press Enter to view details.</desc>
             </g>
         }
     </svg>
