@@ -61,31 +61,33 @@ Each node is color-coded by implementation status:
 
 - Node glows with `brightness(1.25)` and drop shadow
 - Related nodes highlight with blue glow
+- **Connection lines appear** showing dashed curves to related research paths
 - Tooltip appears showing short label (e.g., "Monte Carlo")
 
 ### Clicking
 
 **Action:** Click a research node
 
-**Effect:**
+**Effect (depends on view mode):**
 
-- Opens **RadarModal** with detailed information:
+**Radar View:**
+- Selects the node (highlights with glow)
+- **Connection lines remain visible** (dashed curves to related paths)
+- Shows **details panel below the radar** with:
   - Full title and description
   - Barrier explanation (why this is blocked)
   - Unblock requirements (what's needed to proceed)
-  - Related research paths (links to connected work)
+  - Related research paths (clickable tags)
   - Status badge and taxonomy tag
   - GitHub issue link (if applicable)
+- No blocking modal - radar stays fully interactive
+- **Close selection:** Click the `×` button or press `Escape`
 
-**Close Modal:** Click the `×` button, press `Escape`, or click outside the modal
-
-**Navigate Between Related Concepts:**
-
-- Click any tag in the "Related Concepts" section to seamlessly switch to that research path
-- Modal remains open during navigation
-- Focus automatically maintained for keyboard accessibility
-- Perfect for exploring research path connections without interruption
-- **Navigation History**: Click "Previous" button (or press `Backspace`) to return to previously viewed paths
+**Cards View:**
+- Opens **RadarModal** popup with detailed information
+- Modal can be closed by clicking `×`, pressing `Escape`, or clicking outside
+- **Navigate Between Related Concepts:** Click tags to seamlessly navigate between paths
+- **Navigation History:** Click "Previous" button (or press `Backspace`) to return to previously viewed paths
 - History is maintained as long as the modal stays open
 
 ### Filtering
@@ -242,7 +244,7 @@ Where:
 - `radius` = midpoint between `RingRadii[path.Ring]` and `RingRadii[path.Ring + 1]`
 - `RingRadii` = [0, 55, 105, 155, 210, 265, 315]
 - `path.Angle` = 0-90 representing position within quadrant (0% to 100%)
-- Quadrant ranges: Data (0-90°), Knowledge (90-180°), Scope (180-270°), Methodology (270-360°)
+- Quadrant ranges: Data (0-90°), Knowledge (90-180°), Scope (180-270°), Methodology (270-315°), Compute (315-360°)
 
 ### CSS Classes
 
@@ -258,6 +260,10 @@ Where:
 | `.grid-line` | Subtle background grid pattern (5% opacity) |
 | `.grid-bg` | Background rect with grid pattern fill |
 | `.radar-btn.active` | Cyan highlight for active toggle buttons |
+| `.connection-line` | Dashed curves connecting related nodes |
+| `.radar-details-below` | Details panel styling (below radar in radar-layout) |
+| `.cards-layout` | 2-column grid layout for Cards view (filters + cards) |
+| `.radar-layout` | 2-column grid layout for Radar view (filters + radar) |
 
 ## Data Model
 
@@ -346,6 +352,16 @@ public interface IResearchPathService
 - Consistent data across all radar components
 
 ## Recent Enhancements
+
+**Implemented (2026-01-29):**
+
+- **Radar as Default View**: Radar view is now the default landing experience for `/research/complexity`
+- **Connection Lines on Hover**: Dashed curves now appear when hovering over a node, showing related research paths
+- **View-Specific UX**: Radar view shows details below the radar (keeps connection lines visible); Cards view uses modal popup only
+- **Cards View Simplified**: Removed redundant details panel from Cards view - modal provides all information, giving cards more room
+- **Larger Radar Size**: Increased from 650px to 800px for better visibility
+- **Label Animation Timing**: Labels now fade in after nodes finish entrance animation (0.6s delay)
+- **Layout Restructure**: Both views now use 2-column layout (filters + content); switching views clears selection to prevent unintended modal popups
 
 **Implemented (2026-01-27):**
 
@@ -485,14 +501,23 @@ Users with `prefers-reduced-motion: reduce` enabled will see:
 - Disable browser extensions that interfere with CSS animations
 - Close other tabs to free GPU resources
 
-**Issue:** Modal not opening on click
+**Issue:** Modal not opening on click (Cards view only)
 
 **Solution:**
 
 - Ensure JavaScript is enabled
 - Check browser console for errors
 - Try clicking the node center (larger hit area)
+- Note: In Radar view, clicking shows details below instead of modal
+
+**Issue:** Connection lines not appearing on hover
+
+**Solution:**
+
+- Verify the `HoveredPath` parameter is passed to `ConnectionLines` component
+- Check that the node has `Related` tags in `research-paths.json`
+- Ensure CSS for `.connection-line.visible` is loaded
 
 ---
 
-_Last Updated: 2026-01-27_
+_Last Updated: 2026-01-29_

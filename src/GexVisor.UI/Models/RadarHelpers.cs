@@ -51,6 +51,7 @@ public static partial class RadarHelpers
         ResearchQuadrant.Knowledge => AppConstants.ResearchRadar.QuadrantKnowledge,
         ResearchQuadrant.Scope => AppConstants.ResearchRadar.QuadrantScope,
         ResearchQuadrant.Methodology => AppConstants.ResearchRadar.QuadrantMethodology,
+        ResearchQuadrant.Compute => AppConstants.ResearchRadar.QuadrantCompute,
         _ => (0, 90)
     };
 
@@ -80,12 +81,20 @@ public static partial class RadarHelpers
 
     /// <summary>
     /// Creates a MarkupString for an SVG text element with proper encoding.
+    /// Includes inline attributes as fallbacks for when CSS isolation breaks ::deep selectors.
     /// </summary>
-    public static MarkupString CreateSvgText(string x, string y, string className, string content, string? fill = null, string? transform = null)
+    public static MarkupString CreateSvgText(
+        string x, string y, string className, string content,
+        string? fill = null, string? transform = null,
+        string textAnchor = "middle", string? dominantBaseline = null)
     {
-        var fillAttr = fill != null ? $" fill=\"{fill}\"" : "";
+        // Default fill to white for visibility on colored backgrounds
+        var fillAttr = fill != null ? $" fill=\"{fill}\"" : " fill=\"#fff\"";
         var transformAttr = transform != null ? $" transform=\"{transform}\"" : "";
+        var anchorAttr = $" text-anchor=\"{textAnchor}\"";
+        var baselineAttr = dominantBaseline != null ? $" dominant-baseline=\"{dominantBaseline}\"" : "";
         var encodedContent = System.Net.WebUtility.HtmlEncode(content);
-        return new MarkupString($"<text x=\"{x}\" y=\"{y}\" class=\"{className}\"{fillAttr}{transformAttr}>{encodedContent}</text>");
+        return new MarkupString(
+            $"<text x=\"{x}\" y=\"{y}\" class=\"{className}\"{fillAttr}{transformAttr}{anchorAttr}{baselineAttr}>{encodedContent}</text>");
     }
 }

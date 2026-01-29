@@ -2,11 +2,11 @@
 @using GexVisor.UI.Configuration
 @implements IDisposable
 
-<div class="interactive-radar" style="width: @(Size)px; height: @(Size)px;" 
+<div class="interactive-radar" style="width: @(Size)px; height: @(Size)px;"
      @onmousemove="HandleMouseMove"
      @onmousedown="HandleMouseDown"
      @onmouseup="HandleMouseUp"
-     @onmouseout="HandleMouseUp"
+     @onmouseleave="HandleMouseLeave"
      @onwheel="HandleWheel"
      @onwheel:preventDefault
      tabindex="0"
@@ -32,7 +32,8 @@
     <svg viewBox="@ViewBox" class="radar-svg" preserveAspectRatio="xMidYMid meet">
         <defs>
             <pattern id="radar-grid" width="50" height="50" patternUnits="userSpaceOnUse">
-                <path d="M 50 0 L 0 0 0 50" fill="none" class="grid-line"/>
+                <path d="M 50 0 L 0 0 0 50" fill="none" class="grid-line"
+                      stroke="rgba(255, 255, 255, 0.05)" stroke-width="1" />
             </pattern>
         </defs>
         
@@ -40,6 +41,7 @@
 
         <!-- Connection lines (rendered before nodes) -->
         <ConnectionLines SelectedPath="@SelectedPath"
+                         HoveredPath="@_hoveredPath"
                          AllPaths="@DisplayPaths"
                          Size="@Size" />
 
@@ -62,7 +64,8 @@
         <!-- Concentric rings -->
         @for (int i = 1; i < RingRadii.Length; i++)
         {
-            <circle cx="0" cy="0" r="@RingRadii[i]" class="ring-circle" />
+            <circle cx="0" cy="0" r="@RingRadii[i]" class="ring-circle"
+                    fill="none" stroke="rgba(255, 255, 255, 0.15)" stroke-width="1" />
         }
 
         <!-- Quadrant dividing lines -->
@@ -72,7 +75,7 @@
             var rad = (angles.Start - 90) * Math.PI / 180;
             var outerR = RingRadii[^1];
             <line x1="0" y1="0" x2="@F(outerR * Math.Cos(rad))" y2="@F(outerR * Math.Sin(rad))"
-                  class="quadrant-line" />
+                  class="quadrant-line" stroke="rgba(255, 255, 255, 0.2)" stroke-width="1" stroke-dasharray="4 4" />
         }
 
         <!-- Ring labels -->
@@ -99,9 +102,10 @@
 
         <!-- Center pulse -->
         <g class="center-pulse">
-            <circle cx="0" cy="0" r="45" class="center-bg" />
-            @SvgText("0", "-8", "center-label", "VALIDATED")
-            @SvgText("0", "7", "center-sublabel", $"{AppConstants.ResearchRadar.FoundationStats.DetectionRate} / {AppConstants.ResearchRadar.FoundationStats.Accuracy}")
+            <circle cx="0" cy="0" r="45" class="center-bg"
+                    fill="rgba(46, 204, 113, 0.2)" stroke="#2ecc71" stroke-width="2" />
+            @SvgText("0", "-8", "center-label", "VALIDATED", "#2ecc71")
+            @SvgText("0", "7", "center-sublabel", $"{AppConstants.ResearchRadar.FoundationStats.DetectionRate} / {AppConstants.ResearchRadar.FoundationStats.Accuracy}", "#888")
         </g>
 
         <!-- Research nodes -->
@@ -140,7 +144,8 @@
                @ontouchmove="@HandleTouchMove">
                 <!-- Invisible hit target for easier clicking/touching -->
                 <circle cx="0" cy="0" r="@(radius + AppConstants.ResearchRadar.NodeSizes.HitTargetPadding)" fill="transparent" class="hit-target" />
-                <circle cx="0" cy="0" r="@radius" fill="@statusColor" class="node-circle" />
+                <circle cx="0" cy="0" r="@radius" fill="@statusColor" class="node-circle"
+                        stroke="rgba(0, 0, 0, 0.3)" stroke-width="2" />
                 @if (!string.IsNullOrEmpty(path.LabelLong))
                 {
                     @SvgText("0", "-2", "node-label", path.Label)
@@ -275,13 +280,23 @@
         {
             var deltaX = e.ClientX - _lastMouseX;
             var deltaY = e.ClientY - _lastMouseY;
-            
+
+            // Detect re-entry after leaving bounds: large delta suggests stale position
+            // Skip this move and just update position to prevent a jump
+            var maxDelta = 50.0; // pixels - reasonable max single-frame movement
+            if (Math.Abs(deltaX) > maxDelta || Math.Abs(deltaY) > maxDelta)
+            {
+                _lastMouseX = e.ClientX;
+                _lastMouseY = e.ClientY;
+                return;
+            }
+
             // Convert pixel delta to SVG units
             var scale = (AppConstants.ResearchRadar.BaseSize / _zoom) / Size;
-            
+
             _panX -= deltaX * scale;
             _panY -= deltaY * scale;
-            
+
             _lastMouseX = e.ClientX;
             _lastMouseY = e.ClientY;
         }
@@ -311,6 +326,17 @@
     private void HandleMouseUp(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
     {
         _isDragging = false;
+    }
+
+    private void HandleMouseLeave(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+    {
+        // Only end drag if no mouse buttons are pressed
+        // This allows the drag to continue if the user re-enters while holding the button
+        if (e.Buttons == 0)
+        {
+            _isDragging = false;
+        }
+        // If buttons are still pressed, keep _isDragging true so movement resumes on re-entry
     }
 
     private void HandleTouchStart(Microsoft.AspNetCore.Components.Web.TouchEventArgs e, ResearchPath path)

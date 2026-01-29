@@ -593,11 +593,13 @@ public static class AppConstants
 
         /// <summary>
         /// Quadrant angle definitions (Start, End) in degrees.
+        /// Note: Compute is a sub-section in the upper-right, between Methodology and Data.
         /// </summary>
         public static readonly (int Start, int End) QuadrantData = (0, 90);
         public static readonly (int Start, int End) QuadrantKnowledge = (90, 180);
         public static readonly (int Start, int End) QuadrantScope = (180, 270);
-        public static readonly (int Start, int End) QuadrantMethodology = (270, 360);
+        public static readonly (int Start, int End) QuadrantMethodology = (270, 315);
+        public static readonly (int Start, int End) QuadrantCompute = (315, 360);
 
         /// <summary>
         /// Default fallback colors and labels.

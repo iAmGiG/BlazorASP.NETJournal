@@ -31,12 +31,12 @@
         <div class="header-right">
             <div class="view-toggle">
                 <button class="view-btn @(_viewMode == ViewMode.Cards ? "active" : "")"
-                        @onclick="@(() => _viewMode = ViewMode.Cards)"
+                        @onclick="@(() => SetViewMode(ViewMode.Cards))"
                         title="Card View">
                     <i class="fas fa-th-large"></i> Cards
                 </button>
                 <button class="view-btn @(_viewMode == ViewMode.Radar ? "active" : "")"
-                        @onclick="@(() => _viewMode = ViewMode.Radar)"
+                        @onclick="@(() => SetViewMode(ViewMode.Radar))"
                         title="Radar View">
                     <i class="fas fa-bullseye"></i> Radar
                 </button>
@@ -64,72 +64,17 @@
         </div>
     </div>
 
-    <div class="main-container">
-        <!-- Filters -->
-        <aside id="filter-panel" class="filters-panel">
-            <div class="filters-header">
-                <span class="filters-label">Filters</span>
-                @if (HasActiveFilters)
-                {
-                    <button class="reset-btn" @onclick="ResetFilters" title="Reset all filters">
-                        <i class="fas fa-undo"></i> Reset
-                    </button>
-                }
-            </div>
-            <div class="filter-section">
-                <div class="filter-title">Barrier Type</div>
-                <div class="filter-group">
-                    <button class="filter-btn @(_barrierFilter == null ? "active" : "")" @onclick="@(() => SetBarrierFilter(null))">
-                        All
-                    </button>
-                    @foreach (var q in ResearchPathData.Quadrants.Where(x => x.Key != ResearchQuadrant.None))
-                    {
-                        var count = _paths.Count(p => p.BarrierQuadrant == q.Key || (q.Key == ResearchQuadrant.Scope && p.Quadrant == ResearchQuadrant.Scope));
-                        <button class="filter-btn @(_barrierFilter == q.Key ? "active" : "")"
-                                style="--filter-color: @q.Value.Color"
-                                @onclick="@(() => SetBarrierFilter(q.Key))">
-                            @q.Value.Label.ToLowerInvariant().Replace("_", " ") <span class="count">@count</span>
-                        </button>
-                    }
-                </div>
-            </div>
+    @if (_viewMode == ViewMode.Cards)
+    {
+        <!-- Cards View: 2-column layout (no details panel - modal shows details) -->
+        <div class="main-container cards-layout">
+            @* Filters Panel *@
+            <aside id="filter-panel" class="filters-panel">
+                @RenderFiltersContent()
+            </aside>
 
-            <div class="filter-section">
-                <div class="filter-title">Status</div>
-                <div class="filter-group status-group">
-                    @foreach (var status in ResearchPathData.StatusColors)
-                    {
-                        var count = _paths.Count(p => p.Status == status.Key);
-                        <button class="filter-btn @(_statusFilter == status.Key ? "active" : "")"
-                                style="--filter-color: @status.Value"
-                                @onclick="@(() => ToggleStatusFilter(status.Key))">
-                            <span class="status-dot" style="background: @status.Value"></span>
-                            @RadarHelpers.FormatEnumName(status.Key) <span class="count">@count</span>
-                        </button>
-                    }
-                </div>
-            </div>
-
-            <div class="filter-section">
-                <div class="filter-title">Complexity</div>
-                <div class="filter-group">
-                    @for (int i = 0; i <= 5; i++)
-                    {
-                        var ring = i;
-                        var count = _paths.Count(p => p.Ring == ring);
-                        <button class="filter-btn ring-btn @(_ringFilter == ring ? "active" : "")"
-                                @onclick="@(() => ToggleRingFilter(ring))">
-                            Ring @ring <span class="count">@count</span>
-                        </button>
-                    }
-                </div>
-            </div>
-        </aside>
-
-        <!-- Main Content -->
-        <div id="content-area" class="content-area">
-            @if (_viewMode == ViewMode.Cards)
-            {
+            <!-- Main Content -->
+            <div id="content-area" class="content-area">
                 <!-- Ring Legend -->
                 <div class="ring-legend">
                     @for (int i = 0; i <= 5; i++)
@@ -177,13 +122,31 @@
                         </div>
                     }
                 </div>
-            }
-            else
-            {
-                <!-- Radar View - using InteractiveRadar component -->
+            </div>
+        </div>
+
+        <!-- Modal popup for cards view -->
+        <RadarModal Path="@_selectedPath"
+                    OnClose="ClearSelection"
+                    OnRelatedClick="HandleRelatedNavigate"
+                    OnBack="HandleModalBack"
+                    CanGoBack="@CanGoBack" />
+    }
+    else
+    {
+        <!-- Radar View: 2-column layout with details below radar -->
+        <div class="main-container radar-layout">
+            @* Filters Panel *@
+            <aside id="filter-panel" class="filters-panel">
+                @RenderFiltersContent()
+            </aside>
+
+            <!-- Main Content -->
+            <div id="content-area" class="content-area">
+                <!-- Radar -->
                 <div class="radar-container">
                     <InteractiveRadar
-                        Size="650"
+                        Size="800"
                         Paths="@_paths"
                         SelectedPathId="@_selectedPath?.Id"
                         FocusedPathId="@_focusedPath?.Id"
@@ -198,95 +161,17 @@
                     <span class="hint"><kbd>Enter</kbd> Select</span>
                     <span class="hint"><kbd>Esc</kbd> Close</span>
                 </div>
-            }
+
+                <!-- Details Panel (below radar) -->
+                @if (_selectedPath != null)
+                {
+                    <div class="radar-details-below">
+                        @RenderDetailsContent()
+                    </div>
+                }
+            </div>
         </div>
-
-        <!-- Detail Panel -->
-        <aside class="details-panel">
-            @if (_selectedPath != null)
-            {
-                var statusColor = ResearchPathData.StatusColors.GetValueOrDefault(_selectedPath.Status, AppConstants.ResearchRadar.DefaultStatusColor);
-                var taxonomyColor = ResearchPathData.TaxonomyColors.GetValueOrDefault(_selectedPath.Taxonomy, (AppConstants.ResearchRadar.DefaultTaxonomyColor, AppConstants.ResearchRadar.DefaultTaxonomyText));
-                var quadrantInfo = ResearchPathData.Quadrants.GetValueOrDefault(_selectedPath.Quadrant, (AppConstants.ResearchRadar.UnknownQuadrantLabel, AppConstants.ResearchRadar.UnknownQuadrantColor));
-
-                <div class="detail-header">
-                    <div class="detail-title">@_selectedPath.Title</div>
-                    <button class="close-btn" @onclick="ClearSelection">&times;</button>
-                </div>
-
-                <div class="detail-taxonomy" style="background: @taxonomyColor.Item1; color: @taxonomyColor.Item2">
-                    @RadarHelpers.FormatEnumName(_selectedPath.Taxonomy).ToUpperInvariant()
-                </div>
-
-                <div class="detail-meta-grid">
-                    <div class="detail-meta-item">
-                        <div class="meta-label">Status</div>
-                        <div class="meta-value" style="color: @statusColor">@RadarHelpers.FormatEnumName(_selectedPath.Status)</div>
-                    </div>
-                    <div class="detail-meta-item">
-                        <div class="meta-label">Complexity</div>
-                        <div class="meta-value">Ring @_selectedPath.Ring</div>
-                    </div>
-                    <div class="detail-meta-item">
-                        <div class="meta-label">Barrier Type</div>
-                        <div class="meta-value" style="color: @quadrantInfo.Item2">@quadrantInfo.Item1</div>
-                    </div>
-                    @if (!string.IsNullOrEmpty(_selectedPath.Paper) && _selectedPath.Paper != "N/A")
-                    {
-                        <div class="detail-meta-item">
-                            <div class="meta-label">Paper</div>
-                            <div class="meta-value">@_selectedPath.Paper</div>
-                        </div>
-                    }
-                </div>
-
-                @if (!string.IsNullOrEmpty(_selectedPath.IssueUrl))
-                {
-                    <a href="@_selectedPath.IssueUrl" target="_blank" rel="noopener noreferrer" class="issue-link">
-                        <i class="fab fa-github"></i> View Issue @_selectedPath.IssueNum
-                    </a>
-                }
-
-                <div class="detail-section">
-                    <div class="section-label">Description</div>
-                    <div class="section-text">@_selectedPath.Description</div>
-                </div>
-
-                <div class="detail-section barrier">
-                    <div class="section-label">Why It Stalled</div>
-                    <div class="section-text">@_selectedPath.Barrier</div>
-                </div>
-
-                @if (!string.IsNullOrEmpty(_selectedPath.Unblock))
-                {
-                    <div class="detail-section unblock">
-                        <div class="section-label">What Would Unblock</div>
-                        <div class="section-text">@_selectedPath.Unblock</div>
-                    </div>
-                }
-
-                @if (_selectedPath.Related.Count > 0)
-                {
-                    <div class="detail-section">
-                        <div class="section-label">Related Concepts</div>
-                        <div class="related-tags">
-                            @foreach (var tag in _selectedPath.Related)
-                            {
-                                <span class="related-tag" @onclick="@(() => SearchRelated(tag))">@tag</span>
-                            }
-                        </div>
-                    </div>
-                }
-            }
-            else
-            {
-                <div class="details-empty">
-                    <div class="empty-icon">🔍</div>
-                    <div class="empty-text">Click a @(_viewMode == ViewMode.Cards ? "card" : "node") to explore</div>
-                </div>
-            }
-        </aside>
-    </div>
+    }
 
     <!-- Insight Box -->
     <div class="insight-box">
@@ -297,16 +182,6 @@
             The validated core (71.5% detection) proves <strong>LLMs reason about structure</strong>, not just memorize.
         </div>
     </div>
-
-    <!-- Modal popup for radar view -->
-    @if (_viewMode == ViewMode.Radar)
-    {
-        <RadarModal Path="@_selectedPath"
-                    OnClose="ClearSelection"
-                    OnRelatedClick="HandleRelatedNavigate"
-                    OnBack="HandleModalBack"
-                    CanGoBack="@CanGoBack" />
-    }
 </div>
 
 @code {
@@ -317,7 +192,7 @@
     private ResearchPath? _selectedPath;
     private ResearchPath? _focusedPath;
     private string? _searchTerm;
-    private ViewMode _viewMode = ViewMode.Cards;
+    private ViewMode _viewMode = ViewMode.Radar;
     private string _announcement = "";
     private readonly Stack<ResearchPath> _navigationHistory = new();
     private List<ResearchPath> _filteredPaths = [];
@@ -332,14 +207,171 @@
 
     private enum ViewMode { Cards, Radar }
 
+    private RenderFragment RenderFiltersContent() => __builder =>
+    {
+        <div class="filters-header">
+            <span class="filters-label">Filters</span>
+            @if (HasActiveFilters)
+            {
+                <button class="reset-btn" @onclick="ResetFilters" title="Reset all filters">
+                    <i class="fas fa-undo"></i> Reset
+                </button>
+            }
+        </div>
+        <div class="filter-section">
+            <div class="filter-title">Barrier Type</div>
+            <div class="filter-group">
+                <button class="filter-btn @(_barrierFilter == null ? "active" : "")" @onclick="@(() => SetBarrierFilter(null))">
+                    All
+                </button>
+                @foreach (var q in ResearchPathData.Quadrants.Where(x => x.Key != ResearchQuadrant.None))
+                {
+                    var count = _paths.Count(p => p.BarrierQuadrant == q.Key || (q.Key == ResearchQuadrant.Scope && p.Quadrant == ResearchQuadrant.Scope));
+                    <button class="filter-btn @(_barrierFilter == q.Key ? "active" : "")"
+                            style="--filter-color: @q.Value.Color"
+                            @onclick="@(() => SetBarrierFilter(q.Key))">
+                        @q.Value.Label.ToLowerInvariant().Replace("_", " ") <span class="count">@count</span>
+                    </button>
+                }
+            </div>
+        </div>
+
+        <div class="filter-section">
+            <div class="filter-title">Status</div>
+            <div class="filter-group status-group">
+                @foreach (var status in ResearchPathData.StatusColors)
+                {
+                    var count = _paths.Count(p => p.Status == status.Key);
+                    <button class="filter-btn @(_statusFilter == status.Key ? "active" : "")"
+                            style="--filter-color: @status.Value"
+                            @onclick="@(() => ToggleStatusFilter(status.Key))">
+                        <span class="status-dot" style="background: @status.Value"></span>
+                        @RadarHelpers.FormatEnumName(status.Key) <span class="count">@count</span>
+                    </button>
+                }
+            </div>
+        </div>
+
+        <div class="filter-section">
+            <div class="filter-title">Complexity</div>
+            <div class="filter-group">
+                @for (int i = 0; i <= 5; i++)
+                {
+                    var ring = i;
+                    var count = _paths.Count(p => p.Ring == ring);
+                    <button class="filter-btn ring-btn @(_ringFilter == ring ? "active" : "")"
+                            @onclick="@(() => ToggleRingFilter(ring))">
+                        Ring @ring <span class="count">@count</span>
+                    </button>
+                }
+            </div>
+        </div>
+    };
+
+    private RenderFragment RenderDetailsContent() => __builder =>
+    {
+        if (_selectedPath != null)
+        {
+            var statusColor = ResearchPathData.StatusColors.GetValueOrDefault(_selectedPath.Status, AppConstants.ResearchRadar.DefaultStatusColor);
+            var taxonomyColor = ResearchPathData.TaxonomyColors.GetValueOrDefault(_selectedPath.Taxonomy, (AppConstants.ResearchRadar.DefaultTaxonomyColor, AppConstants.ResearchRadar.DefaultTaxonomyText));
+            var quadrantInfo = ResearchPathData.Quadrants.GetValueOrDefault(_selectedPath.Quadrant, (AppConstants.ResearchRadar.UnknownQuadrantLabel, AppConstants.ResearchRadar.UnknownQuadrantColor));
+
+            <div class="detail-header">
+                <div class="detail-title">@_selectedPath.Title</div>
+                <button class="close-btn" @onclick="ClearSelection">&times;</button>
+            </div>
+
+            <div class="detail-taxonomy" style="background: @taxonomyColor.Item1; color: @taxonomyColor.Item2">
+                @RadarHelpers.FormatEnumName(_selectedPath.Taxonomy).ToUpperInvariant()
+            </div>
+
+            <div class="detail-meta-grid">
+                <div class="detail-meta-item">
+                    <div class="meta-label">Status</div>
+                    <div class="meta-value" style="color: @statusColor">@RadarHelpers.FormatEnumName(_selectedPath.Status)</div>
+                </div>
+                <div class="detail-meta-item">
+                    <div class="meta-label">Complexity</div>
+                    <div class="meta-value">Ring @_selectedPath.Ring</div>
+                </div>
+                <div class="detail-meta-item">
+                    <div class="meta-label">Barrier Type</div>
+                    <div class="meta-value" style="color: @quadrantInfo.Item2">@quadrantInfo.Item1</div>
+                </div>
+                @if (!string.IsNullOrEmpty(_selectedPath.Paper) && _selectedPath.Paper != "N/A")
+                {
+                    <div class="detail-meta-item">
+                        <div class="meta-label">Paper</div>
+                        <div class="meta-value">@_selectedPath.Paper</div>
+                    </div>
+                }
+            </div>
+
+            @if (!string.IsNullOrEmpty(_selectedPath.IssueUrl))
+            {
+                <a href="@_selectedPath.IssueUrl" target="_blank" rel="noopener noreferrer" class="issue-link">
+                    <i class="fab fa-github"></i> View Issue @_selectedPath.IssueNum
+                </a>
+            }
+
+            <div class="detail-section">
+                <div class="section-label">Description</div>
+                <div class="section-text">@_selectedPath.Description</div>
+            </div>
+
+            <div class="detail-section barrier">
+                <div class="section-label">Why It Stalled</div>
+                <div class="section-text">@_selectedPath.Barrier</div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(_selectedPath.Unblock))
+            {
+                <div class="detail-section unblock">
+                    <div class="section-label">What Would Unblock</div>
+                    <div class="section-text">@_selectedPath.Unblock</div>
+                </div>
+            }
+
+            @if (_selectedPath.Related.Count > 0)
+            {
+                <div class="detail-section">
+                    <div class="section-label">Related Concepts</div>
+                    <div class="related-tags">
+                        @foreach (var tag in _selectedPath.Related)
+                        {
+                            <span class="related-tag" @onclick="@(() => SearchRelated(tag))">@tag</span>
+                        }
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="details-empty">
+                <div class="empty-icon">🔍</div>
+                <div class="empty-text">Click a @(_viewMode == ViewMode.Cards ? "card" : "node") to explore</div>
+            </div>
+        }
+    };
+
     protected override async Task OnInitializedAsync()
     {
         _paths = await ResearchPathService.LoadPathsAsync();
         UpdateFilteredPaths();
     }
 
-    private void ToggleViewMode() =>
-        _viewMode = _viewMode == ViewMode.Cards ? ViewMode.Radar : ViewMode.Cards;
+    private void ToggleViewMode() => SetViewMode(_viewMode == ViewMode.Cards ? ViewMode.Radar : ViewMode.Cards);
+
+    private void SetViewMode(ViewMode mode)
+    {
+        if (_viewMode != mode)
+        {
+            // Clear selection when switching views to prevent modal popup on view change
+            _selectedPath = null;
+            _navigationHistory.Clear();
+            _viewMode = mode;
+        }
+    }
 
     private void HandleFocusChange(ResearchPath? path)
     {

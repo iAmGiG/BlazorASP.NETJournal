@@ -7,7 +7,7 @@
     justify-content: center;
     outline: none; /* Remove default focus outline */
     position: relative;
-    overflow: visible;
+    overflow: hidden; /* Contain SVG within bounds */
 }
 
 /* Visible focus indicator for keyboard navigation */
@@ -20,9 +20,11 @@
     position: absolute;
     top: 10px;
     right: 10px;
+    left: auto; /* Explicit left:auto to prevent centering */
     z-index: 10;
     display: flex;
     gap: 5px;
+    justify-content: flex-end;
 }
 
 .radar-btn {
@@ -150,7 +152,7 @@
     }
 }
 
-/* Node entrance animation - staggered by ring */
+/* Node entrance animation - applied to circle, not group (to preserve translate) */
 @keyframes nodeEntrance {
     0% {
         opacity: 0;
@@ -162,35 +164,46 @@
     }
 }
 
-/* Ring-based animation delays */
+/* Research node groups - no animation here to preserve translate transform */
 ::deep .research-node {
     cursor: pointer;
-    opacity: 0;
+}
+
+/* Ring-based animation delays - applied to the node circle, not the group */
+::deep .research-node.node-ring-0 .node-circle {
+    animation: nodeEntrance 0.5s ease-out forwards;
     transform-origin: center;
 }
 
-::deep .research-node.node-ring-0 {
-    animation: nodeEntrance 0.5s ease-out forwards;
-}
-
-::deep .research-node.node-ring-1 {
+::deep .research-node.node-ring-1 .node-circle {
     animation: nodeEntrance 0.5s ease-out 0.08s forwards;
+    transform-origin: center;
 }
 
-::deep .research-node.node-ring-2 {
+::deep .research-node.node-ring-2 .node-circle {
     animation: nodeEntrance 0.5s ease-out 0.16s forwards;
+    transform-origin: center;
 }
 
-::deep .research-node.node-ring-3 {
+::deep .research-node.node-ring-3 .node-circle {
     animation: nodeEntrance 0.5s ease-out 0.24s forwards;
+    transform-origin: center;
 }
 
-::deep .research-node.node-ring-4 {
+::deep .research-node.node-ring-4 .node-circle {
     animation: nodeEntrance 0.5s ease-out 0.32s forwards;
+    transform-origin: center;
 }
 
-::deep .research-node.node-ring-5 {
+::deep .research-node.node-ring-5 .node-circle {
     animation: nodeEntrance 0.5s ease-out 0.40s forwards;
+    transform-origin: center;
+}
+
+/* Label fade-in animation (simpler - no scale to avoid transform conflicts) */
+@keyframes labelFadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
 }
 
 /* Node circle styling */
@@ -198,6 +211,14 @@
     stroke-width: 2;
     stroke: rgba(0, 0, 0, 0.3);
     transition: filter 0.2s ease, stroke-width 0.2s ease, transform 0.2s ease;
+    opacity: 0; /* Start invisible, animation will reveal */
+}
+
+/* Node labels - fade in after nodes finish entrance animation */
+::deep .research-node .node-label,
+::deep .research-node .node-label-long {
+    opacity: 0;
+    animation: labelFadeIn 0.4s ease-out 0.6s forwards;
 }
 
 /* Invisible hit target for easier clicking */

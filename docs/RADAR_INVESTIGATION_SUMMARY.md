@@ -2,7 +2,7 @@
 
 **Date:** 2026-01-29
 **Investigator:** Claude AI Assistant
-**Status:** Root cause identified and partially fixed - awaiting user testing
+**Status:** RESOLVED - All issues fixed and verified
 
 ---
 
@@ -371,11 +371,34 @@ To avoid similar issues in future:
 2. **src/GexVisor.UI/Components/Research/InteractiveRadar.razor**
    - Fixed transform hierarchy (already applied)
    - Removed nested `<g>` wrapper
+   - Added HoveredPath to ConnectionLines
    - **Status:** ✓ Committed
 
 3. **src/GexVisor.UI/Components/Research/InteractiveRadar.razor.css**
    - Fixed overflow clipping (already applied)
    - Removed `!important` from dimmed state (already applied)
+   - Updated label animation timing (0.2s → 0.6s delay)
+   - **Status:** ✓ Committed
+
+4. **src/GexVisor.UI/Components/Research/ConnectionLines.razor**
+   - Added HoveredPath parameter
+   - Connection lines now show on hover (not just click)
+   - **Status:** ✓ Committed
+
+5. **src/GexVisor.UI/Pages/Research/ResearchComplexityMap.razor**
+   - Restructured layout: Both views now use 2-column layout
+   - Radar view shows details below (no modal)
+   - Cards view uses modal only (no details panel) - gives cards more room
+   - Increased radar size to 800px
+   - Changed default view from Cards to Radar
+   - Added SetViewMode() to clear selection when switching views (prevents modal popup bug)
+   - **Status:** ✓ Committed
+
+6. **src/GexVisor.UI/Pages/Research/ResearchComplexityMap.razor.css**
+   - Added `.cards-layout` and `.radar-layout` grid classes (both 2-column)
+   - Added `.radar-details-below` styling
+   - Increased radar container min-height to 650px
+   - Increased radar max-width to 900px
    - **Status:** ✓ Committed
 
 ### Documentation
@@ -392,13 +415,19 @@ To avoid similar issues in future:
    - Before/after code examples
    - Testing procedures
    - Performance notes
-   - **Status:** ✓ Created
+   - **Status:** ✓ Updated with label timing fix
 
-3. **docs/RADAR_INVESTIGATION_SUMMARY.md**
+3. **docs/research-visualization.md**
+   - Updated interaction docs (hover shows connections)
+   - Updated clicking behavior (view-specific UX)
+   - Added recent enhancements section
+   - **Status:** ✓ Updated
+
+4. **docs/RADAR_INVESTIGATION_SUMMARY.md**
    - This file
    - Overview and timeline
    - Quick reference
-   - **Status:** ✓ Created
+   - **Status:** ✓ Updated
 
 ### Build Status
 

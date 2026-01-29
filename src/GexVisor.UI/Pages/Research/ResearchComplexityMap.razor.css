@@ -109,14 +109,23 @@
     letter-spacing: 1px;
 }
 
-/* Main Container */
+/* Main Container - Base styles */
 .main-container {
     display: grid;
-    grid-template-columns: 200px 1fr 280px;
     gap: 20px;
     padding: 20px;
     max-width: 1600px;
     margin: 0 auto;
+}
+
+/* Cards Layout: 2-column (no details panel - modal shows details) */
+.main-container.cards-layout {
+    grid-template-columns: 200px 1fr;
+}
+
+/* Radar Layout: 2-column, details goes below radar */
+.main-container.radar-layout {
+    grid-template-columns: 200px 1fr;
 }
 
 /* Filters Panel */
@@ -601,14 +610,44 @@
     background: var(--bg-panel);
     border-radius: 8px;
     border: 1px solid var(--border-color);
-    min-height: 500px;
+    min-height: 650px;
 }
 
 .radar-svg {
     width: 100%;
-    max-width: 700px;
+    max-width: 900px;
     height: auto;
     aspect-ratio: 1;
+}
+
+/* Radar Details Panel (below radar in radar-layout) */
+.radar-details-below {
+    margin-top: 20px;
+    padding: 20px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+/* Make the details content flow horizontally in radar-below layout */
+.radar-details-below .detail-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+}
+
+.radar-details-below .detail-section {
+    margin-top: 15px;
+}
+
+.radar-details-below .detail-header {
+    margin-bottom: 15px;
+}
+
+.radar-details-below .related-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 /* Quadrant backgrounds */

@@ -1,6 +1,6 @@
 @using GexVisor.UI.Models
 
-@if (SelectedPath != null)
+@if (ActivePath != null)
 {
     @foreach (var connection in GetConnections())
     {
@@ -17,33 +17,39 @@
     /// <summary>The currently selected research path to show connections from.</summary>
     [Parameter] public ResearchPath? SelectedPath { get; set; }
 
+    /// <summary>The currently hovered research path (takes priority over selected).</summary>
+    [Parameter] public ResearchPath? HoveredPath { get; set; }
+
     /// <summary>All research paths to find connections within.</summary>
     [Parameter] public IEnumerable<ResearchPath>? AllPaths { get; set; }
 
     /// <summary>SVG viewBox size (must match radar size for correct positioning).</summary>
     [Parameter] public int Size { get; set; } = 600;
 
+    /// <summary>The active path for showing connections (hovered takes precedence over selected).</summary>
+    private ResearchPath? ActivePath => HoveredPath ?? SelectedPath;
+
     private record Connection(string PathData, ResearchPath Target);
 
     private IEnumerable<Connection> GetConnections()
     {
-        if (SelectedPath == null || AllPaths == null)
+        if (ActivePath == null || AllPaths == null)
         {
             yield break;
         }
 
-        foreach (var path in AllPaths.Where(p => p.Id != SelectedPath.Id))
+        foreach (var path in AllPaths.Where(p => p.Id != ActivePath.Id))
         {
-            // Word-level matching: check if any word from selected path's Related tags
+            // Word-level matching: check if any word from active path's Related tags
             // appears in this path's Related tags
-            var sharedConcepts = SelectedPath.Related
-                .SelectMany(selectedTag => path.Related
+            var sharedConcepts = ActivePath.Related
+                .SelectMany(activeTag => path.Related
                     .Where(pathTag =>
                     {
                         // Split both tags into words and compare (case-insensitive)
-                        var selectedWords = selectedTag.ToLower().Split(' ');
+                        var activeWords = activeTag.ToLower().Split(' ');
                         var pathWords = pathTag.ToLower().Split(' ');
-                        return selectedWords.Any(sw => pathWords.Any(pw => pw.Contains(sw) || sw.Contains(pw)));
+                        return activeWords.Any(aw => pathWords.Any(pw => pw.Contains(aw) || aw.Contains(pw)));
                     }))
                 .Any();
 
@@ -52,7 +58,7 @@
                 continue;
             }
 
-            var (x1, y1) = RadarHelpers.GetNodePosition(SelectedPath);
+            var (x1, y1) = RadarHelpers.GetNodePosition(ActivePath);
             var (x2, y2) = RadarHelpers.GetNodePosition(path);
 
             // Calculate quadratic Bezier control point with perpendicular offset

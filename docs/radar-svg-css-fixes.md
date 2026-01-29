@@ -403,8 +403,39 @@ The grid background in InteractiveRadar was using an oversized rectangle:
 | Transform hierarchy | Nested `<g>` separated transform from class | Consolidated to single element | Proper CSS animation composition |
 | Overflow clipping | Contradictory `overflow` settings | Changed container to `visible` | Zoomed nodes visible at edges |
 | Opacity conflict | `!important` override | Removed `!important` flag | Smooth entrance animations with dimming |
+| Label timing | Labels fading in before nodes settled | Increased label delay from 0.2s to 0.6s | Labels appear after node animation completes |
 
-All three fixes are now in place and tested.
+All fixes are now in place and tested.
+
+---
+
+## Additional Fixes (2026-01-29)
+
+### Issue 4: Label Animation Timing
+
+**Severity:** LOW
+**File:** `src/GexVisor.UI/Components/Research/InteractiveRadar.razor.css:216-220`
+**Status:** ✓ FIXED
+
+**Problem:** Labels were fading in (0.2s delay) before nodes finished their entrance animation (0.5s duration with staggered delays up to 0.4s).
+
+**Solution:** Increased label delay to 0.6s to ensure labels appear after nodes settle:
+
+```css
+/* BEFORE */
+::deep .research-node .node-label,
+::deep .research-node .node-label-long {
+    opacity: 0;
+    animation: labelFadeIn 0.3s ease-out 0.2s forwards;
+}
+
+/* AFTER */
+::deep .research-node .node-label,
+::deep .research-node .node-label-long {
+    opacity: 0;
+    animation: labelFadeIn 0.4s ease-out 0.6s forwards;
+}
+```
 
 ---
 
@@ -412,7 +443,9 @@ All three fixes are now in place and tested.
 
 - `src/GexVisor.UI/Components/Research/InteractiveRadar.razor` - Component markup
 - `src/GexVisor.UI/Components/Research/InteractiveRadar.razor.css` - Animations and styles
+- `src/GexVisor.UI/Components/Research/ConnectionLines.razor` - Connection line rendering
 - `src/GexVisor.UI/Components/Research/MiniRadar.razor` - Smaller radar variant
+- `src/GexVisor.UI/Pages/Research/ResearchComplexityMap.razor` - Page layout
 - `docs/research-visualization.md` - Component architecture
 - `docs/radar-rendering-troubleshooting.md` - Data loading issues
 
@@ -430,4 +463,6 @@ All three fixes are now in place and tested.
 
 ## Conclusion
 
-These three SVG/CSS fixes address layout, clipping, and animation issues in the InteractiveRadar component. Combined with proper data loading (see `radar-rendering-troubleshooting.md`), the radar now renders correctly with smooth animations and proper zoom/pan behavior.
+These SVG/CSS fixes address layout, clipping, animation, and timing issues in the InteractiveRadar component. Combined with proper data loading (see `radar-rendering-troubleshooting.md`), the radar now renders correctly with smooth animations and proper zoom/pan behavior.
+
+_Last Updated: 2026-01-29_
