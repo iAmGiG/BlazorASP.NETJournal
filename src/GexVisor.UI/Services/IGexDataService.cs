@@ -14,6 +14,11 @@ public interface IGexDataService
     GexIndex? Index { get; }
 
     /// <summary>
+    /// Gets whether real data files are available and loaded.
+    /// </summary>
+    bool IsRealDataAvailable { get; }
+
+    /// <summary>
     /// Load the index of available symbols.
     /// </summary>
     Task<GexIndex?> LoadIndexAsync();

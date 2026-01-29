@@ -1,5 +1,7 @@
 using System.Globalization;
+using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using GexVisor.UI.Models;
 
 namespace GexVisor.UI.Services;
@@ -16,6 +18,7 @@ public class GexDataService : IGexDataService
     private GexIndex? _index;
 
     public GexIndex? Index => _index;
+    public bool IsRealDataAvailable => _index != null && _index.Symbols.Count > 0;
 
     public GexDataService(HttpClient httpClient)
     {
@@ -37,6 +40,11 @@ public class GexDataService : IGexDataService
             var response = await _httpClient.GetAsync("data/index.json");
             if (!response.IsSuccessStatusCode)
             {
+                // Don't log 404 errors - data files are optional (demo mode works without them)
+                if (response.StatusCode != System.Net.HttpStatusCode.NotFound)
+                {
+                    Console.WriteLine($"Could not load data index: {response.StatusCode}");
+                }
                 return null;
             }
 
@@ -44,9 +52,14 @@ public class GexDataService : IGexDataService
             _index = JsonSerializer.Deserialize<GexIndex>(json, _jsonOptions);
             return _index;
         }
+        catch (HttpRequestException)
+        {
+            // Silent fail for missing data files - expected in demo-only mode
+            return null;
+        }
         catch (Exception ex)
         {
-            Console.WriteLine($"Could not load data index: {ex.Message}");
+            Console.WriteLine($"Error loading data index: {ex.Message}");
             return null;
         }
     }
@@ -61,22 +74,29 @@ public class GexDataService : IGexDataService
             var response = await _httpClient.GetAsync($"data/{symbol.ToLower()}.json");
             if (!response.IsSuccessStatusCode)
             {
-                Console.WriteLine($"Data not found for {symbol}");
+                // Don't log 404 for missing data files
+                if (response.StatusCode != System.Net.HttpStatusCode.NotFound)
+                {
+                    Console.WriteLine($"Could not load symbol {symbol}: {response.StatusCode}");
+                }
                 return null;
             }
 
             var json = await response.Content.ReadAsStringAsync();
             var rawTimeline = JsonSerializer.Deserialize<RawGexTimeline>(json, _jsonOptions);
             if (rawTimeline == null)
-            {
                 return null;
-            }
 
             return TransformTimeline(rawTimeline);
         }
+        catch (HttpRequestException)
+        {
+            // Silent fail for missing data files
+            return null;
+        }
         catch (Exception ex)
         {
-            Console.WriteLine($"Could not load symbol data: {ex.Message}");
+            Console.WriteLine($"Error loading symbol {symbol}: {ex.Message}");
             return null;
         }
     }
@@ -133,10 +153,7 @@ public class GexDataService : IGexDataService
     public IEnumerable<string> GetAssetClasses()
     {
         if (_index == null)
-        {
             return Enumerable.Empty<string>();
-        }
-
         return _index.AssetClasses.Keys.OrderBy(k => k);
     }
 
@@ -146,10 +163,7 @@ public class GexDataService : IGexDataService
     public IEnumerable<string> GetSymbolsForClass(string assetClass)
     {
         if (_index?.AssetClasses.TryGetValue(assetClass, out var symbols) == true)
-        {
             return symbols.OrderBy(s => s);
-        }
-
         return Enumerable.Empty<string>();
     }
 
@@ -159,10 +173,7 @@ public class GexDataService : IGexDataService
     public IEnumerable<string> GetAllSymbols()
     {
         if (_index == null)
-        {
             return Enumerable.Empty<string>();
-        }
-
         return _index.Symbols.Select(s => s.Symbol).OrderBy(s => s);
     }
 
