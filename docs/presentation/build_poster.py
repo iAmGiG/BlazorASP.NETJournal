@@ -1,6 +1,7 @@
 """
 Build C-Day Computing Showcase poster for GexVisor.
 Uses the official KSU c-day-template4.pptx as base, preserving branding.
+PRINT-FRIENDLY: white/light background, dark text, minimal ink coverage.
 """
 
 from pptx import Presentation
@@ -9,30 +10,30 @@ from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pptx.enum.shapes import MSO_SHAPE
 import os
-import copy
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE = os.path.join(SCRIPT_DIR, "c-day-template4.pptx")
 OUTPUT = os.path.join(SCRIPT_DIR, "GexVisor_CDay_Poster.pptx")
 
-# ── Colors (matched from template) ────────────────────────────────────
-KSU_GOLD = RGBColor(0xFF, 0xC0, 0x00)  # Template's gold from Author text
+# ── Print-friendly color palette ──────────────────────────────────────
+# Template's footer/header are already dark — we keep those as branding.
+# Everything else: white bg, dark text, gold accents only where needed.
+KSU_GOLD = RGBColor(0xFF, 0xC0, 0x00)
+KSU_DARK_GOLD = RGBColor(0xC4, 0x8E, 0x00)  # Readable gold for light bg
 WHITE = RGBColor(0xFF, 0xFF, 0xFF)
-BLACK = RGBColor(0x00, 0x00, 0x00)
-DARK_BG = RGBColor(0x2B, 0x2B, 0x2B)
-LIGHT_PLACEHOLDER = RGBColor(0xE8, 0xE8, 0xE8)
-MID_GRAY = RGBColor(0x66, 0x66, 0x66)
-SECTION_BG = RGBColor(0x3A, 0x3A, 0x3A)
+BLACK = RGBColor(0x1A, 0x1A, 0x1A)
+BODY_TEXT = RGBColor(0x2D, 0x2D, 0x2D)
+LIGHT_BG = RGBColor(0xF7, 0xF7, 0xF7)       # Very light gray content bg
+PLACEHOLDER_BG = RGBColor(0xEC, 0xEC, 0xEC)  # Placeholder boxes
+PLACEHOLDER_BORDER = RGBColor(0xAA, 0xAA, 0xAA)
+SECTION_BAR = RGBColor(0x1A, 0x1A, 0x1A)     # Black section header bar
+SECTION_TEXT = WHITE                           # White text on black bar
+LIGHT_LINE = RGBColor(0xCC, 0xCC, 0xCC)
 
 prs = Presentation(TEMPLATE)
 slide = prs.slides[0]
 
 # ── Identify shapes to keep vs remove ──────────────────────────────────
-# Keep: footer freeform (object 28), KSU logo (Picture 22), footer line (Straight Connector 24)
-# Keep: QR code image (Picture 13) — we'll reposition it
-# Modify: title placeholder, author text, project number
-# Remove: all template placeholder content boxes
-
 KEEP_NAMES = {'object 28', 'Picture 22', 'Straight Connector 24', 'Picture 13'}
 KEEP_TITLE = 'object 2'
 KEEP_AUTHOR = 'object 39'
@@ -44,7 +45,6 @@ for shape in slide.shapes:
        and shape.name != KEEP_AUTHOR and shape.name != KEEP_NUMBER:
         shapes_to_remove.append(shape)
 
-# Remove template placeholder content (but keep branding elements)
 for shape in shapes_to_remove:
     sp = shape._element
     sp.getparent().remove(sp)
@@ -76,7 +76,6 @@ for shape in slide.shapes:
     elif shape.name == KEEP_AUTHOR:
         tf = shape.text_frame
         tf.clear()
-        # Author line
         p = tf.paragraphs[0]
         run = p.add_run()
         run.text = "Christopher Regan"
@@ -84,7 +83,6 @@ for shape in slide.shapes:
         run.font.size = Pt(60)
         run.font.bold = True
         run.font.color.rgb = KSU_GOLD
-        # Advisor line
         p2 = tf.add_paragraph()
         run2 = p2.add_run()
         run2.text = "Advisor: Dr. Ying Xie"
@@ -92,7 +90,6 @@ for shape in slide.shapes:
         run2.font.size = Pt(60)
         run2.font.bold = True
         run2.font.color.rgb = KSU_GOLD
-        # Department line
         p3 = tf.add_paragraph()
         run3 = p3.add_run()
         run3.text = "College of Computing and Software Engineering"
@@ -136,7 +133,7 @@ def add_rounded_rect(left, top, width, height, fill_color=None, line_color=None,
 
 
 def add_text_box(left, top, width, height, text, font_size=Pt(40),
-                 font_color=BLACK, bold=False, alignment=PP_ALIGN.LEFT,
+                 font_color=BODY_TEXT, bold=False, alignment=PP_ALIGN.LEFT,
                  font_name="Arial"):
     txBox = slide.shapes.add_textbox(left, top, width, height)
     txBox.text_frame.word_wrap = True
@@ -153,33 +150,37 @@ def add_text_box(left, top, width, height, text, font_size=Pt(40),
 
 
 def add_image_placeholder(left, top, width, height, label, sublabel=""):
-    """Dashed-border box with centered label for screenshot drop-in."""
+    """Light gray box with border — drop screenshot here later."""
     shape = add_rounded_rect(left, top, width, height,
-                             fill_color=LIGHT_PLACEHOLDER,
-                             line_color=MID_GRAY, line_width=Pt(2))
+                             fill_color=PLACEHOLDER_BG,
+                             line_color=PLACEHOLDER_BORDER, line_width=Pt(1.5))
     shape.line.dash_style = 4  # Dash
 
     add_text_box(left, top + height // 2 - Inches(0.45), width, Inches(0.6),
-                 label, font_size=Pt(36), font_color=MID_GRAY,
+                 label, font_size=Pt(36), font_color=PLACEHOLDER_BORDER,
                  bold=True, alignment=PP_ALIGN.CENTER)
     if sublabel:
         add_text_box(left, top + height // 2 + Inches(0.2), width, Inches(0.5),
-                     sublabel, font_size=Pt(22), font_color=MID_GRAY,
+                     sublabel, font_size=Pt(22), font_color=PLACEHOLDER_BORDER,
                      alignment=PP_ALIGN.CENTER)
     return shape
 
 
 def add_section_header(left, top, width, text):
-    """Gold accent bar + white section title on dark card."""
-    add_rect(left, top, Inches(0.2), Inches(0.7), fill_color=KSU_GOLD)
-    add_text_box(left + Inches(0.4), top - Inches(0.02), width - Inches(0.4), Inches(0.7),
-                 text, font_size=Pt(48), font_color=WHITE,
+    """Black bar with gold accent stripe and white text — compact, print-friendly."""
+    # Black bar background
+    add_rect(left, top, width, Inches(0.75), fill_color=SECTION_BAR)
+    # Gold accent left edge
+    add_rect(left, top, Inches(0.2), Inches(0.75), fill_color=KSU_GOLD)
+    # White text on the bar
+    add_text_box(left + Inches(0.4), top + Inches(0.05), width - Inches(0.5), Inches(0.65),
+                 text, font_size=Pt(44), font_color=SECTION_TEXT,
                  bold=True, font_name="Arial")
-    return top + Inches(0.85)
+    return top + Inches(0.9)
 
 
-def add_bullet_text(left, top, width, items, font_size=Pt(32), font_color=WHITE):
-    """Add a text box with bullet points."""
+def add_bullet_text(left, top, width, items, font_size=Pt(32), font_color=BODY_TEXT):
+    """Add a text box with bullet points — dark text on light bg."""
     txBox = slide.shapes.add_textbox(left, top, width, Inches(len(items) * 0.6 + 0.1))
     txBox.text_frame.word_wrap = True
     for i, item in enumerate(items):
@@ -197,15 +198,20 @@ def add_bullet_text(left, top, width, items, font_size=Pt(32), font_color=WHITE)
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# CONTENT AREA — positioned within the template's large right rectangle
-# Template has: left column ~1.67-13.75 in, right area ~14.75-48 in
-# Footer starts at y=33.0
-# Title area: y=0 to ~3.0
+# WHITE CONTENT BACKGROUND — print-friendly
+# Template keeps its black header bar and gold footer natively.
+# We fill the main content area with white.
 # ═══════════════════════════════════════════════════════════════════════
 
-# -- Dark background card for right content area (replaces Rectangle 10)
+# White background for entire content area (below title, above footer)
+add_rect(Inches(0), Inches(3.0), Inches(48), Inches(30.0), fill_color=WHITE)
+
+# Light gray right panel to visually distinguish screenshot area
 add_rect(Inches(14.75), Inches(3.0), Inches(33.25), Inches(30.0),
-         fill_color=DARK_BG)
+         fill_color=LIGHT_BG)
+
+# Thin gold separator line between left and right
+add_rect(Inches(14.5), Inches(3.5), Inches(0.08), Inches(29.0), fill_color=KSU_GOLD)
 
 # ── LEFT COLUMN (x=1.5 to 13.5) ──────────────────────────────────────
 LEFT_X = Inches(1.5)
@@ -216,7 +222,7 @@ y = Inches(3.5)
 add_text_box(LEFT_X, y, LEFT_W, Inches(2.0),
              "Architecture, WebAssembly, and Test Infrastructure "
              "for a .NET Financial Visualization Platform",
-             font_size=Pt(44), font_color=KSU_GOLD, bold=True,
+             font_size=Pt(44), font_color=KSU_DARK_GOLD, bold=True,
              alignment=PP_ALIGN.LEFT)
 y += Inches(2.5)
 
@@ -249,7 +255,6 @@ add_bullet_text(LEFT_X + Inches(0.2), y, LEFT_W - Inches(0.4), [
 ], font_size=Pt(32))
 
 # ── RIGHT AREA — split into 2 columns of screenshots ─────────────────
-# Right area spans 14.75 to ~47.25 (with margin)
 R_LEFT = Inches(15.5)
 R_WIDTH = Inches(31.0)
 COL_GAP = Inches(0.6)
@@ -281,8 +286,8 @@ y += Inches(6.4)
 # Stats caption
 add_text_box(col_a, y, COL_W, Inches(0.6),
              "15 pages  \u2022  35+ Blazor components  \u2022  Full keyboard navigation",
-             font_size=Pt(28), font_color=KSU_GOLD,
-             alignment=PP_ALIGN.CENTER)
+             font_size=Pt(28), font_color=KSU_DARK_GOLD,
+             bold=True, alignment=PP_ALIGN.CENTER)
 
 # ─── Right Column B ──────────────────────────────────────────────────
 y = Inches(3.5)
@@ -294,7 +299,6 @@ add_image_placeholder(col_b, y, COL_W, Inches(5.5),
 y += Inches(5.9)
 
 y = add_section_header(col_b, y, COL_W, "Task Board & CI/CD")
-# Two side-by-side
 half_w = (COL_W - Inches(0.4)) / 2
 add_image_placeholder(col_b, y, half_w, Inches(5.5),
                       "TASK BOARD", "GitHub Kanban")
